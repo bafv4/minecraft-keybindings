@@ -1,0 +1,80 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  mcid          String    @unique  // Minecraft ID
+  uuid          String    @unique  // Minecraft UUID
+  microsoftId   String    @unique  // Microsoft Account ID
+  name          String?   // Display name
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  settings      PlayerSettings?
+}
+
+model PlayerSettings {
+  id            String    @id @default(cuid())
+  userId        String    @unique
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // マウス設定
+  mouseDpi      Int?      // マウスDPI
+  gameSensitivity Float?  // ゲーム内感度 (0-200)
+  windowsSpeed  Int?      // Windowsマウス速度 (1-11)
+  mouseAcceleration Boolean @default(false)  // マウス加速の有無
+  cm360         Float?    // 振り向き（cm/360度）- 自動計算
+
+  // 移動キー
+  forward       String    @default("key.keyboard.w")
+  back          String    @default("key.keyboard.s")
+  left          String    @default("key.keyboard.a")
+  right         String    @default("key.keyboard.d")
+  jump          String    @default("key.keyboard.space")
+  sneak         String    @default("key.keyboard.left.shift")
+  sprint        String    @default("key.keyboard.left.control")
+
+  // アクション
+  attack        String    @default("key.mouse.left")
+  use           String    @default("key.mouse.right")
+  pickBlock     String    @default("key.mouse.middle")
+  drop          String    @default("key.keyboard.q")
+
+  // インベントリ
+  inventory     String    @default("key.keyboard.e")
+  swapHands     String    @default("key.keyboard.f")
+  hotbar1       String    @default("key.keyboard.1")
+  hotbar2       String    @default("key.keyboard.2")
+  hotbar3       String    @default("key.keyboard.3")
+  hotbar4       String    @default("key.keyboard.4")
+  hotbar5       String    @default("key.keyboard.5")
+  hotbar6       String    @default("key.keyboard.6")
+  hotbar7       String    @default("key.keyboard.7")
+  hotbar8       String    @default("key.keyboard.8")
+  hotbar9       String    @default("key.keyboard.9")
+
+  // リマップ設定（キーボード/マウスのハードウェアレベルでのリマップ）
+  // 例: { "key.keyboard.caps.lock": "key.keyboard.left.control" }
+  remappings    Json?
+
+  // 外部ツールアクション（AutoHotKey、マウスマクロなど）
+  // 例: { "AutoHotKey": { "actions": [{"trigger": "key.keyboard.x", "action": "Sprint Toggle", "description": "..."}] } }
+  externalTools Json?
+
+  // その他の追加設定
+  additionalSettings Json?
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([userId])
+}
