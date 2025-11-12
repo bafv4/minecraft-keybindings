@@ -1,10 +1,11 @@
 // マウス設定の型定義
 export interface MouseSettings {
-  dpi?: number;
-  gameSensitivity?: number;
-  windowsSpeed?: number;
+  mouseDpi?: number | null;
+  gameSensitivity?: number | null; // Options.txt形式: 0.0-1.0 (4%は0.02)
+  windowsSpeed?: number | null; // 1-20
   mouseAcceleration: boolean;
-  cm360?: number; // 自動計算
+  rawInput: boolean; // RawInput使用の有無
+  cm360?: number | null; // 自動計算
 }
 
 // リマップ設定の型定義
@@ -55,27 +56,40 @@ export interface Keybinding {
   hotbar7: string;
   hotbar8: string;
   hotbar9: string;
+
+  // ビュー・UI操作
+  togglePerspective?: string;
+  fullscreen?: string;
+  chat?: string;
+  command?: string;
+  toggleHud?: string;
 }
 
 // プレイヤー設定の型定義
 export interface PlayerSettings extends Keybinding, MouseSettings {
-  id: string;
-  userId: string;
-  remappings?: RemappingConfig;
-  externalTools?: ExternalToolsConfig;
-  additionalSettings?: Record<string, unknown>;
+  uuid: string; // 主キー
+  keyboardLayout: string; // "JIS" or "US"
+  remappings?: RemappingConfig | null;
+  externalTools?: ExternalToolsConfig | null;
+  additionalSettings?: Record<string, unknown> | null;
+
+  // プレイヤー環境設定
+  gameLanguage?: string | null;
+  mouseModel?: string | null;
+  keyboardModel?: string | null;
+  notes?: string | null;
+
   createdAt: Date;
   updatedAt: Date;
 }
 
 // ユーザーの型定義
 export interface User {
-  id: string;
+  uuid: string; // 主キー
   mcid: string;
-  uuid: string;
-  microsoftId: string;
-  name?: string;
+  passphrase?: string | null;
+  displayName: string;
   createdAt: Date;
   updatedAt: Date;
-  settings?: PlayerSettings;
+  settings?: PlayerSettings | null;
 }

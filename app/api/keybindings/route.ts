@@ -6,7 +6,7 @@ export async function POST(request: Request) {
   try {
     const session = await auth();
 
-    if (!session?.user?.mcid) {
+    if (!session?.user?.uuid) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -15,27 +15,35 @@ export async function POST(request: Request) {
 
     const data = await request.json();
 
-    // ユーザーを取得
-    const user = await prisma.user.findUnique({
-      where: { mcid: session.user.mcid },
-    });
-
-    if (!user) {
+    // セッションのUUIDと送信されたUUIDが一致するか確認
+    if (session.user.uuid !== data.uuid) {
       return NextResponse.json(
-        { error: 'User not found' },
-        { status: 404 }
+        { error: 'Forbidden' },
+        { status: 403 }
       );
     }
 
-    // 設定を保存または更新
+    // 表示名を更新（送信されている場合）
+    if (data.displayName) {
+      await prisma.user.update({
+        where: { uuid: data.uuid },
+        data: { displayName: data.displayName },
+      });
+    }
+
+    // 設定を保存または更新（UUIDを主キーとして使用）
     const settings = await prisma.playerSettings.upsert({
-      where: { userId: user.id },
+      where: { uuid: data.uuid },
       update: {
+        // キーボード配置
+        keyboardLayout: data.keyboardLayout || 'JIS',
+
         // マウス設定
         mouseDpi: data.mouseDpi,
         gameSensitivity: data.gameSensitivity,
         windowsSpeed: data.windowsSpeed,
         mouseAcceleration: data.mouseAcceleration,
+        rawInput: data.rawInput,
         cm360: data.cm360,
 
         // 移動
@@ -66,18 +74,35 @@ export async function POST(request: Request) {
         hotbar8: data.hotbar8,
         hotbar9: data.hotbar9,
 
+        // ビュー・UI操作
+        togglePerspective: data.togglePerspective,
+        fullscreen: data.fullscreen,
+        chat: data.chat,
+        command: data.command,
+        toggleHud: data.toggleHud,
+
         // リマップと外部ツール
         remappings: data.remappings,
         externalTools: data.externalTools,
+
+        // プレイヤー環境設定
+        gameLanguage: data.gameLanguage || null,
+        mouseModel: data.mouseModel || null,
+        keyboardModel: data.keyboardModel || null,
+        notes: data.notes || null,
       },
       create: {
-        userId: user.id,
+        uuid: data.uuid,
+
+        // キーボード配置
+        keyboardLayout: data.keyboardLayout || 'JIS',
 
         // マウス設定
         mouseDpi: data.mouseDpi,
         gameSensitivity: data.gameSensitivity,
         windowsSpeed: data.windowsSpeed,
         mouseAcceleration: data.mouseAcceleration,
+        rawInput: data.rawInput,
         cm360: data.cm360,
 
         // 移動
@@ -108,9 +133,22 @@ export async function POST(request: Request) {
         hotbar8: data.hotbar8,
         hotbar9: data.hotbar9,
 
+        // ビュー・UI操作
+        togglePerspective: data.togglePerspective,
+        fullscreen: data.fullscreen,
+        chat: data.chat,
+        command: data.command,
+        toggleHud: data.toggleHud,
+
         // リマップと外部ツール
         remappings: data.remappings,
         externalTools: data.externalTools,
+
+        // プレイヤー環境設定
+        gameLanguage: data.gameLanguage || null,
+        mouseModel: data.mouseModel || null,
+        keyboardModel: data.keyboardModel || null,
+        notes: data.notes || null,
       },
     });
 
@@ -119,6 +157,50 @@ export async function POST(request: Request) {
     console.error('Failed to save keybindings:', error);
     return NextResponse.json(
       { error: 'Failed to save settings' },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(request: Request) {
+  try {
+    const session = await auth();
+
+    if (!session?.user?.uuid) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    const { searchParams } = new URL(request.url);
+    const uuid = searchParams.get('uuid');
+
+    if (!uuid) {
+      return NextResponse.json(
+        { error: 'UUID is required' },
+        { status: 400 }
+      );
+    }
+
+    // セッションのUUIDと削除対象のUUIDが一致するか確認
+    if (session.user.uuid !== uuid) {
+      return NextResponse.json(
+        { error: 'Forbidden' },
+        { status: 403 }
+      );
+    }
+
+    // 設定を削除
+    await prisma.playerSettings.delete({
+      where: { uuid },
+    });
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('Failed to delete keybindings:', error);
+    return NextResponse.json(
+      { error: 'Failed to delete settings' },
       { status: 500 }
     );
   }

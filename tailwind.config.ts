@@ -9,11 +9,17 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        background: "var(--background)",
-        foreground: "var(--foreground)",
+        background: "rgb(var(--background))",
+        foreground: "rgb(var(--foreground))",
+        card: "rgb(var(--card))",
+        "card-foreground": "rgb(var(--card-foreground))",
+        border: "rgb(var(--border))",
+        muted: "rgb(var(--muted))",
+        "muted-foreground": "rgb(var(--muted-foreground))",
       },
     },
   },
   plugins: [],
 };
+
 export default config;
