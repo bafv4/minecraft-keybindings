@@ -81,7 +81,13 @@ export interface Keybinding {
   chat?: string;
   command?: string;
   toggleHud?: string;
+}
+
+// 追加設定の型定義
+export interface AdditionalSettings {
+  reset?: string;
   playerList?: string;
+  [key: string]: unknown;
 }
 
 // プレイヤー設定の型定義
@@ -91,7 +97,7 @@ export interface PlayerSettings extends Keybinding, MouseSettings {
   remappings?: RemappingConfig | null;
   externalTools?: ExternalToolsConfig | null;
   fingerAssignments?: FingerAssignments | null;
-  additionalSettings?: Record<string, unknown> | null;
+  additionalSettings?: AdditionalSettings | null;
 
   // プレイヤー環境設定
   gameLanguage?: string | null;

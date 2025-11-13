@@ -212,11 +212,13 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
   const [chat, setChat] = useState(initialSettings?.chat || 'key.keyboard.t');
   const [command, setCommand] = useState(initialSettings?.command || 'key.keyboard.slash');
   const [toggleHud, setToggleHud] = useState(initialSettings?.toggleHud || 'key.keyboard.f1');
-  const [playerList, setPlayerList] = useState(initialSettings?.playerList || 'key.keyboard.tab');
 
   // 追加設定（additionalSettings JSONフィールドから読み込み）
   const [reset, setReset] = useState(
     (initialSettings?.additionalSettings as { reset?: string })?.reset || 'key.keyboard.f6'
+  );
+  const [playerList, setPlayerList] = useState(
+    (initialSettings?.additionalSettings as { playerList?: string })?.playerList || 'key.keyboard.tab'
   );
 
   // リマップとツール設定（オブジェクトとして管理）
@@ -488,7 +490,6 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
         chat,
         command,
         toggleHud,
-        playerList,
 
         // リマップと外部ツール（空のオブジェクトの場合はnullに変換）
         remappings: Object.keys(remappings).length > 0 ? remappings : null,
@@ -496,7 +497,7 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
         fingerAssignments: Object.keys(fingerAssignments).length > 0 ? fingerAssignments : null,
 
         // 追加設定（additionalSettings JSONフィールドに保存）
-        additionalSettings: { reset },
+        additionalSettings: { reset, playerList },
 
         // プレイヤー環境設定
         gameLanguage: gameLanguage.trim() || undefined,
