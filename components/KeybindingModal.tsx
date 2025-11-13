@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
+import type { Finger } from '@/types/player';
 
 interface KeybindingModalProps {
   isOpen: boolean;
@@ -12,13 +13,15 @@ interface KeybindingModalProps {
     action?: string;
     remap?: string;
     externalTool?: { tool: string; action: string; description?: string };
+    finger?: Finger;
   }) => void;
   // 既存の設定を渡す
   currentRemap?: string;
   currentExternalTool?: { tool: string; action: string; description?: string };
+  currentFinger?: Finger;
 }
 
-type TabType = 'action' | 'remap' | 'external';
+type TabType = 'action' | 'remap' | 'external' | 'finger';
 
 // 外部ツールのプリセット定義
 const EXTERNAL_TOOL_PRESETS = {
@@ -35,6 +38,20 @@ const EXTERNAL_TOOL_PRESETS = {
   ],
 };
 
+// 指の選択肢定義
+const FINGER_OPTIONS: { value: Finger; label: string; hand: 'left' | 'right' }[] = [
+  { value: 'left-pinky', label: '左手 小指', hand: 'left' },
+  { value: 'left-ring', label: '左手 薬指', hand: 'left' },
+  { value: 'left-middle', label: '左手 中指', hand: 'left' },
+  { value: 'left-index', label: '左手 人差し指', hand: 'left' },
+  { value: 'left-thumb', label: '左手 親指', hand: 'left' },
+  { value: 'right-thumb', label: '右手 親指', hand: 'right' },
+  { value: 'right-index', label: '右手 人差し指', hand: 'right' },
+  { value: 'right-middle', label: '右手 中指', hand: 'right' },
+  { value: 'right-ring', label: '右手 薬指', hand: 'right' },
+  { value: 'right-pinky', label: '右手 小指', hand: 'right' },
+];
+
 export function KeybindingModal({
   isOpen,
   onClose,
@@ -43,6 +60,7 @@ export function KeybindingModal({
   onSave,
   currentRemap,
   currentExternalTool,
+  currentFinger,
 }: KeybindingModalProps) {
   const [activeTab, setActiveTab] = useState<TabType>('action');
   const [selectedAction, setSelectedAction] = useState<string | null>(currentAction);
@@ -51,6 +69,7 @@ export function KeybindingModal({
   const [externalToolAction, setExternalToolAction] = useState<string>(currentExternalTool?.action || '');
   const [externalToolDescription, setExternalToolDescription] = useState<string>(currentExternalTool?.description || '');
   const [selectedPreset, setSelectedPreset] = useState<string>('');
+  const [selectedFinger, setSelectedFinger] = useState<Finger | undefined>(currentFinger);
 
   // モーダルが開くたびに現在の設定で状態をリセット
   useEffect(() => {
@@ -61,9 +80,10 @@ export function KeybindingModal({
       setExternalToolAction(currentExternalTool?.action || '');
       setExternalToolDescription(currentExternalTool?.description || '');
       setSelectedPreset('');
+      setSelectedFinger(currentFinger);
       setActiveTab('action');
     }
-  }, [isOpen, currentAction, currentRemap, currentExternalTool]);
+  }, [isOpen, currentAction, currentRemap, currentExternalTool, currentFinger]);
 
   // プリセット選択時のハンドラー
   const handlePresetSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -97,6 +117,7 @@ export function KeybindingModal({
       externalTool: externalToolName
         ? { tool: externalToolName, action: externalToolAction || '', description: externalToolDescription || undefined }
         : undefined,
+      finger: selectedFinger,
     };
     console.log('KeybindingModal saving:', { selectedKey, config });
     onSave(config);
@@ -187,7 +208,7 @@ export function KeybindingModal({
           <button
             type="button"
             onClick={() => setActiveTab('action')}
-            className={`flex-1 px-6 py-3 font-medium transition-colors ${
+            className={`flex-1 px-4 py-3 font-medium transition-colors text-sm ${
               activeTab === 'action'
                 ? 'border-b-2 border-blue-500 text-blue-600'
                 : 'text-[rgb(var(--muted-foreground))] hover:text-[rgb(var(--foreground))]'
@@ -197,8 +218,19 @@ export function KeybindingModal({
           </button>
           <button
             type="button"
+            onClick={() => setActiveTab('finger')}
+            className={`flex-1 px-4 py-3 font-medium transition-colors text-sm ${
+              activeTab === 'finger'
+                ? 'border-b-2 border-blue-500 text-blue-600'
+                : 'text-[rgb(var(--muted-foreground))] hover:text-[rgb(var(--foreground))]'
+            }`}
+          >
+            指の割り当て
+          </button>
+          <button
+            type="button"
             onClick={() => setActiveTab('remap')}
-            className={`flex-1 px-6 py-3 font-medium transition-colors ${
+            className={`flex-1 px-4 py-3 font-medium transition-colors text-sm ${
               activeTab === 'remap'
                 ? 'border-b-2 border-blue-500 text-blue-600'
                 : 'text-[rgb(var(--muted-foreground))] hover:text-[rgb(var(--foreground))]'
@@ -209,7 +241,7 @@ export function KeybindingModal({
           <button
             type="button"
             onClick={() => setActiveTab('external')}
-            className={`flex-1 px-6 py-3 font-medium transition-colors ${
+            className={`flex-1 px-4 py-3 font-medium transition-colors text-sm ${
               activeTab === 'external'
                 ? 'border-b-2 border-blue-500 text-blue-600'
                 : 'text-[rgb(var(--muted-foreground))] hover:text-[rgb(var(--foreground))]'
@@ -240,6 +272,62 @@ export function KeybindingModal({
                     {action.label}
                   </button>
                 ))}
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'finger' && (
+            <div className="space-y-4">
+              <p className="text-sm text-[rgb(var(--muted-foreground))]">
+                このキーをどの指で押すかを選択してください。指による色分け表示が有効になります。
+              </p>
+              <div className="space-y-3">
+                <div>
+                  <h3 className="text-sm font-semibold mb-2">左手</h3>
+                  <div className="grid grid-cols-2 gap-2">
+                    {FINGER_OPTIONS.filter(f => f.hand === 'left').map((finger) => (
+                      <button
+                        key={finger.value}
+                        onClick={() => setSelectedFinger(finger.value)}
+                        className={`px-4 py-2 rounded-lg border transition-colors text-left ${
+                          selectedFinger === finger.value
+                            ? 'border-blue-500 bg-blue-500/10 text-blue-600'
+                            : 'border-[rgb(var(--border))] hover:bg-[rgb(var(--accent))]'
+                        }`}
+                      >
+                        {finger.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <h3 className="text-sm font-semibold mb-2">右手</h3>
+                  <div className="grid grid-cols-2 gap-2">
+                    {FINGER_OPTIONS.filter(f => f.hand === 'right').map((finger) => (
+                      <button
+                        key={finger.value}
+                        onClick={() => setSelectedFinger(finger.value)}
+                        className={`px-4 py-2 rounded-lg border transition-colors text-left ${
+                          selectedFinger === finger.value
+                            ? 'border-blue-500 bg-blue-500/10 text-blue-600'
+                            : 'border-[rgb(var(--border))] hover:bg-[rgb(var(--accent))]'
+                        }`}
+                      >
+                        {finger.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                {selectedFinger && (
+                  <div className="mt-4">
+                    <button
+                      onClick={() => setSelectedFinger(undefined)}
+                      className="px-4 py-2 text-sm text-red-600 hover:text-red-700 border border-red-500 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
+                    >
+                      指の割り当てをクリア
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           )}

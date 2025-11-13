@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { KeybindingModal } from './KeybindingModal';
+import type { Finger, FingerAssignments } from '@/types/player';
 
 interface VirtualKeyboardProps {
   bindings: {
@@ -14,12 +15,15 @@ interface VirtualKeyboardProps {
   // リマップと外部ツールの設定
   remappings?: { [key: string]: string };
   externalTools?: { [key: string]: { tool: string; action: string; description?: string } };
+  fingerAssignments?: FingerAssignments;
   onUpdateConfig?: (key: string, config: {
     action?: string;
     remap?: string;
     externalTool?: { tool: string; action: string; description?: string };
+    finger?: Finger;
   }) => void;
   keyboardLayout?: 'JIS' | 'US';
+  showFingerColors?: boolean;
 }
 
 // JISキーボードレイアウト定義
@@ -247,6 +251,23 @@ const MOUSE_BUTTONS = [
   { key: 'key.mouse.5', label: 'MB5', disabled: false },
 ];
 
+// 指ごとの色定義
+const getFingerColor = (finger: Finger): string => {
+  const colorMap: Record<Finger, string> = {
+    'left-pinky': 'bg-pink-300/40 border-pink-500 dark:bg-pink-900/30 dark:border-pink-600',
+    'left-ring': 'bg-purple-300/40 border-purple-500 dark:bg-purple-900/30 dark:border-purple-600',
+    'left-middle': 'bg-blue-300/40 border-blue-500 dark:bg-blue-900/30 dark:border-blue-600',
+    'left-index': 'bg-green-300/40 border-green-500 dark:bg-green-900/30 dark:border-green-600',
+    'left-thumb': 'bg-yellow-300/40 border-yellow-500 dark:bg-yellow-900/30 dark:border-yellow-600',
+    'right-thumb': 'bg-orange-300/40 border-orange-500 dark:bg-orange-900/30 dark:border-orange-600',
+    'right-index': 'bg-red-300/40 border-red-500 dark:bg-red-900/30 dark:border-red-600',
+    'right-middle': 'bg-rose-300/40 border-rose-500 dark:bg-rose-900/30 dark:border-rose-600',
+    'right-ring': 'bg-indigo-300/40 border-indigo-500 dark:bg-indigo-900/30 dark:border-indigo-600',
+    'right-pinky': 'bg-cyan-300/40 border-cyan-500 dark:bg-cyan-900/30 dark:border-cyan-600',
+  };
+  return colorMap[finger];
+};
+
 export function VirtualKeyboard({
   bindings,
   onKeyClick,
@@ -255,8 +276,10 @@ export function VirtualKeyboard({
   onSelectAction,
   remappings = {},
   externalTools = {},
+  fingerAssignments = {},
   onUpdateConfig,
   keyboardLayout = 'JIS',
+  showFingerColors = false,
 }: VirtualKeyboardProps) {
   const [hoveredKey, setHoveredKey] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
@@ -373,6 +396,7 @@ export function VirtualKeyboard({
     const hasExternalTool = !!externalTools[keyDef.key];
     const remapTarget = remappings[keyDef.key];
     const externalTool = externalTools[keyDef.key];
+    const assignedFinger = fingerAssignments[keyDef.key];
 
     const handleClick = () => {
       if (mode !== 'edit') return;
@@ -380,6 +404,13 @@ export function VirtualKeyboard({
       // 編集モードの場合はモーダルを開く
       handleOpenModal(keyDef.key);
     };
+
+    // 指の色分け表示が有効な場合は指の色を使用、そうでなければデフォルトの色
+    const fingerColorClass = showFingerColors && assignedFinger ? getFingerColor(assignedFinger) : '';
+    const defaultColorClass = hasBinding || hasRemap || hasExternalTool
+      ? 'bg-blue-500/20 border-blue-500 text-blue-700 dark:text-blue-300'
+      : 'bg-[rgb(var(--card))] border-[rgb(var(--border))]';
+    const backgroundClass = fingerColorClass || defaultColorClass;
 
     return (
       <button
@@ -389,7 +420,7 @@ export function VirtualKeyboard({
         onMouseEnter={() => setHoveredKey(keyDef.key)}
         onMouseLeave={() => setHoveredKey(null)}
         disabled={mode === 'display'}
-        className={`${keyDef.width} h-16 rounded border text-sm font-medium transition-all relative ${hasBinding || hasRemap || hasExternalTool ? 'bg-blue-500/20 border-blue-500 text-blue-700 dark:text-blue-300' : 'bg-[rgb(var(--card))] border-[rgb(var(--border))]'} ${mode === 'edit' ? 'hover:border-blue-500 cursor-pointer' : 'cursor-default'} ${isHovered && (hasBinding || hasRemap || hasExternalTool) ? 'ring-2 ring-blue-500' : ''}`}
+        className={`${keyDef.width} h-16 rounded border text-sm font-medium transition-all relative ${backgroundClass} ${mode === 'edit' ? 'hover:border-blue-500 cursor-pointer' : 'cursor-default'} ${isHovered && (hasBinding || hasRemap || hasExternalTool || assignedFinger) ? 'ring-2 ring-blue-500' : ''}`}
       >
         <div className="absolute top-1 left-1.5 text-xs">{keyDef.label}</div>
         <div className="absolute bottom-1 left-1 right-1 flex flex-col gap-0.5">
@@ -436,6 +467,14 @@ export function VirtualKeyboard({
     const hasExternalTool = !!externalTools[btn.key];
     const remapTarget = remappings[btn.key];
     const externalTool = externalTools[btn.key];
+    const assignedFinger = fingerAssignments[btn.key];
+
+    // 指の色分け表示が有効な場合は指の色を使用、そうでなければデフォルトの色
+    const fingerColorClass = showFingerColors && assignedFinger ? getFingerColor(assignedFinger) : '';
+    const defaultColorClass = hasBinding || hasRemap || hasExternalTool
+      ? 'bg-blue-500/20 border-blue-500 text-blue-700'
+      : 'bg-[rgb(var(--card))] border-[rgb(var(--border))]';
+    const backgroundClass = fingerColorClass || defaultColorClass;
 
     return (
       <button
@@ -446,7 +485,7 @@ export function VirtualKeyboard({
           handleOpenModal(btn.key);
         }}
         disabled={mode === 'display' || btn.disabled}
-        className={`w-28 h-16 rounded border text-sm font-medium transition-all relative ${hasBinding || hasRemap || hasExternalTool ? 'bg-blue-500/20 border-blue-500 text-blue-700' : 'bg-[rgb(var(--card))] border-[rgb(var(--border))]'} ${mode === 'edit' && !btn.disabled ? 'hover:border-blue-500 cursor-pointer' : 'cursor-default'}`}
+        className={`w-28 h-16 rounded border text-sm font-medium transition-all relative ${backgroundClass} ${mode === 'edit' && !btn.disabled ? 'hover:border-blue-500 cursor-pointer' : 'cursor-default'}`}
       >
         <div className="absolute top-1 left-1.5 text-xs">{btn.label}</div>
         <div className="absolute bottom-1 left-1 right-1 flex flex-col gap-0.5">
@@ -553,6 +592,7 @@ export function VirtualKeyboard({
           }
           currentRemap={remappings[selectedKey]}
           currentExternalTool={externalTools[selectedKey]}
+          currentFinger={fingerAssignments[selectedKey]}
           onSave={handleModalSave}
         />
       )}

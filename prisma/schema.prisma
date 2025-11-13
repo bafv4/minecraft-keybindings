@@ -83,6 +83,10 @@ model PlayerSettings {
   // 例: { "AutoHotKey": { "actions": [{"trigger": "key.keyboard.x", "action": "Sprint Toggle", "description": "..."}] } }
   externalTools Json?
 
+  // 指の割り当て設定（各キーをどの指で押すか）
+  // 例: { "key.keyboard.w": "left-middle", "key.keyboard.a": "left-ring" }
+  fingerAssignments Json?
+
   // その他の追加設定
   additionalSettings Json?
 

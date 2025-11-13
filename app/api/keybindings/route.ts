@@ -84,6 +84,7 @@ export async function POST(request: Request) {
         // リマップと外部ツール
         remappings: data.remappings,
         externalTools: data.externalTools,
+        fingerAssignments: data.fingerAssignments,
 
         // プレイヤー環境設定
         gameLanguage: data.gameLanguage || null,
@@ -143,6 +144,7 @@ export async function POST(request: Request) {
         // リマップと外部ツール
         remappings: data.remappings,
         externalTools: data.externalTools,
+        fingerAssignments: data.fingerAssignments,
 
         // プレイヤー環境設定
         gameLanguage: data.gameLanguage || null,

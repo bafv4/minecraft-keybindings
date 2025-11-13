@@ -235,6 +235,14 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
     return flattened;
   });
 
+  // 指の割り当て設定
+  const [fingerAssignments, setFingerAssignments] = useState<{ [key: string]: string }>(
+    initialSettings?.fingerAssignments || {}
+  );
+
+  // 指の色分け表示のトグル
+  const [showFingerColors, setShowFingerColors] = useState(false);
+
   // %入力とOptions.txt入力を連動させるハンドラー
   const handleSensitivityPercentChange = (value: string) => {
     setSensitivityPercent(value);
@@ -350,6 +358,7 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
     action?: string;
     remap?: string;
     externalTool?: { tool: string; action: string; description?: string };
+    finger?: string;
   }) => {
     console.log('handleUpdateConfig called:', { keyCode, config });
 
@@ -388,6 +397,19 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
         const updated = { ...prev };
         if (config.externalTool && config.externalTool.tool && config.externalTool.action) {
           updated[keyCode] = config.externalTool;
+        } else {
+          delete updated[keyCode];
+        }
+        return updated;
+      });
+    }
+
+    // 指の割り当て設定
+    if (config.finger !== undefined) {
+      setFingerAssignments(prev => {
+        const updated = { ...prev };
+        if (config.finger) {
+          updated[keyCode] = config.finger;
         } else {
           delete updated[keyCode];
         }
@@ -461,6 +483,7 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
         // リマップと外部ツール（空のオブジェクトの場合はnullに変換）
         remappings: Object.keys(remappings).length > 0 ? remappings : null,
         externalTools: Object.keys(nestedExternalTools).length > 0 ? nestedExternalTools : null,
+        fingerAssignments: Object.keys(fingerAssignments).length > 0 ? fingerAssignments : null,
 
         // プレイヤー環境設定
         gameLanguage: gameLanguage.trim() || undefined,
@@ -469,7 +492,7 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
         notes: notes.trim() || undefined,
       };
 
-      console.log('Saving keybindings:', { remappings, externalTools, nestedExternalTools });
+      console.log('Saving keybindings:', { remappings, externalTools, nestedExternalTools, fingerAssignments });
 
       const response = await fetch('/api/keybindings', {
         method: 'POST',
@@ -897,15 +920,37 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
 
       {/* 仮想キーボード */}
       <section className="bg-[rgb(var(--card))] p-6 rounded-lg border border-[rgb(var(--border))]">
-        <h2 className="text-xl font-bold mb-4">キー配置設定</h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-bold">キー配置設定</h2>
+          <div className="flex items-center gap-2">
+            <label className="text-sm font-medium">指の色分け表示</label>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={showFingerColors}
+              onClick={() => setShowFingerColors(!showFingerColors)}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                showFingerColors ? 'bg-blue-600' : 'bg-[rgb(var(--border))]'
+              }`}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  showFingerColors ? 'translate-x-6' : 'translate-x-1'
+                }`}
+              />
+            </button>
+          </div>
+        </div>
         <p className="text-sm text-[rgb(var(--muted-foreground))] mb-4">
-          キーをクリックして、操作の割り当て・リマップ・外部ツールの設定を行えます
+          キーをクリックして、操作の割り当て・指の割り当て・リマップ・外部ツールの設定を行えます
         </p>
         <VirtualKeyboard
           bindings={bindings}
           mode="edit"
           remappings={remappings}
           externalTools={externalTools}
+          fingerAssignments={fingerAssignments}
+          showFingerColors={showFingerColors}
           onUpdateConfig={handleUpdateConfig}
           keyboardLayout={keyboardLayout}
         />
