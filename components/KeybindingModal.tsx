@@ -157,9 +157,25 @@ const REMAPPABLE_KEYS = {
     { value: 'key.keyboard.right', label: '→' },
   ],
   '国際キー / 特殊文字': [
-    { value: 'key.keyboard.world.1', label: 'World 1 (ß, æ等)' },
-    { value: 'key.keyboard.world.2', label: 'World 2 (特殊文字)' },
+    { value: 'key.keyboard.world.1', label: 'World 1 (汎用特殊キー1)' },
+    { value: 'key.keyboard.world.2', label: 'World 2 (汎用特殊キー2)' },
     { value: 'key.keyboard.section', label: '§ (セクション)' },
+  ],
+  '北欧語・ドイツ語キー': [
+    { value: 'key.keyboard.ae', label: 'æ (AE合字)' },
+    { value: 'key.keyboard.oe', label: 'ø (O with Stroke)' },
+    { value: 'key.keyboard.aa', label: 'å (A with Ring)' },
+    { value: 'key.keyboard.a.umlaut', label: 'ä (A Umlaut)' },
+    { value: 'key.keyboard.o.umlaut', label: 'ö (O Umlaut)' },
+    { value: 'key.keyboard.u.umlaut', label: 'ü (U Umlaut)' },
+    { value: 'key.keyboard.eszett', label: 'ß (Eszett)' },
+  ],
+  'フランス語・その他の国際キー': [
+    { value: 'key.keyboard.e.acute', label: 'é (E Acute)' },
+    { value: 'key.keyboard.e.grave', label: 'è (E Grave)' },
+    { value: 'key.keyboard.a.grave', label: 'à (A Grave)' },
+    { value: 'key.keyboard.c.cedilla', label: 'ç (C Cedilla)' },
+    { value: 'key.keyboard.n.tilde', label: 'ñ (N Tilde)' },
   ],
   'マウスボタン': [
     { value: 'key.mouse.left', label: 'マウス左' },
@@ -290,6 +306,20 @@ export function KeybindingModal({
         'world.1': 'World 1',
         'world.2': 'World 2',
         'section': '§',
+        // 北欧語・ドイツ語キー
+        'ae': 'æ',
+        'oe': 'ø',
+        'aa': 'å',
+        'a.umlaut': 'ä',
+        'o.umlaut': 'ö',
+        'u.umlaut': 'ü',
+        'eszett': 'ß',
+        // フランス語・その他
+        'e.acute': 'é',
+        'e.grave': 'è',
+        'a.grave': 'à',
+        'c.cedilla': 'ç',
+        'n.tilde': 'ñ',
       };
 
       if (specialKeys[key]) return specialKeys[key];

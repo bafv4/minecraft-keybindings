@@ -375,6 +375,26 @@ export function VirtualKeyboard({
         'tab': 'Tab',
         'escape': 'Esc',
         'backspace': 'BS',
+        'nonconvert': '無変換',
+        'convert': '変換',
+        'kana': 'かな',
+        'world.1': 'World1',
+        'world.2': 'World2',
+        'section': '§',
+        // 北欧語・ドイツ語キー
+        'ae': 'æ',
+        'oe': 'ø',
+        'aa': 'å',
+        'a.umlaut': 'ä',
+        'o.umlaut': 'ö',
+        'u.umlaut': 'ü',
+        'eszett': 'ß',
+        // フランス語・その他
+        'e.acute': 'é',
+        'e.grave': 'è',
+        'a.grave': 'à',
+        'c.cedilla': 'ç',
+        'n.tilde': 'ñ',
       };
 
       if (specialKeys[key]) return specialKeys[key];
