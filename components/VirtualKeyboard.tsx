@@ -251,19 +251,19 @@ const MOUSE_BUTTONS = [
   { key: 'key.mouse.5', label: 'MB5', disabled: false },
 ];
 
-// 指ごとの色定義
+// 指ごとの色定義（パステルカラー）
 const getFingerColor = (finger: Finger): string => {
   const colorMap: Record<Finger, string> = {
-    'left-pinky': 'bg-pink-300/40 border-pink-500 dark:bg-pink-900/30 dark:border-pink-600',
-    'left-ring': 'bg-purple-300/40 border-purple-500 dark:bg-purple-900/30 dark:border-purple-600',
-    'left-middle': 'bg-blue-300/40 border-blue-500 dark:bg-blue-900/30 dark:border-blue-600',
-    'left-index': 'bg-green-300/40 border-green-500 dark:bg-green-900/30 dark:border-green-600',
-    'left-thumb': 'bg-yellow-300/40 border-yellow-500 dark:bg-yellow-900/30 dark:border-yellow-600',
-    'right-thumb': 'bg-orange-300/40 border-orange-500 dark:bg-orange-900/30 dark:border-orange-600',
-    'right-index': 'bg-red-300/40 border-red-500 dark:bg-red-900/30 dark:border-red-600',
-    'right-middle': 'bg-rose-300/40 border-rose-500 dark:bg-rose-900/30 dark:border-rose-600',
-    'right-ring': 'bg-indigo-300/40 border-indigo-500 dark:bg-indigo-900/30 dark:border-indigo-600',
-    'right-pinky': 'bg-cyan-300/40 border-cyan-500 dark:bg-cyan-900/30 dark:border-cyan-600',
+    'left-pinky': 'bg-pink-200/70 border-pink-300 dark:bg-pink-300/40 dark:border-pink-400',
+    'left-ring': 'bg-purple-200/70 border-purple-300 dark:bg-purple-300/40 dark:border-purple-400',
+    'left-middle': 'bg-blue-200/70 border-blue-300 dark:bg-blue-300/40 dark:border-blue-400',
+    'left-index': 'bg-green-200/70 border-green-300 dark:bg-green-300/40 dark:border-green-400',
+    'left-thumb': 'bg-yellow-200/70 border-yellow-300 dark:bg-yellow-300/40 dark:border-yellow-400',
+    'right-thumb': 'bg-orange-200/70 border-orange-300 dark:bg-orange-300/40 dark:border-orange-400',
+    'right-index': 'bg-red-200/70 border-red-300 dark:bg-red-300/40 dark:border-red-400',
+    'right-middle': 'bg-rose-200/70 border-rose-300 dark:bg-rose-300/40 dark:border-rose-400',
+    'right-ring': 'bg-indigo-200/70 border-indigo-300 dark:bg-indigo-300/40 dark:border-indigo-400',
+    'right-pinky': 'bg-cyan-200/70 border-cyan-300 dark:bg-cyan-300/40 dark:border-cyan-400',
   };
   return colorMap[finger];
 };
