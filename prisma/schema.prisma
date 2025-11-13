@@ -85,6 +85,7 @@ model PlayerSettings {
 
   // 指の割り当て設定（各キーをどの指で押すか）
   // 例: { "key.keyboard.w": "left-middle", "key.keyboard.a": "left-ring" }
+  // Database column should be added manually: ALTER TABLE "PlayerSettings" ADD COLUMN IF NOT EXISTS "fingerAssignments" JSONB;
   fingerAssignments Json?
 
   // その他の追加設定
