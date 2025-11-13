@@ -50,9 +50,7 @@ export function calculateCursorSpeed(
     return null;
   }
 
-  if (rawInput) {
-    return dpi;
-  }
+  // RawInputの状態に関わらず、DPIにWindows速度の係数をかける
   const multiplier = WINDOWS_SPEED_MULTIPLIERS[windowsSpeed] ?? 1;
   return Math.floor(dpi * multiplier);
 }
