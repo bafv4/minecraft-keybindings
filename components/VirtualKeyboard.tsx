@@ -405,12 +405,51 @@ export function VirtualKeyboard({
       handleOpenModal(keyDef.key);
     };
 
-    // 指の色分け表示が有効な場合は指の色を使用、そうでなければデフォルトの色
+    // 背景色のロジック：
+    // 1. 指の割り当てがある場合 → 指の色
+    // 2. 指の割り当てがないが、何らかのマッピングがある場合 → Primaryカラー
+    // 3. 何もない場合 → デフォルト色
+    const hasAnyMapping = hasBinding || hasRemap || hasExternalTool;
     const fingerColorClass = showFingerColors && assignedFinger ? getFingerColor(assignedFinger) : '';
-    const defaultColorClass = hasBinding || hasRemap || hasExternalTool
-      ? 'bg-blue-500/20 border-blue-500 text-blue-700 dark:text-blue-300'
-      : 'bg-[rgb(var(--card))] border-[rgb(var(--border))]';
-    const backgroundClass = fingerColorClass || defaultColorClass;
+    const primaryColorClass = 'bg-blue-500/20 border-blue-500 text-blue-700 dark:text-blue-300';
+    const defaultColorClass = 'bg-[rgb(var(--card))] border-[rgb(var(--border))]';
+
+    let backgroundClass = defaultColorClass;
+    if (assignedFinger && showFingerColors) {
+      backgroundClass = fingerColorClass;
+    } else if (hasAnyMapping) {
+      backgroundClass = primaryColorClass;
+    }
+
+    // Tooltip用の詳細情報
+    const tooltipContent = () => {
+      const parts = [];
+      if (hasRemap && remapTarget) {
+        parts.push(`リマップ: ${formatKeyLabel(keyDef.key)} → ${formatKeyLabel(remapTarget)}`);
+      }
+      if (actions.length > 0) {
+        parts.push(`操作: ${actions.join(', ')}`);
+      }
+      if (hasExternalTool && externalTool) {
+        parts.push(`外部ツール: ${externalTool.tool}${externalTool.description ? ` - ${externalTool.description}` : ''}`);
+      }
+      if (assignedFinger) {
+        const fingerLabels: Record<string, string> = {
+          'left-pinky': '左手小指',
+          'left-ring': '左手薬指',
+          'left-middle': '左手中指',
+          'left-index': '左手人差し指',
+          'left-thumb': '左手親指',
+          'right-thumb': '右手親指',
+          'right-index': '右手人差し指',
+          'right-middle': '右手中指',
+          'right-ring': '右手薬指',
+          'right-pinky': '右手小指',
+        };
+        parts.push(`指: ${fingerLabels[assignedFinger] || assignedFinger}`);
+      }
+      return parts.join('\n');
+    };
 
     return (
       <button
@@ -420,9 +459,19 @@ export function VirtualKeyboard({
         onMouseEnter={() => setHoveredKey(keyDef.key)}
         onMouseLeave={() => setHoveredKey(null)}
         disabled={mode === 'display'}
-        className={`${keyDef.width} h-16 rounded border text-sm font-medium transition-all relative ${backgroundClass} ${mode === 'edit' ? 'hover:border-blue-500 cursor-pointer' : 'cursor-default'} ${isHovered && (hasBinding || hasRemap || hasExternalTool || assignedFinger) ? 'ring-2 ring-blue-500' : ''}`}
+        title={mode === 'display' && (hasAnyMapping || assignedFinger) ? tooltipContent() : undefined}
+        className={`${keyDef.width} h-16 rounded border text-sm font-medium transition-all relative ${backgroundClass} ${mode === 'edit' ? 'hover:border-blue-500 cursor-pointer' : 'cursor-default'} ${isHovered && (hasAnyMapping || assignedFinger) ? 'ring-2 ring-blue-500' : ''}`}
       >
-        <div className="absolute top-1 left-1.5 text-xs">{keyDef.label}</div>
+        {/* リマップ表示：左上にもともとのキー名（低コントラスト）とリマップ後のキー名（大きく） */}
+        {hasRemap && remapTarget ? (
+          <div className="absolute top-1 left-1.5 text-xs flex items-baseline gap-1">
+            <span className="text-[10px] opacity-40">{keyDef.label}</span>
+            <span className="text-sm font-bold">{formatKeyLabel(remapTarget)}</span>
+          </div>
+        ) : (
+          <div className="absolute top-1 left-1.5 text-xs">{keyDef.label}</div>
+        )}
+
         <div className="absolute bottom-1 left-1 right-1 flex flex-col gap-0.5">
           {/* マイクラのアクション */}
           {actions.length > 0 && (
@@ -432,18 +481,6 @@ export function VirtualKeyboard({
                   {action}
                 </span>
               ))}
-            </div>
-          )}
-          {/* リマップ表示 */}
-          {hasRemap && remapTarget && (
-            <div className="flex items-center gap-0.5 justify-end">
-              <span className="px-1 py-0 text-[7px] font-medium bg-orange-200 dark:bg-orange-900 text-orange-800 dark:text-orange-200 rounded whitespace-nowrap">
-                {formatKeyLabel(keyDef.key)}
-              </span>
-              <span className="text-[7px] text-orange-600 dark:text-orange-400">→</span>
-              <span className="px-1 py-0 text-[9px] font-bold bg-orange-300 dark:bg-orange-800 text-orange-900 dark:text-orange-100 rounded whitespace-nowrap">
-                {formatKeyLabel(remapTarget)}
-              </span>
             </div>
           )}
           {/* 外部ツール表示 */}
@@ -469,12 +506,48 @@ export function VirtualKeyboard({
     const externalTool = externalTools[btn.key];
     const assignedFinger = fingerAssignments[btn.key];
 
-    // 指の色分け表示が有効な場合は指の色を使用、そうでなければデフォルトの色
+    // 背景色のロジック：renderKeyと同じ
+    const hasAnyMapping = hasBinding || hasRemap || hasExternalTool;
     const fingerColorClass = showFingerColors && assignedFinger ? getFingerColor(assignedFinger) : '';
-    const defaultColorClass = hasBinding || hasRemap || hasExternalTool
-      ? 'bg-blue-500/20 border-blue-500 text-blue-700'
-      : 'bg-[rgb(var(--card))] border-[rgb(var(--border))]';
-    const backgroundClass = fingerColorClass || defaultColorClass;
+    const primaryColorClass = 'bg-blue-500/20 border-blue-500 text-blue-700 dark:text-blue-300';
+    const defaultColorClass = 'bg-[rgb(var(--card))] border-[rgb(var(--border))]';
+
+    let backgroundClass = defaultColorClass;
+    if (assignedFinger && showFingerColors) {
+      backgroundClass = fingerColorClass;
+    } else if (hasAnyMapping) {
+      backgroundClass = primaryColorClass;
+    }
+
+    // Tooltip用の詳細情報
+    const tooltipContent = () => {
+      const parts = [];
+      if (hasRemap && remapTarget) {
+        parts.push(`リマップ: ${formatKeyLabel(btn.key)} → ${formatKeyLabel(remapTarget)}`);
+      }
+      if (actions.length > 0) {
+        parts.push(`操作: ${actions.join(', ')}`);
+      }
+      if (hasExternalTool && externalTool) {
+        parts.push(`外部ツール: ${externalTool.tool}${externalTool.description ? ` - ${externalTool.description}` : ''}`);
+      }
+      if (assignedFinger) {
+        const fingerLabels: Record<string, string> = {
+          'left-pinky': '左手小指',
+          'left-ring': '左手薬指',
+          'left-middle': '左手中指',
+          'left-index': '左手人差し指',
+          'left-thumb': '左手親指',
+          'right-thumb': '右手親指',
+          'right-index': '右手人差し指',
+          'right-middle': '右手中指',
+          'right-ring': '右手薬指',
+          'right-pinky': '右手小指',
+        };
+        parts.push(`指: ${fingerLabels[assignedFinger] || assignedFinger}`);
+      }
+      return parts.join('\n');
+    };
 
     return (
       <button
@@ -485,9 +558,19 @@ export function VirtualKeyboard({
           handleOpenModal(btn.key);
         }}
         disabled={mode === 'display' || btn.disabled}
+        title={mode === 'display' && (hasAnyMapping || assignedFinger) ? tooltipContent() : undefined}
         className={`w-28 h-16 rounded border text-sm font-medium transition-all relative ${backgroundClass} ${mode === 'edit' && !btn.disabled ? 'hover:border-blue-500 cursor-pointer' : 'cursor-default'}`}
       >
-        <div className="absolute top-1 left-1.5 text-xs">{btn.label}</div>
+        {/* リマップ表示：左上にもともとのキー名（低コントラスト）とリマップ後のキー名（大きく） */}
+        {hasRemap && remapTarget ? (
+          <div className="absolute top-1 left-1.5 text-xs flex items-baseline gap-1">
+            <span className="text-[10px] opacity-40">{btn.label}</span>
+            <span className="text-sm font-bold">{formatKeyLabel(remapTarget)}</span>
+          </div>
+        ) : (
+          <div className="absolute top-1 left-1.5 text-xs">{btn.label}</div>
+        )}
+
         <div className="absolute bottom-1 left-1 right-1 flex flex-col gap-0.5">
           {/* マイクラのアクション */}
           {actions.length > 0 && (
@@ -497,18 +580,6 @@ export function VirtualKeyboard({
                   {action}
                 </span>
               ))}
-            </div>
-          )}
-          {/* リマップ表示 */}
-          {hasRemap && remapTarget && (
-            <div className="flex items-center gap-0.5 justify-center">
-              <span className="px-1 py-0 text-[7px] font-medium bg-orange-200 dark:bg-orange-900 text-orange-800 dark:text-orange-200 rounded whitespace-nowrap">
-                {formatKeyLabel(btn.key)}
-              </span>
-              <span className="text-[7px] text-orange-600 dark:text-orange-400">→</span>
-              <span className="px-1 py-0 text-[9px] font-bold bg-orange-300 dark:bg-orange-800 text-orange-900 dark:text-orange-100 rounded whitespace-nowrap">
-                {formatKeyLabel(remapTarget)}
-              </span>
             </div>
           )}
           {/* 外部ツール表示 */}
