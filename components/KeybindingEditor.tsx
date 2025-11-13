@@ -3,7 +3,7 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { calculateCm360, calculateCursorSpeed } from '@/lib/utils';
-import type { PlayerSettings } from '@/types/player';
+import type { PlayerSettings, Finger, FingerAssignments } from '@/types/player';
 import { VirtualKeyboard } from './VirtualKeyboard';
 
 // Minecraft言語リスト（全言語）
@@ -213,6 +213,14 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
   const [command, setCommand] = useState(initialSettings?.command || 'key.keyboard.slash');
   const [toggleHud, setToggleHud] = useState(initialSettings?.toggleHud || 'key.keyboard.f1');
 
+  // 追加設定（additionalSettings JSONフィールドから読み込み）
+  const [reset, setReset] = useState(
+    (initialSettings?.additionalSettings as { reset?: string })?.reset || 'key.keyboard.f6'
+  );
+  const [playerList, setPlayerList] = useState(
+    (initialSettings?.additionalSettings as { playerList?: string })?.playerList || 'key.keyboard.tab'
+  );
+
   // リマップとツール設定（オブジェクトとして管理）
   const [remappings, setRemappings] = useState<{ [key: string]: string }>(
     initialSettings?.remappings || {}
@@ -234,6 +242,14 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
     });
     return flattened;
   });
+
+  // 指の割り当て設定
+  const [fingerAssignments, setFingerAssignments] = useState<FingerAssignments>(
+    initialSettings?.fingerAssignments || {}
+  );
+
+  // 指の色分け表示のトグル
+  const [showFingerColors, setShowFingerColors] = useState(true);
 
   // %入力とOptions.txt入力を連動させるハンドラー
   const handleSensitivityPercentChange = (value: string) => {
@@ -300,7 +316,8 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
     attack, use, pickBlock, drop,
     inventory, swapHands,
     hotbar1, hotbar2, hotbar3, hotbar4, hotbar5, hotbar6, hotbar7, hotbar8, hotbar9,
-    togglePerspective, fullscreen, chat, command, toggleHud,
+    togglePerspective, fullscreen, chat, command, toggleHud, playerList,
+    reset,
   };
 
   // アクション名のラベル
@@ -314,7 +331,7 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
       hotbar4: 'ホットバー4', hotbar5: 'ホットバー5', hotbar6: 'ホットバー6',
       hotbar7: 'ホットバー7', hotbar8: 'ホットバー8', hotbar9: 'ホットバー9',
       togglePerspective: '視点変更', fullscreen: 'フルスクリーン', chat: 'チャット',
-      command: 'コマンド', toggleHud: 'Hide HUD',
+      command: 'コマンド', toggleHud: 'Hide HUD', playerList: 'プレイヤーリスト', reset: 'リセット',
     };
     return labels[action] || action;
   };
@@ -350,6 +367,7 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
     action?: string;
     remap?: string;
     externalTool?: { tool: string; action: string; description?: string };
+    finger?: Finger;
   }) => {
     console.log('handleUpdateConfig called:', { keyCode, config });
 
@@ -365,6 +383,7 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
         hotbar7: setHotbar7, hotbar8: setHotbar8, hotbar9: setHotbar9,
         togglePerspective: setTogglePerspective, fullscreen: setFullscreen,
         chat: setChat, command: setCommand, toggleHud: setToggleHud,
+        playerList: setPlayerList, reset: setReset,
       };
       setters[config.action]?.(keyCode);
     }
@@ -386,8 +405,22 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
     if (config.externalTool !== undefined) {
       setExternalTools(prev => {
         const updated = { ...prev };
-        if (config.externalTool && config.externalTool.tool && config.externalTool.action) {
+        if (config.externalTool && config.externalTool.tool) {
+          // toolが存在すれば保存（actionは空でもOK - プリセットの場合）
           updated[keyCode] = config.externalTool;
+        } else {
+          delete updated[keyCode];
+        }
+        return updated;
+      });
+    }
+
+    // 指の割り当て設定
+    if (config.finger !== undefined) {
+      setFingerAssignments(prev => {
+        const updated = { ...prev };
+        if (config.finger) {
+          updated[keyCode] = config.finger;
         } else {
           delete updated[keyCode];
         }
@@ -461,6 +494,10 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
         // リマップと外部ツール（空のオブジェクトの場合はnullに変換）
         remappings: Object.keys(remappings).length > 0 ? remappings : null,
         externalTools: Object.keys(nestedExternalTools).length > 0 ? nestedExternalTools : null,
+        fingerAssignments: Object.keys(fingerAssignments).length > 0 ? fingerAssignments : null,
+
+        // 追加設定（additionalSettings JSONフィールドに保存）
+        additionalSettings: { reset, playerList },
 
         // プレイヤー環境設定
         gameLanguage: gameLanguage.trim() || undefined,
@@ -469,7 +506,7 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
         notes: notes.trim() || undefined,
       };
 
-      console.log('Saving keybindings:', { remappings, externalTools, nestedExternalTools });
+      console.log('Saving keybindings:', { remappings, externalTools, nestedExternalTools, fingerAssignments });
 
       const response = await fetch('/api/keybindings', {
         method: 'POST',
@@ -897,15 +934,37 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
 
       {/* 仮想キーボード */}
       <section className="bg-[rgb(var(--card))] p-6 rounded-lg border border-[rgb(var(--border))]">
-        <h2 className="text-xl font-bold mb-4">キー配置設定</h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-bold">キー配置設定</h2>
+          <div className="flex items-center gap-2">
+            <label className="text-sm font-medium">指の色分け表示</label>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={showFingerColors}
+              onClick={() => setShowFingerColors(!showFingerColors)}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                showFingerColors ? 'bg-blue-600' : 'bg-[rgb(var(--border))]'
+              }`}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  showFingerColors ? 'translate-x-6' : 'translate-x-1'
+                }`}
+              />
+            </button>
+          </div>
+        </div>
         <p className="text-sm text-[rgb(var(--muted-foreground))] mb-4">
-          キーをクリックして、操作の割り当て・リマップ・外部ツールの設定を行えます
+          キーをクリックして、操作の割り当て・指の割り当て・リマップ・外部ツールの設定を行えます
         </p>
         <VirtualKeyboard
           bindings={bindings}
           mode="edit"
           remappings={remappings}
           externalTools={externalTools}
+          fingerAssignments={fingerAssignments}
+          showFingerColors={showFingerColors}
           onUpdateConfig={handleUpdateConfig}
           keyboardLayout={keyboardLayout}
         />
@@ -934,8 +993,14 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
             type="button"
             onClick={handleSubmit}
             disabled={saving}
-            className="bg-blue-600 text-white hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed font-semibold py-3 px-6 rounded-lg transition-colors"
+            className="bg-blue-600 text-white hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed font-semibold py-3 px-6 rounded-lg transition-colors flex items-center gap-2"
           >
+            {saving && (
+              <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+            )}
             {saving ? '保存中...' : '保存'}
           </button>
         </div>
@@ -962,8 +1027,14 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
                 type="button"
                 onClick={handleDelete}
                 disabled={deleting}
-                className="bg-red-600 text-white hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed font-semibold py-3 px-6 rounded-lg transition-colors"
+                className="bg-red-600 text-white hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed font-semibold py-3 px-6 rounded-lg transition-colors flex items-center gap-2"
               >
+                {deleting && (
+                  <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                )}
                 {deleting ? '削除中...' : '削除する'}
               </button>
             </div>

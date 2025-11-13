@@ -13,6 +13,24 @@ export interface RemappingConfig {
   [physicalKey: string]: string;
 }
 
+// 指の種類
+export type Finger =
+  | 'left-pinky'      // 左手小指
+  | 'left-ring'       // 左手薬指
+  | 'left-middle'     // 左手中指
+  | 'left-index'      // 左手人差し指
+  | 'left-thumb'      // 左手親指
+  | 'right-thumb'     // 右手親指
+  | 'right-index'     // 右手人差し指
+  | 'right-middle'    // 右手中指
+  | 'right-ring'      // 右手薬指
+  | 'right-pinky';    // 右手小指
+
+// 指の割り当て設定
+export interface FingerAssignments {
+  [keyCode: string]: Finger;
+}
+
 // 外部ツールアクション
 export interface ExternalToolAction {
   trigger: string;
@@ -65,13 +83,21 @@ export interface Keybinding {
   toggleHud?: string;
 }
 
+// 追加設定の型定義
+export interface AdditionalSettings {
+  reset?: string;
+  playerList?: string;
+  [key: string]: unknown;
+}
+
 // プレイヤー設定の型定義
 export interface PlayerSettings extends Keybinding, MouseSettings {
   uuid: string; // 主キー
   keyboardLayout: string; // "JIS" or "US"
   remappings?: RemappingConfig | null;
   externalTools?: ExternalToolsConfig | null;
-  additionalSettings?: Record<string, unknown> | null;
+  fingerAssignments?: FingerAssignments | null;
+  additionalSettings?: AdditionalSettings | null;
 
   // プレイヤー環境設定
   gameLanguage?: string | null;

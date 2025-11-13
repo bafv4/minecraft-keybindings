@@ -3,6 +3,7 @@
 
 generator client {
   provider = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
 }
 
 datasource db {
@@ -83,7 +84,13 @@ model PlayerSettings {
   // 例: { "AutoHotKey": { "actions": [{"trigger": "key.keyboard.x", "action": "Sprint Toggle", "description": "..."}] } }
   externalTools Json?
 
-  // その他の追加設定
+  // 指の割り当て設定（各キーをどの指で押すか）
+  // 例: { "key.keyboard.w": "left-middle", "key.keyboard.a": "left-ring" }
+  // Database column should be added manually: ALTER TABLE "PlayerSettings" ADD COLUMN IF NOT EXISTS "fingerAssignments" JSONB;
+  fingerAssignments Json?
+
+  // その他の追加設定（reset、playerListなど）
+  // 例: { "reset": "key.keyboard.f6", "playerList": "key.keyboard.tab" }
   additionalSettings Json?
 
   // プレイヤー環境設定

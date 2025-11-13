@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { KeybindingModal } from './KeybindingModal';
+import type { Finger, FingerAssignments } from '@/types/player';
 
 interface VirtualKeyboardProps {
   bindings: {
@@ -14,12 +15,15 @@ interface VirtualKeyboardProps {
   // リマップと外部ツールの設定
   remappings?: { [key: string]: string };
   externalTools?: { [key: string]: { tool: string; action: string; description?: string } };
+  fingerAssignments?: FingerAssignments;
   onUpdateConfig?: (key: string, config: {
     action?: string;
     remap?: string;
     externalTool?: { tool: string; action: string; description?: string };
+    finger?: Finger;
   }) => void;
   keyboardLayout?: 'JIS' | 'US';
+  showFingerColors?: boolean;
 }
 
 // JISキーボードレイアウト定義
@@ -240,12 +244,29 @@ const KEYBOARD_LAYOUT_US = [
   ],
 ];
 
-// マウスボタン（ホイール、MB4、MB5のみ - 攻撃/使うは固定）
+// マウスボタン（ホイール、MB5、MB4のみ - 攻撃/使うは固定）
 const MOUSE_BUTTONS = [
   { key: 'key.mouse.middle', label: 'ホイール', disabled: false },
-  { key: 'key.mouse.4', label: 'MB4', disabled: false },
   { key: 'key.mouse.5', label: 'MB5', disabled: false },
+  { key: 'key.mouse.4', label: 'MB4', disabled: false },
 ];
+
+// 指ごとの色定義（パステルカラー）
+const getFingerColor = (finger: Finger): string => {
+  const colorMap: Record<Finger, string> = {
+    'left-pinky': 'bg-pink-200/70 border-pink-300 dark:bg-pink-300/40 dark:border-pink-400',
+    'left-ring': 'bg-purple-200/70 border-purple-300 dark:bg-purple-300/40 dark:border-purple-400',
+    'left-middle': 'bg-blue-200/70 border-blue-300 dark:bg-blue-300/40 dark:border-blue-400',
+    'left-index': 'bg-green-200/70 border-green-300 dark:bg-green-300/40 dark:border-green-400',
+    'left-thumb': 'bg-yellow-200/70 border-yellow-300 dark:bg-yellow-300/40 dark:border-yellow-400',
+    'right-thumb': 'bg-orange-200/70 border-orange-300 dark:bg-orange-300/40 dark:border-orange-400',
+    'right-index': 'bg-red-200/70 border-red-300 dark:bg-red-300/40 dark:border-red-400',
+    'right-middle': 'bg-rose-200/70 border-rose-300 dark:bg-rose-300/40 dark:border-rose-400',
+    'right-ring': 'bg-indigo-200/70 border-indigo-300 dark:bg-indigo-300/40 dark:border-indigo-400',
+    'right-pinky': 'bg-cyan-200/70 border-cyan-300 dark:bg-cyan-300/40 dark:border-cyan-400',
+  };
+  return colorMap[finger];
+};
 
 export function VirtualKeyboard({
   bindings,
@@ -255,8 +276,10 @@ export function VirtualKeyboard({
   onSelectAction,
   remappings = {},
   externalTools = {},
+  fingerAssignments = {},
   onUpdateConfig,
   keyboardLayout = 'JIS',
+  showFingerColors = false,
 }: VirtualKeyboardProps) {
   const [hoveredKey, setHoveredKey] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
@@ -285,6 +308,13 @@ export function VirtualKeyboard({
           drop: 'ドロップ',
           inventory: 'ｲﾝﾍﾞﾝﾄﾘ',
           swapHands: 'オフハンド',
+          chat: 'チャット',
+          command: 'コマンド',
+          togglePerspective: '視点変更',
+          fullscreen: 'フルスクリーン',
+          toggleHud: 'HUD非表示',
+          playerList: 'プレイヤーリスト',
+          reset: 'リセット',
           hotbar1: 'HB1',
           hotbar2: 'HB2',
           hotbar3: 'HB3',
@@ -323,6 +353,65 @@ export function VirtualKeyboard({
     }
   };
 
+  // キーラベルをフォーマット（リマップ表示用）
+  const formatKeyLabel = (keyCode: string): string => {
+    if (keyCode.startsWith('key.mouse.')) {
+      const button = keyCode.replace('key.mouse.', '');
+      const buttonMap: { [key: string]: string } = {
+        'left': '左クリック',
+        'right': '右クリック',
+        'middle': 'ホイール',
+        '4': 'MB4',
+        '5': 'MB5',
+      };
+      return buttonMap[button] || button;
+    }
+
+    if (keyCode.startsWith('key.keyboard.')) {
+      const key = keyCode.replace('key.keyboard.', '');
+      const specialKeys: { [key: string]: string } = {
+        'left.shift': 'LShift',
+        'right.shift': 'RShift',
+        'left.control': 'LCtrl',
+        'right.control': 'RCtrl',
+        'left.alt': 'LAlt',
+        'right.alt': 'RAlt',
+        'space': 'Space',
+        'caps.lock': 'Caps',
+        'enter': 'Enter',
+        'tab': 'Tab',
+        'escape': 'Esc',
+        'backspace': 'BS',
+        'nonconvert': '無変換',
+        'convert': '変換',
+        'kana': 'かな',
+        'world.1': 'World1',
+        'world.2': 'World2',
+        'section': '§',
+        // 北欧語・ドイツ語キー
+        'ae': 'æ',
+        'oe': 'ø',
+        'aa': 'å',
+        'a.umlaut': 'ä',
+        'o.umlaut': 'ö',
+        'u.umlaut': 'ü',
+        'eszett': 'ß',
+        // フランス語・その他
+        'e.acute': 'é',
+        'e.grave': 'è',
+        'a.grave': 'à',
+        'c.cedilla': 'ç',
+        'n.tilde': 'ñ',
+        'disabled': '✕',
+      };
+
+      if (specialKeys[key]) return specialKeys[key];
+      return key.toUpperCase();
+    }
+
+    return keyCode;
+  };
+
   const renderKey = (keyDef: any) => {
     if (keyDef.key === 'spacer') {
       return <div key={Math.random()} className={keyDef.width} />;
@@ -333,12 +422,61 @@ export function VirtualKeyboard({
     const isHovered = hoveredKey === keyDef.key;
     const hasRemap = !!remappings[keyDef.key];
     const hasExternalTool = !!externalTools[keyDef.key];
+    const remapTarget = remappings[keyDef.key];
+    const externalTool = externalTools[keyDef.key];
+    const assignedFinger = fingerAssignments[keyDef.key];
 
     const handleClick = () => {
       if (mode !== 'edit') return;
 
       // 編集モードの場合はモーダルを開く
       handleOpenModal(keyDef.key);
+    };
+
+    // 背景色のロジック：
+    // 1. 指の割り当てがある場合 → 指の色
+    // 2. 指の割り当てがないが、何らかのマッピングがある場合 → Primaryカラー（黒系/白系）
+    // 3. 何もない場合 → デフォルト色
+    const hasAnyMapping = hasBinding || hasRemap || hasExternalTool;
+    const fingerColorClass = showFingerColors && assignedFinger ? getFingerColor(assignedFinger) : '';
+    const primaryColorClass = 'bg-gray-900/10 border-gray-900 dark:bg-gray-100/10 dark:border-gray-100';
+    const defaultColorClass = 'bg-[rgb(var(--card))] border-[rgb(var(--border))]';
+
+    let backgroundClass = defaultColorClass;
+    if (assignedFinger && showFingerColors) {
+      backgroundClass = fingerColorClass;
+    } else if (hasAnyMapping) {
+      backgroundClass = primaryColorClass;
+    }
+
+    // Tooltip用の詳細情報
+    const tooltipContent = () => {
+      const parts = [];
+      if (hasRemap && remapTarget) {
+        parts.push(`リマップ: ${formatKeyLabel(keyDef.key)} → ${formatKeyLabel(remapTarget)}`);
+      }
+      if (actions.length > 0) {
+        parts.push(`操作: ${actions.join(', ')}`);
+      }
+      if (hasExternalTool && externalTool) {
+        parts.push(`外部ツール: ${externalTool.tool}${externalTool.description ? ` - ${externalTool.description}` : ''}`);
+      }
+      if (assignedFinger) {
+        const fingerLabels: Record<string, string> = {
+          'left-pinky': '左手小指',
+          'left-ring': '左手薬指',
+          'left-middle': '左手中指',
+          'left-index': '左手人差し指',
+          'left-thumb': '左手親指',
+          'right-thumb': '右手親指',
+          'right-index': '右手人差し指',
+          'right-middle': '右手中指',
+          'right-ring': '右手薬指',
+          'right-pinky': '右手小指',
+        };
+        parts.push(`指: ${fingerLabels[assignedFinger] || assignedFinger}`);
+      }
+      return parts.join('\n');
     };
 
     return (
@@ -349,26 +487,39 @@ export function VirtualKeyboard({
         onMouseEnter={() => setHoveredKey(keyDef.key)}
         onMouseLeave={() => setHoveredKey(null)}
         disabled={mode === 'display'}
-        className={`${keyDef.width} h-16 rounded border text-sm font-medium transition-all relative ${hasBinding ? 'bg-blue-500/20 border-blue-500 text-blue-700 dark:text-blue-300' : 'bg-[rgb(var(--card))] border-[rgb(var(--border))]'} ${mode === 'edit' ? 'hover:border-blue-500 cursor-pointer' : 'cursor-default'} ${isHovered && hasBinding ? 'ring-2 ring-blue-500' : ''}`}
+        title={mode === 'display' && (hasAnyMapping || assignedFinger) ? tooltipContent() : undefined}
+        className={`${keyDef.width} h-16 rounded border text-sm font-medium transition-all relative ${backgroundClass} ${mode === 'edit' ? 'hover:border-blue-500 cursor-pointer' : 'cursor-default'} ${isHovered && (hasAnyMapping || assignedFinger) ? 'ring-2 ring-blue-500' : ''}`}
       >
-        <div className="absolute top-1 left-1.5 text-xs">{keyDef.label}</div>
-        {actions.length > 0 && (
-          <div className="absolute bottom-1 left-1 right-1 flex flex-wrap gap-0.5 justify-end">
-            {actions.slice(0, 3).map((action, idx) => (
-              <span key={idx} className="px-1 py-0 text-[8px] font-medium bg-gray-300 dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded whitespace-nowrap max-w-[90%] overflow-hidden text-ellipsis">
-                {action}
-              </span>
-            ))}
+        {/* リマップ表示：左上にもともとのキー名（低コントラスト）とリマップ後のキー名（大きく） */}
+        {hasRemap && remapTarget ? (
+          <div className="absolute top-1 left-1.5 text-xs flex items-baseline gap-1">
+            <span className="text-[10px] opacity-40">{keyDef.label}</span>
+            <span className="text-sm font-bold">{formatKeyLabel(remapTarget)}</span>
           </div>
+        ) : (
+          <div className="absolute top-1 left-1.5 text-xs">{keyDef.label}</div>
         )}
-        {/* インジケーター: リマップ */}
-        {hasRemap && (
-          <div className="absolute top-1 right-1 w-2 h-2 bg-orange-500 rounded-full" title="リマップ設定あり" />
-        )}
-        {/* インジケーター: 外部ツール */}
-        {hasExternalTool && (
-          <div className="absolute top-3.5 right-1 w-2 h-2 bg-purple-500 rounded-full" title="外部ツール設定あり" />
-        )}
+
+        <div className="absolute bottom-1 left-1 right-1 flex flex-col gap-0.5">
+          {/* マイクラのアクション */}
+          {actions.length > 0 && (
+            <div className="flex flex-wrap gap-0.5 justify-end">
+              {actions.slice(0, 3).map((action, idx) => (
+                <span key={idx} className="px-1 py-0 text-[8px] font-medium bg-gray-300 dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded whitespace-nowrap max-w-[90%] overflow-hidden text-ellipsis">
+                  {action}
+                </span>
+              ))}
+            </div>
+          )}
+          {/* 外部ツール表示 */}
+          {hasExternalTool && externalTool && (
+            <div className="flex justify-end">
+              <span className="px-1 py-0 text-[8px] font-medium bg-gray-400/30 dark:bg-gray-600/30 text-gray-800 dark:text-gray-200 rounded-sm whitespace-nowrap max-w-[90%] overflow-hidden text-ellipsis border border-gray-500/40 dark:border-gray-500/40" title={`${externalTool.tool}${externalTool.description ? ': ' + externalTool.description : ''}${externalTool.action ? '\n' + externalTool.action : ''}`}>
+                {externalTool.description ? externalTool.description.replace(/^(.*?)\s*（.*）\s*$/, '$1').replace(/\s*-\s*.*$/, '').trim() : externalTool.tool}
+              </span>
+            </div>
+          )}
+        </div>
       </button>
     );
   };
@@ -379,6 +530,52 @@ export function VirtualKeyboard({
     const hasBinding = actions.length > 0;
     const hasRemap = !!remappings[btn.key];
     const hasExternalTool = !!externalTools[btn.key];
+    const remapTarget = remappings[btn.key];
+    const externalTool = externalTools[btn.key];
+    const assignedFinger = fingerAssignments[btn.key];
+
+    // 背景色のロジック：renderKeyと同じ
+    const hasAnyMapping = hasBinding || hasRemap || hasExternalTool;
+    const fingerColorClass = showFingerColors && assignedFinger ? getFingerColor(assignedFinger) : '';
+    const primaryColorClass = 'bg-gray-900/10 border-gray-900 dark:bg-gray-100/10 dark:border-gray-100';
+    const defaultColorClass = 'bg-[rgb(var(--card))] border-[rgb(var(--border))]';
+
+    let backgroundClass = defaultColorClass;
+    if (assignedFinger && showFingerColors) {
+      backgroundClass = fingerColorClass;
+    } else if (hasAnyMapping) {
+      backgroundClass = primaryColorClass;
+    }
+
+    // Tooltip用の詳細情報
+    const tooltipContent = () => {
+      const parts = [];
+      if (hasRemap && remapTarget) {
+        parts.push(`リマップ: ${formatKeyLabel(btn.key)} → ${formatKeyLabel(remapTarget)}`);
+      }
+      if (actions.length > 0) {
+        parts.push(`操作: ${actions.join(', ')}`);
+      }
+      if (hasExternalTool && externalTool) {
+        parts.push(`外部ツール: ${externalTool.tool}${externalTool.description ? ` - ${externalTool.description}` : ''}`);
+      }
+      if (assignedFinger) {
+        const fingerLabels: Record<string, string> = {
+          'left-pinky': '左手小指',
+          'left-ring': '左手薬指',
+          'left-middle': '左手中指',
+          'left-index': '左手人差し指',
+          'left-thumb': '左手親指',
+          'right-thumb': '右手親指',
+          'right-index': '右手人差し指',
+          'right-middle': '右手中指',
+          'right-ring': '右手薬指',
+          'right-pinky': '右手小指',
+        };
+        parts.push(`指: ${fingerLabels[assignedFinger] || assignedFinger}`);
+      }
+      return parts.join('\n');
+    };
 
     return (
       <button
@@ -389,24 +586,39 @@ export function VirtualKeyboard({
           handleOpenModal(btn.key);
         }}
         disabled={mode === 'display' || btn.disabled}
-        className={`w-28 h-16 rounded border text-sm font-medium transition-all relative ${hasBinding ? 'bg-blue-500/20 border-blue-500 text-blue-700' : 'bg-[rgb(var(--card))] border-[rgb(var(--border))]'} ${mode === 'edit' && !btn.disabled ? 'hover:border-blue-500 cursor-pointer' : 'cursor-default'}`}
+        title={mode === 'display' && (hasAnyMapping || assignedFinger) ? tooltipContent() : undefined}
+        className={`w-28 h-16 rounded border text-sm font-medium transition-all relative ${backgroundClass} ${mode === 'edit' && !btn.disabled ? 'hover:border-blue-500 cursor-pointer' : 'cursor-default'}`}
       >
-        <div className="absolute top-1 left-1.5 text-xs">{btn.label}</div>
-        {actions.length > 0 && (
-          <div className="absolute bottom-1 left-1 right-1 flex flex-wrap gap-0.5 justify-center">
-            {actions.slice(0, 2).map((action, idx) => (
-              <span key={idx} className="px-1 py-0 text-[8px] font-medium bg-gray-300 dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded whitespace-nowrap max-w-[90%] overflow-hidden text-ellipsis">
-                {action}
-              </span>
-            ))}
+        {/* リマップ表示：左上にもともとのキー名（低コントラスト）とリマップ後のキー名（大きく） */}
+        {hasRemap && remapTarget ? (
+          <div className="absolute top-1 left-1.5 text-xs flex items-baseline gap-1">
+            <span className="text-[10px] opacity-40">{btn.label}</span>
+            <span className="text-sm font-bold">{formatKeyLabel(remapTarget)}</span>
           </div>
+        ) : (
+          <div className="absolute top-1 left-1.5 text-xs">{btn.label}</div>
         )}
-        {hasRemap && (
-          <div className="absolute top-1 right-1 w-2 h-2 bg-orange-500 rounded-full" title="リマップ設定あり" />
-        )}
-        {hasExternalTool && (
-          <div className="absolute top-3.5 right-1 w-2 h-2 bg-purple-500 rounded-full" title="外部ツール設定あり" />
-        )}
+
+        <div className="absolute bottom-1 left-1 right-1 flex flex-col gap-0.5">
+          {/* マイクラのアクション */}
+          {actions.length > 0 && (
+            <div className="flex flex-wrap gap-0.5 justify-center">
+              {actions.slice(0, 2).map((action, idx) => (
+                <span key={idx} className="px-1 py-0 text-[8px] font-medium bg-gray-300 dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded whitespace-nowrap max-w-[90%] overflow-hidden text-ellipsis">
+                  {action}
+                </span>
+              ))}
+            </div>
+          )}
+          {/* 外部ツール表示 */}
+          {hasExternalTool && externalTool && (
+            <div className="flex justify-center">
+              <span className="px-1 py-0 text-[8px] font-medium bg-gray-400/30 dark:bg-gray-600/30 text-gray-800 dark:text-gray-200 rounded-sm whitespace-nowrap max-w-[90%] overflow-hidden text-ellipsis border border-gray-500/40 dark:border-gray-500/40" title={`${externalTool.tool}${externalTool.description ? ': ' + externalTool.description : ''}${externalTool.action ? '\n' + externalTool.action : ''}`}>
+                {externalTool.description ? externalTool.description.replace(/^(.*?)\s*（.*）\s*$/, '$1').replace(/\s*-\s*.*$/, '').trim() : externalTool.tool}
+              </span>
+            </div>
+          )}
+        </div>
       </button>
     );
   };
@@ -442,15 +654,19 @@ export function VirtualKeyboard({
 
       {/* 凡例 */}
       <div className="text-xs text-[rgb(var(--muted-foreground))] space-y-1">
-        <p>青色のキー: 割り当てあり</p>
-        <div className="flex items-center gap-4">
+        <p>境界線が濃いキー: 割り当てあり</p>
+        <div className="flex items-center gap-4 flex-wrap">
           <div className="flex items-center gap-1">
-            <div className="w-2 h-2 bg-orange-500 rounded-full" />
-            <span>リマップ設定あり</span>
+            <span className="px-1 py-0 text-[8px] font-medium bg-gray-300 dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded">
+              例
+            </span>
+            <span>マイクラ操作</span>
           </div>
           <div className="flex items-center gap-1">
-            <div className="w-2 h-2 bg-purple-500 rounded-full" />
-            <span>外部ツール設定あり</span>
+            <span className="px-1 py-0 text-[8px] font-medium bg-gray-400/30 dark:bg-gray-600/30 text-gray-800 dark:text-gray-200 rounded-sm border border-gray-500/40 dark:border-gray-500/40">
+              例
+            </span>
+            <span>外部ツール</span>
           </div>
         </div>
         {mode === 'edit' && (
@@ -469,6 +685,7 @@ export function VirtualKeyboard({
           }
           currentRemap={remappings[selectedKey]}
           currentExternalTool={externalTools[selectedKey]}
+          currentFinger={fingerAssignments[selectedKey]}
           onSave={handleModalSave}
         />
       )}

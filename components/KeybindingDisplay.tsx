@@ -1,5 +1,8 @@
+'use client';
+
+import { useState } from 'react';
 import { formatKeyName, calculateCursorSpeed } from '@/lib/utils';
-import type { PlayerSettings } from '@/types/player';
+import type { PlayerSettings, FingerAssignments } from '@/types/player';
 import { VirtualKeyboard } from './VirtualKeyboard';
 
 interface KeybindingDisplayProps {
@@ -49,6 +52,11 @@ function formatKey(keyCode: string | undefined): string {
 }
 
 export function KeybindingDisplay({ settings }: KeybindingDisplayProps) {
+  // 指の色分け表示のトグル（初期値: 指の割り当てがある場合は表示）
+  const [showFingerColors, setShowFingerColors] = useState(
+    !!settings.fingerAssignments && Object.keys(settings.fingerAssignments).length > 0
+  );
+
   // 仮想キーボード用のバインディングマップ
   const bindings = {
     forward: settings.forward,
@@ -78,6 +86,8 @@ export function KeybindingDisplay({ settings }: KeybindingDisplayProps) {
     chat: settings.chat || 'key.keyboard.t',
     command: settings.command || 'key.keyboard.slash',
     toggleHud: settings.toggleHud || 'key.keyboard.f1',
+    reset: (settings.additionalSettings as { reset?: string })?.reset || 'key.keyboard.f6',
+    playerList: (settings.additionalSettings as { playerList?: string })?.playerList || 'key.keyboard.tab',
   };
 
   // 外部ツール設定を平坦化（key -> {tool, action, description}）
@@ -110,13 +120,40 @@ export function KeybindingDisplay({ settings }: KeybindingDisplayProps) {
   return (
     <div className="space-y-6">
       {/* 仮想キーボード */}
-      <VirtualKeyboard
-        bindings={bindings}
-        mode="display"
-        remappings={settings.remappings as { [key: string]: string } || {}}
-        externalTools={flattenedExternalTools}
-        keyboardLayout={(settings.keyboardLayout as 'JIS' | 'US') || 'JIS'}
-      />
+      <section>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-bold">キー配置</h2>
+          {settings.fingerAssignments && Object.keys(settings.fingerAssignments).length > 0 && (
+            <div className="flex items-center gap-2">
+              <label className="text-sm font-medium">指の色分け表示</label>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={showFingerColors}
+                onClick={() => setShowFingerColors(!showFingerColors)}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                  showFingerColors ? 'bg-blue-600' : 'bg-[rgb(var(--border))]'
+                }`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    showFingerColors ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+            </div>
+          )}
+        </div>
+        <VirtualKeyboard
+          bindings={bindings}
+          mode="display"
+          remappings={settings.remappings as { [key: string]: string } || {}}
+          externalTools={flattenedExternalTools}
+          fingerAssignments={(settings.fingerAssignments as FingerAssignments) || {}}
+          showFingerColors={showFingerColors}
+          keyboardLayout={(settings.keyboardLayout as 'JIS' | 'US') || 'JIS'}
+        />
+      </section>
 
       {/* キー配置Overview */}
       <section>
@@ -214,11 +251,19 @@ export function KeybindingDisplay({ settings }: KeybindingDisplayProps) {
             </kbd>
           </div>
 
-          {/* Hide HUD */}
+          {/* HUD非表示 */}
           <div className="bg-[rgb(var(--card))] p-4 rounded-lg border border-[rgb(var(--border))]">
-            <div className="text-sm font-semibold text-[rgb(var(--muted-foreground))] mb-2">Hide HUD</div>
+            <div className="text-sm font-semibold text-[rgb(var(--muted-foreground))] mb-2">HUD非表示</div>
             <kbd className="px-3 py-1.5 text-base bg-[rgb(var(--muted))] border border-[rgb(var(--border))] rounded font-mono">
               {formatKey(settings.toggleHud)}
+            </kbd>
+          </div>
+
+          {/* リセット */}
+          <div className="bg-[rgb(var(--card))] p-4 rounded-lg border border-[rgb(var(--border))]">
+            <div className="text-sm font-semibold text-[rgb(var(--muted-foreground))] mb-2">リセット</div>
+            <kbd className="px-3 py-1.5 text-base bg-[rgb(var(--muted))] border border-[rgb(var(--border))] rounded font-mono">
+              {formatKey((settings.additionalSettings as { reset?: string })?.reset || 'key.keyboard.f6')}
             </kbd>
           </div>
 
