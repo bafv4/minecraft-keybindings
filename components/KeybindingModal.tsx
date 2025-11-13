@@ -116,6 +116,27 @@ const REMAPPABLE_KEYS = {
     { value: 'key.keyboard.f10', label: 'F10' },
     { value: 'key.keyboard.f11', label: 'F11' },
     { value: 'key.keyboard.f12', label: 'F12' },
+    { value: 'key.keyboard.f13', label: 'F13' },
+    { value: 'key.keyboard.f14', label: 'F14' },
+    { value: 'key.keyboard.f15', label: 'F15' },
+    { value: 'key.keyboard.f16', label: 'F16' },
+    { value: 'key.keyboard.f17', label: 'F17' },
+    { value: 'key.keyboard.f18', label: 'F18' },
+    { value: 'key.keyboard.f19', label: 'F19' },
+    { value: 'key.keyboard.f20', label: 'F20' },
+  ],
+  '記号キー': [
+    { value: 'key.keyboard.comma', label: ', (コンマ)' },
+    { value: 'key.keyboard.period', label: '. (ピリオド)' },
+    { value: 'key.keyboard.slash', label: '/ (スラッシュ)' },
+    { value: 'key.keyboard.semicolon', label: '; (セミコロン)' },
+    { value: 'key.keyboard.apostrophe', label: '\' (アポストロフィ)' },
+    { value: 'key.keyboard.left.bracket', label: '[ (左角括弧)' },
+    { value: 'key.keyboard.right.bracket', label: '] (右角括弧)' },
+    { value: 'key.keyboard.minus', label: '- (マイナス)' },
+    { value: 'key.keyboard.equal', label: '= (イコール)' },
+    { value: 'key.keyboard.grave.accent', label: '` (グレイヴ)' },
+    { value: 'key.keyboard.backslash', label: '\\ (バックスラッシュ)' },
   ],
   '特殊キー': [
     { value: 'key.keyboard.space', label: 'スペース' },
@@ -134,6 +155,11 @@ const REMAPPABLE_KEYS = {
     { value: 'key.keyboard.down', label: '↓' },
     { value: 'key.keyboard.left', label: '←' },
     { value: 'key.keyboard.right', label: '→' },
+  ],
+  '国際キー / 特殊文字': [
+    { value: 'key.keyboard.world.1', label: 'World 1 (ß, æ等)' },
+    { value: 'key.keyboard.world.2', label: 'World 2 (特殊文字)' },
+    { value: 'key.keyboard.section', label: '§ (セクション)' },
   ],
   'マウスボタン': [
     { value: 'key.mouse.left', label: 'マウス左' },
@@ -239,13 +265,40 @@ export function KeybindingModal({
         'right.alt': '右Alt',
         'space': 'スペース',
         'caps.lock': 'Caps Lock',
+        'enter': 'Enter',
+        'tab': 'Tab',
+        'backspace': 'Backspace',
+        'escape': 'Esc',
         'up': '↑',
         'down': '↓',
         'left': '←',
         'right': '→',
+        'nonconvert': '無変換',
+        'convert': '変換',
+        'kana': 'かな',
+        'comma': ',',
+        'period': '.',
+        'slash': '/',
+        'semicolon': ';',
+        'apostrophe': '\'',
+        'left.bracket': '[',
+        'right.bracket': ']',
+        'minus': '-',
+        'equal': '=',
+        'grave.accent': '`',
+        'backslash': '\\',
+        'world.1': 'World 1',
+        'world.2': 'World 2',
+        'section': '§',
       };
 
       if (specialKeys[key]) return specialKeys[key];
+
+      // F13-F20の処理
+      if (key.match(/^f(1[3-9]|20)$/)) {
+        return key.toUpperCase();
+      }
+
       return key.toUpperCase();
     }
 
