@@ -323,6 +323,44 @@ export function VirtualKeyboard({
     }
   };
 
+  // キーラベルをフォーマット（リマップ表示用）
+  const formatKeyLabel = (keyCode: string): string => {
+    if (keyCode.startsWith('key.mouse.')) {
+      const button = keyCode.replace('key.mouse.', '');
+      const buttonMap: { [key: string]: string } = {
+        'left': '左クリック',
+        'right': '右クリック',
+        'middle': 'ホイール',
+        '4': 'MB4',
+        '5': 'MB5',
+      };
+      return buttonMap[button] || button;
+    }
+
+    if (keyCode.startsWith('key.keyboard.')) {
+      const key = keyCode.replace('key.keyboard.', '');
+      const specialKeys: { [key: string]: string } = {
+        'left.shift': 'LShift',
+        'right.shift': 'RShift',
+        'left.control': 'LCtrl',
+        'right.control': 'RCtrl',
+        'left.alt': 'LAlt',
+        'right.alt': 'RAlt',
+        'space': 'Space',
+        'caps.lock': 'Caps',
+        'enter': 'Enter',
+        'tab': 'Tab',
+        'escape': 'Esc',
+        'backspace': 'BS',
+      };
+
+      if (specialKeys[key]) return specialKeys[key];
+      return key.toUpperCase();
+    }
+
+    return keyCode;
+  };
+
   const renderKey = (keyDef: any) => {
     if (keyDef.key === 'spacer') {
       return <div key={Math.random()} className={keyDef.width} />;
@@ -333,6 +371,8 @@ export function VirtualKeyboard({
     const isHovered = hoveredKey === keyDef.key;
     const hasRemap = !!remappings[keyDef.key];
     const hasExternalTool = !!externalTools[keyDef.key];
+    const remapTarget = remappings[keyDef.key];
+    const externalTool = externalTools[keyDef.key];
 
     const handleClick = () => {
       if (mode !== 'edit') return;
@@ -349,26 +389,41 @@ export function VirtualKeyboard({
         onMouseEnter={() => setHoveredKey(keyDef.key)}
         onMouseLeave={() => setHoveredKey(null)}
         disabled={mode === 'display'}
-        className={`${keyDef.width} h-16 rounded border text-sm font-medium transition-all relative ${hasBinding ? 'bg-blue-500/20 border-blue-500 text-blue-700 dark:text-blue-300' : 'bg-[rgb(var(--card))] border-[rgb(var(--border))]'} ${mode === 'edit' ? 'hover:border-blue-500 cursor-pointer' : 'cursor-default'} ${isHovered && hasBinding ? 'ring-2 ring-blue-500' : ''}`}
+        className={`${keyDef.width} h-16 rounded border text-sm font-medium transition-all relative ${hasBinding || hasRemap || hasExternalTool ? 'bg-blue-500/20 border-blue-500 text-blue-700 dark:text-blue-300' : 'bg-[rgb(var(--card))] border-[rgb(var(--border))]'} ${mode === 'edit' ? 'hover:border-blue-500 cursor-pointer' : 'cursor-default'} ${isHovered && (hasBinding || hasRemap || hasExternalTool) ? 'ring-2 ring-blue-500' : ''}`}
       >
         <div className="absolute top-1 left-1.5 text-xs">{keyDef.label}</div>
-        {actions.length > 0 && (
-          <div className="absolute bottom-1 left-1 right-1 flex flex-wrap gap-0.5 justify-end">
-            {actions.slice(0, 3).map((action, idx) => (
-              <span key={idx} className="px-1 py-0 text-[8px] font-medium bg-gray-300 dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded whitespace-nowrap max-w-[90%] overflow-hidden text-ellipsis">
-                {action}
+        <div className="absolute bottom-1 left-1 right-1 flex flex-col gap-0.5">
+          {/* マイクラのアクション */}
+          {actions.length > 0 && (
+            <div className="flex flex-wrap gap-0.5 justify-end">
+              {actions.slice(0, 3).map((action, idx) => (
+                <span key={idx} className="px-1 py-0 text-[8px] font-medium bg-gray-300 dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded whitespace-nowrap max-w-[90%] overflow-hidden text-ellipsis">
+                  {action}
+                </span>
+              ))}
+            </div>
+          )}
+          {/* リマップ表示 */}
+          {hasRemap && remapTarget && (
+            <div className="flex items-center gap-0.5 justify-end">
+              <span className="px-1 py-0 text-[7px] font-medium bg-orange-200 dark:bg-orange-900 text-orange-800 dark:text-orange-200 rounded whitespace-nowrap">
+                {formatKeyLabel(keyDef.key)}
               </span>
-            ))}
-          </div>
-        )}
-        {/* インジケーター: リマップ */}
-        {hasRemap && (
-          <div className="absolute top-1 right-1 w-2 h-2 bg-orange-500 rounded-full" title="リマップ設定あり" />
-        )}
-        {/* インジケーター: 外部ツール */}
-        {hasExternalTool && (
-          <div className="absolute top-3.5 right-1 w-2 h-2 bg-purple-500 rounded-full" title="外部ツール設定あり" />
-        )}
+              <span className="text-[7px] text-orange-600 dark:text-orange-400">→</span>
+              <span className="px-1 py-0 text-[9px] font-bold bg-orange-300 dark:bg-orange-800 text-orange-900 dark:text-orange-100 rounded whitespace-nowrap">
+                {formatKeyLabel(remapTarget)}
+              </span>
+            </div>
+          )}
+          {/* 外部ツール表示 */}
+          {hasExternalTool && externalTool && (
+            <div className="flex justify-end">
+              <span className="px-1 py-0 text-[8px] font-medium bg-purple-300 dark:bg-purple-900 text-purple-900 dark:text-purple-100 rounded-sm whitespace-nowrap max-w-[90%] overflow-hidden text-ellipsis border border-purple-500 dark:border-purple-600" title={externalTool.description || externalTool.action || externalTool.tool}>
+                {externalTool.tool}: {externalTool.description || (externalTool.action ? externalTool.action.split('\n')[0].substring(0, 10) : '')}
+              </span>
+            </div>
+          )}
+        </div>
       </button>
     );
   };
@@ -379,6 +434,8 @@ export function VirtualKeyboard({
     const hasBinding = actions.length > 0;
     const hasRemap = !!remappings[btn.key];
     const hasExternalTool = !!externalTools[btn.key];
+    const remapTarget = remappings[btn.key];
+    const externalTool = externalTools[btn.key];
 
     return (
       <button
@@ -389,24 +446,41 @@ export function VirtualKeyboard({
           handleOpenModal(btn.key);
         }}
         disabled={mode === 'display' || btn.disabled}
-        className={`w-28 h-16 rounded border text-sm font-medium transition-all relative ${hasBinding ? 'bg-blue-500/20 border-blue-500 text-blue-700' : 'bg-[rgb(var(--card))] border-[rgb(var(--border))]'} ${mode === 'edit' && !btn.disabled ? 'hover:border-blue-500 cursor-pointer' : 'cursor-default'}`}
+        className={`w-28 h-16 rounded border text-sm font-medium transition-all relative ${hasBinding || hasRemap || hasExternalTool ? 'bg-blue-500/20 border-blue-500 text-blue-700' : 'bg-[rgb(var(--card))] border-[rgb(var(--border))]'} ${mode === 'edit' && !btn.disabled ? 'hover:border-blue-500 cursor-pointer' : 'cursor-default'}`}
       >
         <div className="absolute top-1 left-1.5 text-xs">{btn.label}</div>
-        {actions.length > 0 && (
-          <div className="absolute bottom-1 left-1 right-1 flex flex-wrap gap-0.5 justify-center">
-            {actions.slice(0, 2).map((action, idx) => (
-              <span key={idx} className="px-1 py-0 text-[8px] font-medium bg-gray-300 dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded whitespace-nowrap max-w-[90%] overflow-hidden text-ellipsis">
-                {action}
+        <div className="absolute bottom-1 left-1 right-1 flex flex-col gap-0.5">
+          {/* マイクラのアクション */}
+          {actions.length > 0 && (
+            <div className="flex flex-wrap gap-0.5 justify-center">
+              {actions.slice(0, 2).map((action, idx) => (
+                <span key={idx} className="px-1 py-0 text-[8px] font-medium bg-gray-300 dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded whitespace-nowrap max-w-[90%] overflow-hidden text-ellipsis">
+                  {action}
+                </span>
+              ))}
+            </div>
+          )}
+          {/* リマップ表示 */}
+          {hasRemap && remapTarget && (
+            <div className="flex items-center gap-0.5 justify-center">
+              <span className="px-1 py-0 text-[7px] font-medium bg-orange-200 dark:bg-orange-900 text-orange-800 dark:text-orange-200 rounded whitespace-nowrap">
+                {formatKeyLabel(btn.key)}
               </span>
-            ))}
-          </div>
-        )}
-        {hasRemap && (
-          <div className="absolute top-1 right-1 w-2 h-2 bg-orange-500 rounded-full" title="リマップ設定あり" />
-        )}
-        {hasExternalTool && (
-          <div className="absolute top-3.5 right-1 w-2 h-2 bg-purple-500 rounded-full" title="外部ツール設定あり" />
-        )}
+              <span className="text-[7px] text-orange-600 dark:text-orange-400">→</span>
+              <span className="px-1 py-0 text-[9px] font-bold bg-orange-300 dark:bg-orange-800 text-orange-900 dark:text-orange-100 rounded whitespace-nowrap">
+                {formatKeyLabel(remapTarget)}
+              </span>
+            </div>
+          )}
+          {/* 外部ツール表示 */}
+          {hasExternalTool && externalTool && (
+            <div className="flex justify-center">
+              <span className="px-1 py-0 text-[8px] font-medium bg-purple-300 dark:bg-purple-900 text-purple-900 dark:text-purple-100 rounded-sm whitespace-nowrap max-w-[90%] overflow-hidden text-ellipsis border border-purple-500 dark:border-purple-600" title={externalTool.description || externalTool.action || externalTool.tool}>
+                {externalTool.tool}: {externalTool.description || (externalTool.action ? externalTool.action.split('\n')[0].substring(0, 10) : '')}
+              </span>
+            </div>
+          )}
+        </div>
       </button>
     );
   };
@@ -443,14 +517,24 @@ export function VirtualKeyboard({
       {/* 凡例 */}
       <div className="text-xs text-[rgb(var(--muted-foreground))] space-y-1">
         <p>青色のキー: 割り当てあり</p>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 flex-wrap">
           <div className="flex items-center gap-1">
-            <div className="w-2 h-2 bg-orange-500 rounded-full" />
-            <span>リマップ設定あり</span>
+            <span className="px-1 py-0 text-[8px] font-medium bg-gray-300 dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded">
+              例
+            </span>
+            <span>マイクラ操作</span>
           </div>
           <div className="flex items-center gap-1">
-            <div className="w-2 h-2 bg-purple-500 rounded-full" />
-            <span>外部ツール設定あり</span>
+            <span className="px-1 py-0 text-[8px] font-medium bg-orange-300 dark:bg-orange-800 text-orange-900 dark:text-orange-100 rounded">
+              例
+            </span>
+            <span>リマップ</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <span className="px-1 py-0 text-[8px] font-medium bg-purple-300 dark:bg-purple-900 text-purple-900 dark:text-purple-100 rounded-sm border border-purple-500 dark:border-purple-600">
+              例
+            </span>
+            <span>外部ツール</span>
           </div>
         </div>
         {mode === 'edit' && (

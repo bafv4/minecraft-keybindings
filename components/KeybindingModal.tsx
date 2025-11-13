@@ -20,6 +20,21 @@ interface KeybindingModalProps {
 
 type TabType = 'action' | 'remap' | 'external';
 
+// 外部ツールのプリセット定義
+const EXTERNAL_TOOL_PRESETS = {
+  'Jingle': [
+    { name: 'ThinBT', description: 'ThinBT (細めのBT)', action: '' },
+    { name: 'Wide', description: 'Wide (広めのBT)', action: '' },
+    { name: 'Zoom', description: 'Zoom', action: '' },
+  ],
+  'NinjabrainBot': [
+    { name: 'Add Throw', description: '投擲を追加', action: '' },
+    { name: 'Reset', description: 'リセット', action: '' },
+    { name: 'Lock Direction', description: '方向をロック', action: '' },
+    { name: 'Undo', description: '元に戻す', action: '' },
+  ],
+};
+
 export function KeybindingModal({
   isOpen,
   onClose,
@@ -35,6 +50,7 @@ export function KeybindingModal({
   const [externalToolName, setExternalToolName] = useState<string>(currentExternalTool?.tool || '');
   const [externalToolAction, setExternalToolAction] = useState<string>(currentExternalTool?.action || '');
   const [externalToolDescription, setExternalToolDescription] = useState<string>(currentExternalTool?.description || '');
+  const [selectedPreset, setSelectedPreset] = useState<string>('');
 
   // モーダルが開くたびに現在の設定で状態をリセット
   useEffect(() => {
@@ -44,9 +60,32 @@ export function KeybindingModal({
       setExternalToolName(currentExternalTool?.tool || '');
       setExternalToolAction(currentExternalTool?.action || '');
       setExternalToolDescription(currentExternalTool?.description || '');
+      setSelectedPreset('');
       setActiveTab('action');
     }
   }, [isOpen, currentAction, currentRemap, currentExternalTool]);
+
+  // プリセット選択時のハンドラー
+  const handlePresetSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = e.target.value;
+    setSelectedPreset(value);
+
+    if (!value) return;
+
+    const [tool, presetName] = value.split('::');
+    const preset = EXTERNAL_TOOL_PRESETS[tool as keyof typeof EXTERNAL_TOOL_PRESETS]?.find(
+      (p) => p.name === presetName
+    );
+
+    if (preset) {
+      setExternalToolName(tool);
+      setExternalToolDescription(preset.description);
+      // actionは空文字列なので既存の値を保持するか、カスタム入力を促す
+      if (preset.action) {
+        setExternalToolAction(preset.action);
+      }
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -54,8 +93,9 @@ export function KeybindingModal({
     const config = {
       action: selectedAction || undefined,
       remap: remapKey || undefined,
-      externalTool: externalToolName && externalToolAction
-        ? { tool: externalToolName, action: externalToolAction, description: externalToolDescription || undefined }
+      // 外部ツールはツール名があれば保存（アクションは空でもOK - プリセットの場合）
+      externalTool: externalToolName
+        ? { tool: externalToolName, action: externalToolAction || '', description: externalToolDescription || undefined }
         : undefined,
     };
     console.log('KeybindingModal saving:', { selectedKey, config });
@@ -241,6 +281,38 @@ export function KeybindingModal({
               <p className="text-sm text-[rgb(var(--muted-foreground))]">
                 外部ツール（AutoHotKey、マクロソフトウェアなど）で実行するアクションを記録します。
               </p>
+
+              {/* プリセット選択 */}
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  プリセット（Jingle / NinjabrainBot）
+                </label>
+                <select
+                  value={selectedPreset}
+                  onChange={handlePresetSelect}
+                  className="w-full px-4 py-2 border border-[rgb(var(--border))] rounded-lg bg-[rgb(var(--background))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--ring))]"
+                >
+                  <option value="">-- プリセットを選択 --</option>
+                  <optgroup label="Jingle">
+                    {EXTERNAL_TOOL_PRESETS.Jingle.map((preset) => (
+                      <option key={preset.name} value={`Jingle::${preset.name}`}>
+                        {preset.description}
+                      </option>
+                    ))}
+                  </optgroup>
+                  <optgroup label="NinjabrainBot">
+                    {EXTERNAL_TOOL_PRESETS.NinjabrainBot.map((preset) => (
+                      <option key={preset.name} value={`NinjabrainBot::${preset.name}`}>
+                        {preset.description}
+                      </option>
+                    ))}
+                  </optgroup>
+                </select>
+                <p className="text-xs text-[rgb(var(--muted-foreground))] mt-2">
+                  プリセットを選択すると、ツール名と説明が自動的に入力されます
+                </p>
+              </div>
+
               <div>
                 <label className="block text-sm font-medium mb-2">
                   ツール名
@@ -249,7 +321,7 @@ export function KeybindingModal({
                   type="text"
                   value={externalToolName}
                   onChange={(e) => setExternalToolName(e.target.value)}
-                  placeholder="例: AutoHotKey"
+                  placeholder="例: AutoHotKey, Jingle, NinjabrainBot"
                   className="w-full px-4 py-2 border border-[rgb(var(--border))] rounded-lg bg-[rgb(var(--background))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--ring))]"
                 />
               </div>
@@ -265,7 +337,7 @@ export function KeybindingModal({
                   className="w-full px-4 py-2 border border-[rgb(var(--border))] rounded-lg bg-[rgb(var(--background))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--ring))] font-mono text-sm"
                 />
                 <p className="text-xs text-[rgb(var(--muted-foreground))] mt-2">
-                  このキーが押されたときに実行される外部ツールのスクリプトを記述してください
+                  このキーが押されたときに実行される外部ツールのスクリプトを記述してください（プリセットの場合は空でもOK）
                 </p>
               </div>
               <div>
