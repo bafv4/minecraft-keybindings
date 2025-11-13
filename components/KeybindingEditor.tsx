@@ -241,7 +241,7 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
   );
 
   // 指の色分け表示のトグル
-  const [showFingerColors, setShowFingerColors] = useState(false);
+  const [showFingerColors, setShowFingerColors] = useState(true);
 
   // %入力とOptions.txt入力を連動させるハンドラー
   const handleSensitivityPercentChange = (value: string) => {
