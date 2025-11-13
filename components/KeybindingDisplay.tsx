@@ -1,5 +1,5 @@
 import { formatKeyName, calculateCursorSpeed } from '@/lib/utils';
-import type { PlayerSettings } from '@/types/player';
+import type { PlayerSettings, FingerAssignments } from '@/types/player';
 import { VirtualKeyboard } from './VirtualKeyboard';
 
 interface KeybindingDisplayProps {
@@ -115,7 +115,7 @@ export function KeybindingDisplay({ settings }: KeybindingDisplayProps) {
         mode="display"
         remappings={settings.remappings as { [key: string]: string } || {}}
         externalTools={flattenedExternalTools}
-        fingerAssignments={settings.fingerAssignments as { [key: string]: string } || {}}
+        fingerAssignments={(settings.fingerAssignments as FingerAssignments) || {}}
         showFingerColors={!!settings.fingerAssignments && Object.keys(settings.fingerAssignments).length > 0}
         keyboardLayout={(settings.keyboardLayout as 'JIS' | 'US') || 'JIS'}
       />
