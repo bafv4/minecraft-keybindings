@@ -536,13 +536,13 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
                 type="text"
                 value={currentMcid}
                 readOnly
-                className="flex-1 px-3 py-2 border rounded bg-[rgb(var(--muted))] text-[rgb(var(--muted-foreground))] cursor-not-allowed"
+                className="flex-1 min-w-0 px-3 py-2 border rounded bg-[rgb(var(--muted))] text-[rgb(var(--muted-foreground))] cursor-not-allowed"
               />
               <button
                 type="button"
                 onClick={handleSyncMcid}
                 disabled={syncingMcid}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-medium rounded transition-colors whitespace-nowrap"
+                className="px-2 sm:px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-medium rounded transition-colors whitespace-nowrap flex-shrink-0"
                 title="Mojang APIから最新のMCIDを取得"
               >
                 {syncingMcid ? '同期中...' : '同期'}
