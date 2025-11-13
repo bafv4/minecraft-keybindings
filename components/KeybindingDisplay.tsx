@@ -84,6 +84,7 @@ export function KeybindingDisplay({ settings }: KeybindingDisplayProps) {
     chat: settings.chat || 'key.keyboard.t',
     command: settings.command || 'key.keyboard.slash',
     toggleHud: settings.toggleHud || 'key.keyboard.f1',
+    playerList: settings.playerList || 'key.keyboard.tab',
     reset: (settings.additionalSettings as { reset?: string })?.reset || 'key.keyboard.f6',
   };
 

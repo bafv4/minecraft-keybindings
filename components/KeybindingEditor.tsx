@@ -212,6 +212,7 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
   const [chat, setChat] = useState(initialSettings?.chat || 'key.keyboard.t');
   const [command, setCommand] = useState(initialSettings?.command || 'key.keyboard.slash');
   const [toggleHud, setToggleHud] = useState(initialSettings?.toggleHud || 'key.keyboard.f1');
+  const [playerList, setPlayerList] = useState(initialSettings?.playerList || 'key.keyboard.tab');
 
   // 追加設定（additionalSettings JSONフィールドから読み込み）
   const [reset, setReset] = useState(
@@ -313,7 +314,7 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
     attack, use, pickBlock, drop,
     inventory, swapHands,
     hotbar1, hotbar2, hotbar3, hotbar4, hotbar5, hotbar6, hotbar7, hotbar8, hotbar9,
-    togglePerspective, fullscreen, chat, command, toggleHud,
+    togglePerspective, fullscreen, chat, command, toggleHud, playerList,
     reset,
   };
 
@@ -328,7 +329,7 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
       hotbar4: 'ホットバー4', hotbar5: 'ホットバー5', hotbar6: 'ホットバー6',
       hotbar7: 'ホットバー7', hotbar8: 'ホットバー8', hotbar9: 'ホットバー9',
       togglePerspective: '視点変更', fullscreen: 'フルスクリーン', chat: 'チャット',
-      command: 'コマンド', toggleHud: 'Hide HUD', reset: 'リセット',
+      command: 'コマンド', toggleHud: 'Hide HUD', playerList: 'プレイヤーリスト', reset: 'リセット',
     };
     return labels[action] || action;
   };
@@ -380,7 +381,7 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
         hotbar7: setHotbar7, hotbar8: setHotbar8, hotbar9: setHotbar9,
         togglePerspective: setTogglePerspective, fullscreen: setFullscreen,
         chat: setChat, command: setCommand, toggleHud: setToggleHud,
-        reset: setReset,
+        playerList: setPlayerList, reset: setReset,
       };
       setters[config.action]?.(keyCode);
     }
@@ -487,6 +488,7 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
         chat,
         command,
         toggleHud,
+        playerList,
 
         // リマップと外部ツール（空のオブジェクトの場合はnullに変換）
         remappings: Object.keys(remappings).length > 0 ? remappings : null,
@@ -990,8 +992,14 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
             type="button"
             onClick={handleSubmit}
             disabled={saving}
-            className="bg-blue-600 text-white hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed font-semibold py-3 px-6 rounded-lg transition-colors"
+            className="bg-blue-600 text-white hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed font-semibold py-3 px-6 rounded-lg transition-colors flex items-center gap-2"
           >
+            {saving && (
+              <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+            )}
             {saving ? '保存中...' : '保存'}
           </button>
         </div>
@@ -1018,8 +1026,14 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
                 type="button"
                 onClick={handleDelete}
                 disabled={deleting}
-                className="bg-red-600 text-white hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed font-semibold py-3 px-6 rounded-lg transition-colors"
+                className="bg-red-600 text-white hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed font-semibold py-3 px-6 rounded-lg transition-colors flex items-center gap-2"
               >
+                {deleting && (
+                  <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                )}
                 {deleting ? '削除中...' : '削除する'}
               </button>
             </div>

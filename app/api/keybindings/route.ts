@@ -80,6 +80,7 @@ export async function POST(request: Request) {
         chat: data.chat,
         command: data.command,
         toggleHud: data.toggleHud,
+        playerList: data.playerList,
 
         // リマップと外部ツール
         remappings: data.remappings,
@@ -143,6 +144,7 @@ export async function POST(request: Request) {
         chat: data.chat,
         command: data.command,
         toggleHud: data.toggleHud,
+        playerList: data.playerList,
 
         // リマップと外部ツール
         remappings: data.remappings,

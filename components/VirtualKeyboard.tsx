@@ -514,8 +514,8 @@ export function VirtualKeyboard({
           {/* 外部ツール表示 */}
           {hasExternalTool && externalTool && (
             <div className="flex justify-end">
-              <span className="px-1 py-0 text-[8px] font-medium bg-purple-300 dark:bg-purple-900 text-purple-900 dark:text-purple-100 rounded-sm whitespace-nowrap max-w-[90%] overflow-hidden text-ellipsis border border-purple-500 dark:border-purple-600" title={externalTool.description || externalTool.action || externalTool.tool}>
-                {externalTool.tool}: {externalTool.description || (externalTool.action ? externalTool.action.split('\n')[0].substring(0, 10) : '')}
+              <span className="px-1 py-0 text-[8px] font-medium bg-gray-400/30 dark:bg-gray-600/30 text-gray-800 dark:text-gray-200 rounded-sm whitespace-nowrap max-w-[90%] overflow-hidden text-ellipsis border border-gray-500/40 dark:border-gray-500/40" title={`${externalTool.tool}${externalTool.description ? ': ' + externalTool.description : ''}${externalTool.action ? '\n' + externalTool.action : ''}`}>
+                {externalTool.description ? externalTool.description.replace(/^(.*?)\s*（.*）\s*$/, '$1').replace(/\s*-\s*.*$/, '').trim() : externalTool.tool}
               </span>
             </div>
           )}
@@ -613,8 +613,8 @@ export function VirtualKeyboard({
           {/* 外部ツール表示 */}
           {hasExternalTool && externalTool && (
             <div className="flex justify-center">
-              <span className="px-1 py-0 text-[8px] font-medium bg-purple-300 dark:bg-purple-900 text-purple-900 dark:text-purple-100 rounded-sm whitespace-nowrap max-w-[90%] overflow-hidden text-ellipsis border border-purple-500 dark:border-purple-600" title={externalTool.description || externalTool.action || externalTool.tool}>
-                {externalTool.tool}: {externalTool.description || (externalTool.action ? externalTool.action.split('\n')[0].substring(0, 10) : '')}
+              <span className="px-1 py-0 text-[8px] font-medium bg-gray-400/30 dark:bg-gray-600/30 text-gray-800 dark:text-gray-200 rounded-sm whitespace-nowrap max-w-[90%] overflow-hidden text-ellipsis border border-gray-500/40 dark:border-gray-500/40" title={`${externalTool.tool}${externalTool.description ? ': ' + externalTool.description : ''}${externalTool.action ? '\n' + externalTool.action : ''}`}>
+                {externalTool.description ? externalTool.description.replace(/^(.*?)\s*（.*）\s*$/, '$1').replace(/\s*-\s*.*$/, '').trim() : externalTool.tool}
               </span>
             </div>
           )}
@@ -663,7 +663,7 @@ export function VirtualKeyboard({
             <span>マイクラ操作</span>
           </div>
           <div className="flex items-center gap-1">
-            <span className="px-1 py-0 text-[8px] font-medium bg-purple-300 dark:bg-purple-900 text-purple-900 dark:text-purple-100 rounded-sm border border-purple-500 dark:border-purple-600">
+            <span className="px-1 py-0 text-[8px] font-medium bg-gray-400/30 dark:bg-gray-600/30 text-gray-800 dark:text-gray-200 rounded-sm border border-gray-500/40 dark:border-gray-500/40">
               例
             </span>
             <span>外部ツール</span>

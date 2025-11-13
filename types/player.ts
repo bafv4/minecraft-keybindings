@@ -81,6 +81,7 @@ export interface Keybinding {
   chat?: string;
   command?: string;
   toggleHud?: string;
+  playerList?: string;
 }
 
 // プレイヤー設定の型定義
