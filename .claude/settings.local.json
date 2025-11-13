@@ -29,7 +29,8 @@
       "Bash(set FORCE_COLOR=1)",
       "Bash(ping:*)",
       "Bash(set PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION=\"yes\")",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(copy \"c:\\Users\\yuanq\\dev\\minecraft-keybindings\\public\\icon.svg\" \"c:\\Users\\yuanq\\dev\\minecraft-keybindings\\app\\icon.svg\")"
     ],
     "deny": [],
     "ask": []

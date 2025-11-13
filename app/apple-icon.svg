@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <!-- 背景 -->
+  <rect width="64" height="64" fill="#1a1a1a" rx="8"/>
+
+  <!-- 上部キー - ダイヤモンド青 -->
+  <g transform="translate(24, 8)">
+    <rect width="16" height="16" fill="#2563eb"/>
+    <rect x="2" y="2" width="12" height="12" fill="#47a1d4"/>
+    <rect x="3" y="3" width="10" height="4" fill="#5ec1f5"/>
+    <rect x="6" y="6" width="4" height="4" fill="#60a5fa"/>
+  </g>
+
+  <!-- 左下キー - ネザーゲート紫 -->
+  <g transform="translate(6, 32)">
+    <rect width="16" height="16" fill="#6b21a8"/>
+    <rect x="2" y="2" width="12" height="12" fill="#8b5cf6"/>
+    <rect x="3" y="3" width="10" height="4" fill="#a78bfa"/>
+    <rect x="6" y="6" width="4" height="4" fill="#c084fc"/>
+  </g>
+
+  <!-- 中央下キー - グレー -->
+  <g transform="translate(24, 32)">
+    <rect width="16" height="16" fill="#475569"/>
+    <rect x="2" y="2" width="12" height="12" fill="#64748b"/>
+    <rect x="3" y="3" width="10" height="4" fill="#94a3b8"/>
+    <rect x="6" y="6" width="4" height="4" fill="#cbd5e1"/>
+  </g>
+
+  <!-- 右下キー - ダイヤモンド青 -->
+  <g transform="translate(42, 32)">
+    <rect width="16" height="16" fill="#2563eb"/>
+    <rect x="2" y="2" width="12" height="12" fill="#47a1d4"/>
+    <rect x="3" y="3" width="10" height="4" fill="#5ec1f5"/>
+    <rect x="6" y="6" width="4" height="4" fill="#60a5fa"/>
+  </g>
+
+  <!-- コーナー装飾 -->
+  <rect x="4" y="4" width="2" height="2" fill="#475569" opacity="0.5"/>
+  <rect x="58" y="4" width="2" height="2" fill="#475569" opacity="0.5"/>
+  <rect x="4" y="58" width="2" height="2" fill="#475569" opacity="0.5"/>
+  <rect x="58" y="58" width="2" height="2" fill="#475569" opacity="0.5"/>
+</svg>

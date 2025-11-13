@@ -472,11 +472,11 @@ export function KeybindingModal({
                 このキーをどの指で押すかを選択してください。指による色分け表示が有効になります。
               </p>
               <div className="space-y-6">
-                {/* 左手 - 逆順で配置（小指から親指） */}
+                {/* 左手 - 小指から親指の順 */}
                 <div>
                   <h3 className="text-sm font-semibold mb-3 text-center">左手</h3>
                   <div className="flex justify-center gap-1">
-                    {FINGER_OPTIONS.filter(f => f.hand === 'left').reverse().map((finger) => (
+                    {FINGER_OPTIONS.filter(f => f.hand === 'left').map((finger) => (
                       <button
                         key={finger.value}
                         onClick={() => setSelectedFinger(finger.value)}

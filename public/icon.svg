@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" fill="none">
+  <!-- 上部キー（Wの位置） - ダイヤモンド青 - 白縁取り -->
+  <g transform="translate(60, 30)">
+    <!-- 白い縁取り -->
+    <rect x="-2" y="-2" width="44" height="44" fill="#ffffff"/>
+    <!-- 外枠（濃い青） -->
+    <rect width="40" height="40" fill="#2563eb"/>
+    <!-- 内側（明るい青） -->
+    <rect x="4" y="4" width="32" height="32" fill="#47a1d4"/>
+    <!-- ハイライト（上部） -->
+    <rect x="8" y="8" width="24" height="8" fill="#5ec1f5"/>
+    <!-- 影（下部） -->
+    <rect x="8" y="28" width="24" height="4" fill="#1e40af"/>
+    <!-- 中央のドット -->
+    <rect x="16" y="16" width="8" height="8" fill="#60a5fa"/>
+  </g>
+
+  <!-- 左下キー（Aの位置） - ネザーゲート紫 - 白縁取り -->
+  <g transform="translate(15, 80)">
+    <!-- 白い縁取り -->
+    <rect x="-2" y="-2" width="44" height="44" fill="#ffffff"/>
+    <!-- 外枠 -->
+    <rect width="40" height="40" fill="#6b21a8"/>
+    <!-- 内側 -->
+    <rect x="4" y="4" width="32" height="32" fill="#8b5cf6"/>
+    <!-- ハイライト -->
+    <rect x="8" y="8" width="24" height="8" fill="#a78bfa"/>
+    <!-- 影 -->
+    <rect x="8" y="28" width="24" height="4" fill="#581c87"/>
+    <!-- 中央のドット -->
+    <rect x="16" y="16" width="8" height="8" fill="#c084fc"/>
+  </g>
+
+  <!-- 中央下キー（Sの位置） - グレー - 白縁取り -->
+  <g transform="translate(60, 80)">
+    <!-- 白い縁取り -->
+    <rect x="-2" y="-2" width="44" height="44" fill="#ffffff"/>
+    <!-- 外枠 -->
+    <rect width="40" height="40" fill="#475569"/>
+    <!-- 内側 -->
+    <rect x="4" y="4" width="32" height="32" fill="#64748b"/>
+    <!-- ハイライト -->
+    <rect x="8" y="8" width="24" height="8" fill="#94a3b8"/>
+    <!-- 影 -->
+    <rect x="8" y="28" width="24" height="4" fill="#334155"/>
+    <!-- 中央のドット -->
+    <rect x="16" y="16" width="8" height="8" fill="#cbd5e1"/>
+  </g>
+
+  <!-- 右下キー（Dの位置） - ダイヤモンド青 - 白縁取り -->
+  <g transform="translate(105, 80)">
+    <!-- 白い縁取り -->
+    <rect x="-2" y="-2" width="44" height="44" fill="#ffffff"/>
+    <!-- 外枠 -->
+    <rect width="40" height="40" fill="#2563eb"/>
+    <!-- 内側 -->
+    <rect x="4" y="4" width="32" height="32" fill="#47a1d4"/>
+    <!-- ハイライト -->
+    <rect x="8" y="8" width="24" height="8" fill="#5ec1f5"/>
+    <!-- 影 -->
+    <rect x="8" y="28" width="24" height="4" fill="#1e40af"/>
+    <!-- 中央のドット -->
+    <rect x="16" y="16" width="8" height="8" fill="#60a5fa"/>
+  </g>
+</svg>

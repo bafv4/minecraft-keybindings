@@ -619,6 +619,42 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
         </div>
       </section>
 
+      {/* 仮想キーボード */}
+      <section className="bg-[rgb(var(--card))] p-6 rounded-lg border border-[rgb(var(--border))]">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-bold">キー配置設定</h2>
+          <div className="flex items-center gap-2">
+            <label className="text-sm font-medium">指の色分け表示</label>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={showFingerColors}
+              onClick={() => setShowFingerColors(!showFingerColors)}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${showFingerColors ? 'bg-blue-600' : 'bg-[rgb(var(--border))]'
+                }`}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${showFingerColors ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+              />
+            </button>
+          </div>
+        </div>
+        <p className="text-sm text-[rgb(var(--muted-foreground))] mb-4">
+          キーをクリックして、操作の割り当て・指の割り当て・リマップ・外部ツールの設定を行えます
+        </p>
+        <VirtualKeyboard
+          bindings={bindings}
+          mode="edit"
+          remappings={remappings}
+          externalTools={externalTools}
+          fingerAssignments={fingerAssignments}
+          showFingerColors={showFingerColors}
+          onUpdateConfig={handleUpdateConfig}
+          keyboardLayout={keyboardLayout}
+        />
+      </section>
+
       {/* マウス設定 */}
       <section className="bg-[rgb(var(--card))] p-6 rounded-lg border border-[rgb(var(--border))]">
         <h2 className="text-xl font-bold mb-4">マウス設定</h2>
@@ -930,44 +966,6 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
             />
           </div>
         </div>
-      </section>
-
-      {/* 仮想キーボード */}
-      <section className="bg-[rgb(var(--card))] p-6 rounded-lg border border-[rgb(var(--border))]">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-bold">キー配置設定</h2>
-          <div className="flex items-center gap-2">
-            <label className="text-sm font-medium">指の色分け表示</label>
-            <button
-              type="button"
-              role="switch"
-              aria-checked={showFingerColors}
-              onClick={() => setShowFingerColors(!showFingerColors)}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                showFingerColors ? 'bg-blue-600' : 'bg-[rgb(var(--border))]'
-              }`}
-            >
-              <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                  showFingerColors ? 'translate-x-6' : 'translate-x-1'
-                }`}
-              />
-            </button>
-          </div>
-        </div>
-        <p className="text-sm text-[rgb(var(--muted-foreground))] mb-4">
-          キーをクリックして、操作の割り当て・指の割り当て・リマップ・外部ツールの設定を行えます
-        </p>
-        <VirtualKeyboard
-          bindings={bindings}
-          mode="edit"
-          remappings={remappings}
-          externalTools={externalTools}
-          fingerAssignments={fingerAssignments}
-          showFingerColors={showFingerColors}
-          onUpdateConfig={handleUpdateConfig}
-          keyboardLayout={keyboardLayout}
-        />
       </section>
 
       {/* リマップと外部ツールは仮想キーボードのモーダルから設定可能 */}

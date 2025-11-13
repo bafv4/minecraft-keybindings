@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { auth, signOut } from '@/lib/auth';
 import { PencilSquareIcon, ArrowRightOnRectangleIcon, UserCircleIcon } from '@heroicons/react/24/outline';
 
@@ -9,15 +10,21 @@ export async function Header() {
     <header className="sticky top-0 z-50 border-b border-[rgb(var(--border))] bg-[rgb(var(--card))]/80 backdrop-blur-xl">
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
-          <Link href="/" className="group flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold text-xl group-hover:scale-110 transition-transform">
-              M
+          <Link href="/" className="flex items-center gap-3">
+            <div className="w-14 h-14 flex-shrink-0 pt-2">
+              <Image
+                src="/icon.svg"
+                alt="MCSRer Hotkeys"
+                width={64}
+                height={64}
+                className="w-full h-full"
+              />
             </div>
             <div className="hidden sm:block">
-              <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              <h1 className="text-xl font-bold bg-gradient-to-r from-[#47a1d4] via-[#8b5cf6] to-[#64748b] bg-clip-text text-transparent leading-none">
                 MCSRer Hotkeys
               </h1>
-              <p className="text-xs text-[rgb(var(--muted-foreground))]">操作設定共有サイト</p>
+              <p className="text-s text-[rgb(var(--muted-foreground))] mt-0.5 leading-none">RTA勢の設定はこうなっている！</p>
             </div>
           </Link>
 

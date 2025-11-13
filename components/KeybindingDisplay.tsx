@@ -9,6 +9,54 @@ interface KeybindingDisplayProps {
   settings: PlayerSettings;
 }
 
+// 言語コードを言語名に変換する関数
+function getLanguageName(languageCode: string): string {
+  const languageNames: { [key: string]: string } = {
+    'ja_jp': '日本語',
+    'en_us': 'English (US)',
+    'en_gb': 'English (UK)',
+    'de_de': 'Deutsch',
+    'es_es': 'Español (España)',
+    'es_mx': 'Español (México)',
+    'fr_fr': 'Français',
+    'it_it': 'Italiano',
+    'ko_kr': '한국어',
+    'pt_br': 'Português (Brasil)',
+    'pt_pt': 'Português (Portugal)',
+    'ru_ru': 'Русский',
+    'zh_cn': '简体中文',
+    'zh_tw': '繁體中文',
+    'nl_nl': 'Nederlands',
+    'pl_pl': 'Polski',
+    'sv_se': 'Svenska',
+    'da_dk': 'Dansk',
+    'fi_fi': 'Suomi',
+    'no_no': 'Norsk',
+    'cs_cz': 'Čeština',
+    'el_gr': 'Ελληνικά',
+    'hu_hu': 'Magyar',
+    'ro_ro': 'Română',
+    'tr_tr': 'Türkçe',
+    'ar_sa': 'العربية',
+    'he_il': 'עברית',
+    'th_th': 'ภาษาไทย',
+    'vi_vn': 'Tiếng Việt',
+    'id_id': 'Bahasa Indonesia',
+    'uk_ua': 'Українська',
+    'bg_bg': 'Български',
+    'ca_es': 'Català',
+    'hr_hr': 'Hrvatski',
+    'et_ee': 'Eesti',
+    'lv_lv': 'Latviešu',
+    'lt_lt': 'Lietuvių',
+    'sk_sk': 'Slovenčina',
+    'sl_si': 'Slovenščina',
+    'sr_sp': 'Српски',
+  };
+
+  return languageNames[languageCode.toLowerCase()] || languageCode;
+}
+
 // キー表示用のヘルパー関数
 function formatKey(keyCode: string | undefined): string {
   // undefinedチェック
@@ -279,6 +327,30 @@ export function KeybindingDisplay({ settings }: KeybindingDisplayProps) {
             <div className="text-2xl font-bold">{settings.gameSensitivity ? `${Math.floor(Number(settings.gameSensitivity) * 200)}%` : '-'}</div>
           </div>
 
+          {/* RawInput */}
+          <div className="bg-[rgb(var(--card))] p-4 rounded-lg border border-[rgb(var(--border))]">
+            <div className="text-sm font-semibold text-[rgb(var(--muted-foreground))] mb-2">RawInput</div>
+            <div className="text-2xl font-bold">{settings.rawInput ? 'ON' : 'OFF'}</div>
+          </div>
+
+          {/* 振り向き */}
+          <div className="bg-[rgb(var(--card))] p-4 rounded-lg border border-[rgb(var(--border))]">
+            <div className="text-sm font-semibold text-[rgb(var(--muted-foreground))] mb-2">振り向き</div>
+            <div className="text-2xl font-bold">{settings.cm360 ? `${settings.cm360}cm` : '-'}</div>
+          </div>
+
+          {/* Windows速度 */}
+          <div className="bg-[rgb(var(--card))] p-4 rounded-lg border border-[rgb(var(--border))]">
+            <div className="text-sm font-semibold text-[rgb(var(--muted-foreground))] mb-2">Win Sens</div>
+            <div className="text-2xl font-bold">{settings.windowsSpeed || '-'}</div>
+          </div>
+
+          {/* マウス加速 */}
+          <div className="bg-[rgb(var(--card))] p-4 rounded-lg border border-[rgb(var(--border))]">
+            <div className="text-sm font-semibold text-[rgb(var(--muted-foreground))] mb-2">マウス加速</div>
+            <div className="text-2xl font-bold">{settings.mouseAcceleration ? 'ON' : 'OFF'}</div>
+          </div>
+
           {/* カーソル速度 */}
           <div className="bg-[rgb(var(--card))] p-4 rounded-lg border border-[rgb(var(--border))]">
             <div className="text-sm font-semibold text-[rgb(var(--muted-foreground))] mb-2">カーソル速度</div>
@@ -291,33 +363,9 @@ export function KeybindingDisplay({ settings }: KeybindingDisplayProps) {
                   settings.rawInput,
                   settings.mouseAcceleration
                 );
-                return cursorSpeed !== null ? `${cursorSpeed} dpi` : '計算不可';
+                return cursorSpeed !== null ? `${cursorSpeed}` : '計算不可';
               })()}
             </div>
-          </div>
-
-          {/* 振り向き */}
-          <div className="bg-[rgb(var(--card))] p-4 rounded-lg border border-[rgb(var(--border))]">
-            <div className="text-sm font-semibold text-[rgb(var(--muted-foreground))] mb-2">振り向き</div>
-            <div className="text-2xl font-bold">{settings.cm360 ? `${settings.cm360}cm` : '-'}</div>
-          </div>
-
-          {/* RawInput */}
-          <div className="bg-[rgb(var(--card))] p-4 rounded-lg border border-[rgb(var(--border))]">
-            <div className="text-sm font-semibold text-[rgb(var(--muted-foreground))] mb-2">RawInput</div>
-            <div className="text-2xl font-bold">{settings.rawInput ? 'ON' : 'OFF'}</div>
-          </div>
-
-          {/* Windows速度 */}
-          <div className="bg-[rgb(var(--card))] p-4 rounded-lg border border-[rgb(var(--border))]">
-            <div className="text-sm font-semibold text-[rgb(var(--muted-foreground))] mb-2">Windows速度</div>
-            <div className="text-2xl font-bold">{settings.windowsSpeed || '-'}</div>
-          </div>
-
-          {/* マウス加速 */}
-          <div className="bg-[rgb(var(--card))] p-4 rounded-lg border border-[rgb(var(--border))]">
-            <div className="text-sm font-semibold text-[rgb(var(--muted-foreground))] mb-2">マウス加速</div>
-            <div className="text-2xl font-bold">{settings.mouseAcceleration ? 'ON' : 'OFF'}</div>
           </div>
         </div>
       </section>
@@ -331,7 +379,7 @@ export function KeybindingDisplay({ settings }: KeybindingDisplayProps) {
             {settings.gameLanguage && (
               <div className="bg-[rgb(var(--card))] p-4 rounded-lg border border-[rgb(var(--border))]">
                 <div className="text-sm font-semibold text-[rgb(var(--muted-foreground))] mb-2">ゲーム内の言語</div>
-                <div className="text-lg font-medium">{settings.gameLanguage}</div>
+                <div className="text-lg font-medium">{getLanguageName(settings.gameLanguage)}</div>
               </div>
             )}
 
@@ -354,7 +402,7 @@ export function KeybindingDisplay({ settings }: KeybindingDisplayProps) {
             {/* 自由使用欄 */}
             {settings.notes && (
               <div className="bg-[rgb(var(--card))] p-4 rounded-lg border border-[rgb(var(--border))] md:col-span-2">
-                <div className="text-sm font-semibold text-[rgb(var(--muted-foreground))] mb-2">自由使用欄</div>
+                <div className="text-sm font-semibold text-[rgb(var(--muted-foreground))] mb-2">コメント</div>
                 <div className="text-base whitespace-pre-wrap">{settings.notes}</div>
               </div>
             )}

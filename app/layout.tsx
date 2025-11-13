@@ -12,7 +12,15 @@ import { Header } from "@/components/Header";
 
 export const metadata: Metadata = {
   title: "MCSRer Hotkeys",
-  description: "Minecraft操作設定共有サイト",
+  description: "RTA勢の設定はこうなっている！",
+  icons: {
+    icon: [
+      { url: '/icon.svg', type: 'image/svg+xml' },
+    ],
+    apple: [
+      { url: '/icon.svg', type: 'image/svg+xml' },
+    ],
+  },
 };
 
 export default function RootLayout({
