@@ -202,6 +202,7 @@ export function KeybindingModal({
   const [activeTab, setActiveTab] = useState<TabType>('action');
   const [selectedAction, setSelectedAction] = useState<string | null>(currentAction);
   const [remapKey, setRemapKey] = useState<string>(currentRemap || '');
+  const [customRemapKey, setCustomRemapKey] = useState<string>('');
   const [externalToolName, setExternalToolName] = useState<string>(currentExternalTool?.tool || '');
   const [externalToolAction, setExternalToolAction] = useState<string>(currentExternalTool?.action || '');
   const [externalToolDescription, setExternalToolDescription] = useState<string>(currentExternalTool?.description || '');
@@ -212,7 +213,10 @@ export function KeybindingModal({
   useEffect(() => {
     if (isOpen) {
       setSelectedAction(currentAction);
-      setRemapKey(currentRemap || '');
+      // 既存のリマップをチェック: REMAPPABLE_KEYSに含まれているかどうか
+      const isStandardKey = currentRemap && Object.values(REMAPPABLE_KEYS).flat().some(k => k.value === currentRemap);
+      setRemapKey(isStandardKey ? currentRemap : '');
+      setCustomRemapKey(isStandardKey ? '' : currentRemap || '');
       setExternalToolName(currentExternalTool?.tool || '');
       setExternalToolAction(currentExternalTool?.action || '');
       setExternalToolDescription(currentExternalTool?.description || '');
@@ -247,9 +251,12 @@ export function KeybindingModal({
   if (!isOpen) return null;
 
   const handleSave = () => {
+    // カスタムキーが入力されている場合はそれを優先、なければ標準選択肢から
+    const finalRemapKey = customRemapKey.trim() || remapKey || undefined;
+
     const config = {
       action: selectedAction || undefined,
-      remap: remapKey || undefined,
+      remap: finalRemapKey,
       // 外部ツールはツール名があれば保存（アクションは空でもOK - プリセットの場合）
       externalTool: externalToolName && externalToolName.trim()
         ? { tool: externalToolName.trim(), action: externalToolAction || '', description: externalToolDescription || undefined }
@@ -547,7 +554,10 @@ export function KeybindingModal({
                 </label>
                 <select
                   value={remapKey}
-                  onChange={(e) => setRemapKey(e.target.value)}
+                  onChange={(e) => {
+                    setRemapKey(e.target.value);
+                    if (e.target.value) setCustomRemapKey(''); // 標準選択肢を選んだらカスタム入力をクリア
+                  }}
                   className="w-full px-4 py-2 border border-[rgb(var(--border))] rounded-lg bg-[rgb(var(--background))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--ring))]"
                 >
                   <option value="">-- キーを選択 --</option>
@@ -565,19 +575,45 @@ export function KeybindingModal({
                   よく使われるリマップ例: Caps Lock → Ctrl、無変換 → スペース
                 </p>
               </div>
-              {remapKey && (
+
+              {/* カスタムキー入力セクション */}
+              <div className="pt-4 border-t border-[rgb(var(--border))]">
+                <label className="block text-sm font-medium mb-2">
+                  または、カスタムキーコードを直接入力
+                </label>
+                <input
+                  type="text"
+                  value={customRemapKey}
+                  onChange={(e) => {
+                    setCustomRemapKey(e.target.value);
+                    if (e.target.value.trim()) setRemapKey(''); // カスタム入力があれば標準選択をクリア
+                  }}
+                  placeholder="例: key.keyboard.f13, key.keyboard.numpad.0"
+                  className="w-full px-4 py-2 border border-[rgb(var(--border))] rounded-lg bg-[rgb(var(--background))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--ring))] font-mono text-sm"
+                />
+                <p className="text-xs text-[rgb(var(--muted-foreground))] mt-2">
+                  Minecraftのキーコード形式で入力してください（キーボード: <code className="px-1 py-0.5 bg-[rgb(var(--muted))] rounded">key.keyboard.*</code>、マウス: <code className="px-1 py-0.5 bg-[rgb(var(--muted))] rounded">key.mouse.*</code>）
+                </p>
+              </div>
+
+              {(remapKey || customRemapKey.trim()) && (
                 <div className="p-4 bg-[rgb(var(--muted))] rounded-lg">
                   <p className="text-sm">
                     <span className="font-medium">{formatKeyLabel(selectedKey)}</span>
                     {' → '}
-                    <span className="font-medium text-blue-600 dark:text-blue-400">{formatKeyLabel(remapKey)}</span>
+                    <span className="font-medium text-blue-600 dark:text-blue-400">
+                      {formatKeyLabel(customRemapKey.trim() || remapKey)}
+                    </span>
                   </p>
                 </div>
               )}
-              {remapKey && (
+              {(remapKey || customRemapKey.trim()) && (
                 <div className="mt-4">
                   <button
-                    onClick={() => setRemapKey('')}
+                    onClick={() => {
+                      setRemapKey('');
+                      setCustomRemapKey('');
+                    }}
                     className="px-4 py-2 text-sm text-red-600 hover:text-red-700 border border-red-500 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
                   >
                     リマップをクリア
