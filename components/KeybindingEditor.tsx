@@ -3,7 +3,7 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { calculateCm360, calculateCursorSpeed } from '@/lib/utils';
-import type { PlayerSettings } from '@/types/player';
+import type { PlayerSettings, Finger, FingerAssignments } from '@/types/player';
 import { VirtualKeyboard } from './VirtualKeyboard';
 
 // Minecraft言語リスト（全言語）
@@ -236,7 +236,7 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
   });
 
   // 指の割り当て設定
-  const [fingerAssignments, setFingerAssignments] = useState<{ [key: string]: string }>(
+  const [fingerAssignments, setFingerAssignments] = useState<FingerAssignments>(
     initialSettings?.fingerAssignments || {}
   );
 
@@ -358,7 +358,7 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
     action?: string;
     remap?: string;
     externalTool?: { tool: string; action: string; description?: string };
-    finger?: string;
+    finger?: Finger;
   }) => {
     console.log('handleUpdateConfig called:', { keyCode, config });
 
