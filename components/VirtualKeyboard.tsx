@@ -434,11 +434,11 @@ export function VirtualKeyboard({
 
     // 背景色のロジック：
     // 1. 指の割り当てがある場合 → 指の色
-    // 2. 指の割り当てがないが、何らかのマッピングがある場合 → Primaryカラー
+    // 2. 指の割り当てがないが、何らかのマッピングがある場合 → Primaryカラー（黒系/白系）
     // 3. 何もない場合 → デフォルト色
     const hasAnyMapping = hasBinding || hasRemap || hasExternalTool;
     const fingerColorClass = showFingerColors && assignedFinger ? getFingerColor(assignedFinger) : '';
-    const primaryColorClass = 'bg-blue-500/20 border-blue-500 text-blue-700 dark:text-blue-300';
+    const primaryColorClass = 'bg-gray-900/10 border-gray-900 dark:bg-gray-100/10 dark:border-gray-100';
     const defaultColorClass = 'bg-[rgb(var(--card))] border-[rgb(var(--border))]';
 
     let backgroundClass = defaultColorClass;
@@ -536,7 +536,7 @@ export function VirtualKeyboard({
     // 背景色のロジック：renderKeyと同じ
     const hasAnyMapping = hasBinding || hasRemap || hasExternalTool;
     const fingerColorClass = showFingerColors && assignedFinger ? getFingerColor(assignedFinger) : '';
-    const primaryColorClass = 'bg-blue-500/20 border-blue-500 text-blue-700 dark:text-blue-300';
+    const primaryColorClass = 'bg-gray-900/10 border-gray-900 dark:bg-gray-100/10 dark:border-gray-100';
     const defaultColorClass = 'bg-[rgb(var(--card))] border-[rgb(var(--border))]';
 
     let backgroundClass = defaultColorClass;
@@ -653,19 +653,13 @@ export function VirtualKeyboard({
 
       {/* 凡例 */}
       <div className="text-xs text-[rgb(var(--muted-foreground))] space-y-1">
-        <p>青色のキー: 割り当てあり</p>
+        <p>境界線が濃いキー: 割り当てあり</p>
         <div className="flex items-center gap-4 flex-wrap">
           <div className="flex items-center gap-1">
             <span className="px-1 py-0 text-[8px] font-medium bg-gray-300 dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded">
               例
             </span>
             <span>マイクラ操作</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <span className="px-1 py-0 text-[8px] font-medium bg-orange-300 dark:bg-orange-800 text-orange-900 dark:text-orange-100 rounded">
-              例
-            </span>
-            <span>リマップ</span>
           </div>
           <div className="flex items-center gap-1">
             <span className="px-1 py-0 text-[8px] font-medium bg-purple-300 dark:bg-purple-900 text-purple-900 dark:text-purple-100 rounded-sm border border-purple-500 dark:border-purple-600">

@@ -402,7 +402,8 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
     if (config.externalTool !== undefined) {
       setExternalTools(prev => {
         const updated = { ...prev };
-        if (config.externalTool && config.externalTool.tool && config.externalTool.action) {
+        if (config.externalTool && config.externalTool.tool) {
+          // toolが存在すれば保存（actionは空でもOK - プリセットの場合）
           updated[keyCode] = config.externalTool;
         } else {
           delete updated[keyCode];

@@ -248,8 +248,8 @@ export function KeybindingModal({
       action: selectedAction || undefined,
       remap: remapKey || undefined,
       // 外部ツールはツール名があれば保存（アクションは空でもOK - プリセットの場合）
-      externalTool: externalToolName
-        ? { tool: externalToolName, action: externalToolAction || '', description: externalToolDescription || undefined }
+      externalTool: externalToolName && externalToolName.trim()
+        ? { tool: externalToolName.trim(), action: externalToolAction || '', description: externalToolDescription || undefined }
         : undefined,
       finger: selectedFinger,
     };
@@ -449,6 +449,16 @@ export function KeybindingModal({
                   </button>
                 ))}
               </div>
+              {selectedAction && (
+                <div className="mt-4">
+                  <button
+                    onClick={() => setSelectedAction(null)}
+                    className="px-4 py-2 text-sm text-red-600 hover:text-red-700 border border-red-500 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
+                  >
+                    操作割り当てをクリア
+                  </button>
+                </div>
+              )}
             </div>
           )}
 
@@ -635,6 +645,21 @@ export function KeybindingModal({
                   className="w-full px-4 py-2 border border-[rgb(var(--border))] rounded-lg bg-[rgb(var(--background))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--ring))]"
                 />
               </div>
+              {externalToolName && (
+                <div className="mt-4">
+                  <button
+                    onClick={() => {
+                      setExternalToolName('');
+                      setExternalToolAction('');
+                      setExternalToolDescription('');
+                      setSelectedPreset('');
+                    }}
+                    className="px-4 py-2 text-sm text-red-600 hover:text-red-700 border border-red-500 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
+                  >
+                    外部ツール割り当てをクリア
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>
