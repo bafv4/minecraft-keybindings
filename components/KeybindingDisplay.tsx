@@ -1,3 +1,5 @@
+'use client';
+
 import { useState } from 'react';
 import { formatKeyName, calculateCursorSpeed } from '@/lib/utils';
 import type { PlayerSettings, FingerAssignments } from '@/types/player';

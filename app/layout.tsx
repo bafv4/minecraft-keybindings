@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
-import { M_PLUS_1p } from "next/font/google";
+// Temporarily commented out due to network restrictions in build environment
+// import { M_PLUS_1p } from "next/font/google";
 import "./globals.css";
 import { Header } from "@/components/Header";
 
-const mPlus1p = M_PLUS_1p({
-  subsets: ["latin"],
-  weight: ["400", "500", "700", "800"],
-  display: "swap",
-});
+// const mPlus1p = M_PLUS_1p({
+//   subsets: ["latin"],
+//   weight: ["400", "500", "700", "800"],
+//   display: "swap",
+// });
 
 export const metadata: Metadata = {
   title: "MCSRer Hotkeys",
@@ -21,7 +22,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ja">
-      <body className={mPlus1p.className}>
+      <body>
         <Header />
         <main className="container mx-auto px-4 py-8">
           {children}
