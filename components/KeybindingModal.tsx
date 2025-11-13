@@ -353,7 +353,7 @@ export function KeybindingModal({
     { id: 'command', label: 'コマンド' },
     { id: 'togglePerspective', label: '視点変更' },
     { id: 'fullscreen', label: 'フルスクリーン' },
-    { id: 'toggleHud', label: 'Hide HUD' },
+    { id: 'toggleHud', label: 'HUD非表示' },
     { id: 'playerList', label: 'プレイヤーリスト' },
     ...Array.from({ length: 9 }, (_, i) => ({
       id: `hotbar${i + 1}`,

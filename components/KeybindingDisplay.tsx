@@ -216,9 +216,9 @@ export function KeybindingDisplay({ settings }: KeybindingDisplayProps) {
             </kbd>
           </div>
 
-          {/* Hide HUD */}
+          {/* HUD非表示 */}
           <div className="bg-[rgb(var(--card))] p-4 rounded-lg border border-[rgb(var(--border))]">
-            <div className="text-sm font-semibold text-[rgb(var(--muted-foreground))] mb-2">Hide HUD</div>
+            <div className="text-sm font-semibold text-[rgb(var(--muted-foreground))] mb-2">HUD非表示</div>
             <kbd className="px-3 py-1.5 text-base bg-[rgb(var(--muted))] border border-[rgb(var(--border))] rounded font-mono">
               {formatKey(settings.toggleHud)}
             </kbd>
