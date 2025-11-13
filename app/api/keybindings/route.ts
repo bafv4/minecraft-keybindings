@@ -86,6 +86,9 @@ export async function POST(request: Request) {
         externalTools: data.externalTools,
         fingerAssignments: data.fingerAssignments,
 
+        // 追加設定
+        additionalSettings: data.additionalSettings,
+
         // プレイヤー環境設定
         gameLanguage: data.gameLanguage || null,
         mouseModel: data.mouseModel || null,
@@ -145,6 +148,9 @@ export async function POST(request: Request) {
         remappings: data.remappings,
         externalTools: data.externalTools,
         fingerAssignments: data.fingerAssignments,
+
+        // 追加設定
+        additionalSettings: data.additionalSettings,
 
         // プレイヤー環境設定
         gameLanguage: data.gameLanguage || null,

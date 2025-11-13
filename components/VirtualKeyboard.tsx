@@ -314,6 +314,7 @@ export function VirtualKeyboard({
           fullscreen: 'フルスクリーン',
           toggleHud: 'HUD非表示',
           playerList: 'プレイヤーリスト',
+          reset: 'リセット',
           hotbar1: 'HB1',
           hotbar2: 'HB2',
           hotbar3: 'HB3',

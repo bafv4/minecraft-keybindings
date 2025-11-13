@@ -213,6 +213,11 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
   const [command, setCommand] = useState(initialSettings?.command || 'key.keyboard.slash');
   const [toggleHud, setToggleHud] = useState(initialSettings?.toggleHud || 'key.keyboard.f1');
 
+  // 追加設定（additionalSettings JSONフィールドから読み込み）
+  const [reset, setReset] = useState(
+    (initialSettings?.additionalSettings as { reset?: string })?.reset || 'key.keyboard.f6'
+  );
+
   // リマップとツール設定（オブジェクトとして管理）
   const [remappings, setRemappings] = useState<{ [key: string]: string }>(
     initialSettings?.remappings || {}
@@ -309,6 +314,7 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
     inventory, swapHands,
     hotbar1, hotbar2, hotbar3, hotbar4, hotbar5, hotbar6, hotbar7, hotbar8, hotbar9,
     togglePerspective, fullscreen, chat, command, toggleHud,
+    reset,
   };
 
   // アクション名のラベル
@@ -322,7 +328,7 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
       hotbar4: 'ホットバー4', hotbar5: 'ホットバー5', hotbar6: 'ホットバー6',
       hotbar7: 'ホットバー7', hotbar8: 'ホットバー8', hotbar9: 'ホットバー9',
       togglePerspective: '視点変更', fullscreen: 'フルスクリーン', chat: 'チャット',
-      command: 'コマンド', toggleHud: 'Hide HUD',
+      command: 'コマンド', toggleHud: 'Hide HUD', reset: 'リセット',
     };
     return labels[action] || action;
   };
@@ -374,6 +380,7 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
         hotbar7: setHotbar7, hotbar8: setHotbar8, hotbar9: setHotbar9,
         togglePerspective: setTogglePerspective, fullscreen: setFullscreen,
         chat: setChat, command: setCommand, toggleHud: setToggleHud,
+        reset: setReset,
       };
       setters[config.action]?.(keyCode);
     }
@@ -484,6 +491,9 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
         remappings: Object.keys(remappings).length > 0 ? remappings : null,
         externalTools: Object.keys(nestedExternalTools).length > 0 ? nestedExternalTools : null,
         fingerAssignments: Object.keys(fingerAssignments).length > 0 ? fingerAssignments : null,
+
+        // 追加設定（additionalSettings JSONフィールドに保存）
+        additionalSettings: { reset },
 
         // プレイヤー環境設定
         gameLanguage: gameLanguage.trim() || undefined,

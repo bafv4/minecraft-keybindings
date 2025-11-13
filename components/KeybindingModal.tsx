@@ -355,6 +355,7 @@ export function KeybindingModal({
     { id: 'fullscreen', label: 'フルスクリーン' },
     { id: 'toggleHud', label: 'HUD非表示' },
     { id: 'playerList', label: 'プレイヤーリスト' },
+    { id: 'reset', label: 'リセット' },
     ...Array.from({ length: 9 }, (_, i) => ({
       id: `hotbar${i + 1}`,
       label: `ホットバー${i + 1}`,

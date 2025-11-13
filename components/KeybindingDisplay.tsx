@@ -78,6 +78,7 @@ export function KeybindingDisplay({ settings }: KeybindingDisplayProps) {
     chat: settings.chat || 'key.keyboard.t',
     command: settings.command || 'key.keyboard.slash',
     toggleHud: settings.toggleHud || 'key.keyboard.f1',
+    reset: (settings.additionalSettings as { reset?: string })?.reset || 'key.keyboard.f6',
   };
 
   // 外部ツール設定を平坦化（key -> {tool, action, description}）
@@ -221,6 +222,14 @@ export function KeybindingDisplay({ settings }: KeybindingDisplayProps) {
             <div className="text-sm font-semibold text-[rgb(var(--muted-foreground))] mb-2">HUD非表示</div>
             <kbd className="px-3 py-1.5 text-base bg-[rgb(var(--muted))] border border-[rgb(var(--border))] rounded font-mono">
               {formatKey(settings.toggleHud)}
+            </kbd>
+          </div>
+
+          {/* リセット */}
+          <div className="bg-[rgb(var(--card))] p-4 rounded-lg border border-[rgb(var(--border))]">
+            <div className="text-sm font-semibold text-[rgb(var(--muted-foreground))] mb-2">リセット</div>
+            <kbd className="px-3 py-1.5 text-base bg-[rgb(var(--muted))] border border-[rgb(var(--border))] rounded font-mono">
+              {formatKey((settings.additionalSettings as { reset?: string })?.reset || 'key.keyboard.f6')}
             </kbd>
           </div>
 
