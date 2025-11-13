@@ -52,6 +52,98 @@ const FINGER_OPTIONS: { value: Finger; label: string; hand: 'left' | 'right' }[]
   { value: 'right-pinky', label: '右手 小指', hand: 'right' },
 ];
 
+// リマップ可能なキー一覧
+const REMAPPABLE_KEYS = {
+  '修飾キー': [
+    { value: 'key.keyboard.left.shift', label: '左Shift' },
+    { value: 'key.keyboard.right.shift', label: '右Shift' },
+    { value: 'key.keyboard.left.control', label: '左Ctrl' },
+    { value: 'key.keyboard.right.control', label: '右Ctrl' },
+    { value: 'key.keyboard.left.alt', label: '左Alt' },
+    { value: 'key.keyboard.right.alt', label: '右Alt' },
+    { value: 'key.keyboard.caps.lock', label: 'Caps Lock' },
+  ],
+  '文字キー': [
+    { value: 'key.keyboard.a', label: 'A' },
+    { value: 'key.keyboard.b', label: 'B' },
+    { value: 'key.keyboard.c', label: 'C' },
+    { value: 'key.keyboard.d', label: 'D' },
+    { value: 'key.keyboard.e', label: 'E' },
+    { value: 'key.keyboard.f', label: 'F' },
+    { value: 'key.keyboard.g', label: 'G' },
+    { value: 'key.keyboard.h', label: 'H' },
+    { value: 'key.keyboard.i', label: 'I' },
+    { value: 'key.keyboard.j', label: 'J' },
+    { value: 'key.keyboard.k', label: 'K' },
+    { value: 'key.keyboard.l', label: 'L' },
+    { value: 'key.keyboard.m', label: 'M' },
+    { value: 'key.keyboard.n', label: 'N' },
+    { value: 'key.keyboard.o', label: 'O' },
+    { value: 'key.keyboard.p', label: 'P' },
+    { value: 'key.keyboard.q', label: 'Q' },
+    { value: 'key.keyboard.r', label: 'R' },
+    { value: 'key.keyboard.s', label: 'S' },
+    { value: 'key.keyboard.t', label: 'T' },
+    { value: 'key.keyboard.u', label: 'U' },
+    { value: 'key.keyboard.v', label: 'V' },
+    { value: 'key.keyboard.w', label: 'W' },
+    { value: 'key.keyboard.x', label: 'X' },
+    { value: 'key.keyboard.y', label: 'Y' },
+    { value: 'key.keyboard.z', label: 'Z' },
+  ],
+  '数字キー': [
+    { value: 'key.keyboard.1', label: '1' },
+    { value: 'key.keyboard.2', label: '2' },
+    { value: 'key.keyboard.3', label: '3' },
+    { value: 'key.keyboard.4', label: '4' },
+    { value: 'key.keyboard.5', label: '5' },
+    { value: 'key.keyboard.6', label: '6' },
+    { value: 'key.keyboard.7', label: '7' },
+    { value: 'key.keyboard.8', label: '8' },
+    { value: 'key.keyboard.9', label: '9' },
+    { value: 'key.keyboard.0', label: '0' },
+  ],
+  'ファンクションキー': [
+    { value: 'key.keyboard.f1', label: 'F1' },
+    { value: 'key.keyboard.f2', label: 'F2' },
+    { value: 'key.keyboard.f3', label: 'F3' },
+    { value: 'key.keyboard.f4', label: 'F4' },
+    { value: 'key.keyboard.f5', label: 'F5' },
+    { value: 'key.keyboard.f6', label: 'F6' },
+    { value: 'key.keyboard.f7', label: 'F7' },
+    { value: 'key.keyboard.f8', label: 'F8' },
+    { value: 'key.keyboard.f9', label: 'F9' },
+    { value: 'key.keyboard.f10', label: 'F10' },
+    { value: 'key.keyboard.f11', label: 'F11' },
+    { value: 'key.keyboard.f12', label: 'F12' },
+  ],
+  '特殊キー': [
+    { value: 'key.keyboard.space', label: 'スペース' },
+    { value: 'key.keyboard.enter', label: 'Enter' },
+    { value: 'key.keyboard.tab', label: 'Tab' },
+    { value: 'key.keyboard.backspace', label: 'Backspace' },
+    { value: 'key.keyboard.escape', label: 'Esc' },
+  ],
+  '日本語キーボード': [
+    { value: 'key.keyboard.nonconvert', label: '無変換' },
+    { value: 'key.keyboard.convert', label: '変換' },
+    { value: 'key.keyboard.kana', label: 'かな' },
+  ],
+  '矢印キー': [
+    { value: 'key.keyboard.up', label: '↑' },
+    { value: 'key.keyboard.down', label: '↓' },
+    { value: 'key.keyboard.left', label: '←' },
+    { value: 'key.keyboard.right', label: '→' },
+  ],
+  'マウスボタン': [
+    { value: 'key.mouse.left', label: 'マウス左' },
+    { value: 'key.mouse.right', label: 'マウス右' },
+    { value: 'key.mouse.middle', label: 'マウスホイール' },
+    { value: 'key.mouse.4', label: 'マウス4' },
+    { value: 'key.mouse.5', label: 'マウス5' },
+  ],
+};
+
 export function KeybindingModal({
   isOpen,
   onClose,
@@ -341,15 +433,24 @@ export function KeybindingModal({
                 <label className="block text-sm font-medium mb-2">
                   リマップ先のキー
                 </label>
-                <input
-                  type="text"
+                <select
                   value={remapKey}
                   onChange={(e) => setRemapKey(e.target.value)}
-                  placeholder="例: key.keyboard.left.control"
                   className="w-full px-4 py-2 border border-[rgb(var(--border))] rounded-lg bg-[rgb(var(--background))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--ring))]"
-                />
+                >
+                  <option value="">-- キーを選択 --</option>
+                  {Object.entries(REMAPPABLE_KEYS).map(([category, keys]) => (
+                    <optgroup key={category} label={category}>
+                      {keys.map((key) => (
+                        <option key={key.value} value={key.value}>
+                          {key.label}
+                        </option>
+                      ))}
+                    </optgroup>
+                  ))}
+                </select>
                 <p className="text-xs text-[rgb(var(--muted-foreground))] mt-2">
-                  Minecraft のキーコード形式で入力してください（例: key.keyboard.caps.lock → key.keyboard.left.control）
+                  よく使われるリマップ例: Caps Lock → Ctrl、無変換 → スペース
                 </p>
               </div>
               {remapKey && (
@@ -357,8 +458,18 @@ export function KeybindingModal({
                   <p className="text-sm">
                     <span className="font-medium">{formatKeyLabel(selectedKey)}</span>
                     {' → '}
-                    <span className="font-medium">{formatKeyLabel(remapKey)}</span>
+                    <span className="font-medium text-blue-600 dark:text-blue-400">{formatKeyLabel(remapKey)}</span>
                   </p>
+                </div>
+              )}
+              {remapKey && (
+                <div className="mt-4">
+                  <button
+                    onClick={() => setRemapKey('')}
+                    className="px-4 py-2 text-sm text-red-600 hover:text-red-700 border border-red-500 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
+                  >
+                    リマップをクリア
+                  </button>
                 </div>
               )}
             </div>
