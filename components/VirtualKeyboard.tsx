@@ -244,11 +244,11 @@ const KEYBOARD_LAYOUT_US = [
   ],
 ];
 
-// マウスボタン（ホイール、MB4、MB5のみ - 攻撃/使うは固定）
+// マウスボタン（ホイール、MB5、MB4のみ - 攻撃/使うは固定）
 const MOUSE_BUTTONS = [
   { key: 'key.mouse.middle', label: 'ホイール', disabled: false },
-  { key: 'key.mouse.4', label: 'MB4', disabled: false },
   { key: 'key.mouse.5', label: 'MB5', disabled: false },
+  { key: 'key.mouse.4', label: 'MB4', disabled: false },
 ];
 
 // 指ごとの色定義（パステルカラー）
@@ -402,6 +402,7 @@ export function VirtualKeyboard({
         'a.grave': 'à',
         'c.cedilla': 'ç',
         'n.tilde': 'ñ',
+        'disabled': '✕',
       };
 
       if (specialKeys[key]) return specialKeys[key];

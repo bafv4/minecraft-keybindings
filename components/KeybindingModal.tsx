@@ -54,6 +54,9 @@ const FINGER_OPTIONS: { value: Finger; label: string; hand: 'left' | 'right' }[]
 
 // リマップ可能なキー一覧
 const REMAPPABLE_KEYS = {
+  '特殊': [
+    { value: 'key.keyboard.disabled', label: '無効化（キーを押しても反応しない）' },
+  ],
   '修飾キー': [
     { value: 'key.keyboard.left.shift', label: '左Shift' },
     { value: 'key.keyboard.right.shift', label: '右Shift' },
@@ -320,6 +323,7 @@ export function KeybindingModal({
         'a.grave': 'à',
         'c.cedilla': 'ç',
         'n.tilde': 'ñ',
+        'disabled': '無効化',
       };
 
       if (specialKeys[key]) return specialKeys[key];
