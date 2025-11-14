@@ -149,8 +149,8 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
   // ユーザー情報
   const [displayName, setDisplayName] = useState(initialDisplayName);
   const [currentMcid, setCurrentMcid] = useState(mcid);
-  const [keyboardLayout, setKeyboardLayout] = useState<'JIS' | 'US'>(
-    (initialSettings?.keyboardLayout as 'JIS' | 'US') || 'JIS'
+  const [keyboardLayout, setKeyboardLayout] = useState<'JIS' | 'JIS-TKL' | 'US' | 'US-TKL'>(
+    (initialSettings?.keyboardLayout as 'JIS' | 'JIS-TKL' | 'US' | 'US-TKL') || 'JIS'
   );
 
   // マウス設定
@@ -613,28 +613,50 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
         </div>
         <div className="mt-4">
           <label className="font-semibold mb-2 block">キーボードレイアウト</label>
-          <div className="flex gap-2">
+          <div className="grid grid-cols-2 gap-2">
             <button
               type="button"
               onClick={() => setKeyboardLayout('JIS')}
-              className={`flex-1 px-4 py-2 rounded-lg border transition-colors font-medium ${
+              className={`px-4 py-2 rounded-lg border transition-colors font-medium ${
                 keyboardLayout === 'JIS'
                   ? 'border-blue-500 bg-blue-500/10 text-blue-600'
                   : 'border-[rgb(var(--border))] hover:bg-[rgb(var(--accent))]'
               }`}
             >
-              JIS (日本語)
+              JIS
             </button>
             <button
               type="button"
               onClick={() => setKeyboardLayout('US')}
-              className={`flex-1 px-4 py-2 rounded-lg border transition-colors font-medium ${
+              className={`px-4 py-2 rounded-lg border transition-colors font-medium ${
                 keyboardLayout === 'US'
                   ? 'border-blue-500 bg-blue-500/10 text-blue-600'
                   : 'border-[rgb(var(--border))] hover:bg-[rgb(var(--accent))]'
               }`}
             >
-              US (英語)
+              US
+            </button>
+            <button
+              type="button"
+              onClick={() => setKeyboardLayout('JIS-TKL')}
+              className={`px-4 py-2 rounded-lg border transition-colors font-medium ${
+                keyboardLayout === 'JIS-TKL'
+                  ? 'border-blue-500 bg-blue-500/10 text-blue-600'
+                  : 'border-[rgb(var(--border))] hover:bg-[rgb(var(--accent))]'
+              }`}
+            >
+              JIS (TKL)
+            </button>
+            <button
+              type="button"
+              onClick={() => setKeyboardLayout('US-TKL')}
+              className={`px-4 py-2 rounded-lg border transition-colors font-medium ${
+                keyboardLayout === 'US-TKL'
+                  ? 'border-blue-500 bg-blue-500/10 text-blue-600'
+                  : 'border-[rgb(var(--border))] hover:bg-[rgb(var(--accent))]'
+              }`}
+            >
+              US (TKL)
             </button>
           </div>
         </div>

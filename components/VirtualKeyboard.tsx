@@ -22,7 +22,7 @@ interface VirtualKeyboardProps {
     externalTool?: { tool: string; action: string; description?: string };
     finger?: Finger[];
   }) => void;
-  keyboardLayout?: 'JIS' | 'US';
+  keyboardLayout?: 'JIS' | 'JIS-TKL' | 'US' | 'US-TKL';
   showFingerColors?: boolean;
   customKeys?: CustomKey[];
 }
@@ -245,6 +245,50 @@ const KEYBOARD_LAYOUT_US = [
   ],
 ];
 
+// 編集キー
+const EDIT_KEYS = [
+  [
+    { key: 'key.keyboard.insert', label: 'Ins', width: 'w-16' },
+    { key: 'key.keyboard.home', label: 'Home', width: 'w-16' },
+    { key: 'key.keyboard.page.up', label: 'PgUp', width: 'w-16' },
+  ],
+  [
+    { key: 'key.keyboard.delete', label: 'Del', width: 'w-16' },
+    { key: 'key.keyboard.end', label: 'End', width: 'w-16' },
+    { key: 'key.keyboard.page.down', label: 'PgDn', width: 'w-16' },
+  ],
+];
+
+// テンキー
+const NUMPAD_KEYS = [
+  [
+    { key: 'key.keyboard.keypad.7', label: '7', width: 'w-16' },
+    { key: 'key.keyboard.keypad.8', label: '8', width: 'w-16' },
+    { key: 'key.keyboard.keypad.9', label: '9', width: 'w-16' },
+    { key: 'key.keyboard.keypad.divide', label: '/', width: 'w-16' },
+  ],
+  [
+    { key: 'key.keyboard.keypad.4', label: '4', width: 'w-16' },
+    { key: 'key.keyboard.keypad.5', label: '5', width: 'w-16' },
+    { key: 'key.keyboard.keypad.6', label: '6', width: 'w-16' },
+    { key: 'key.keyboard.keypad.multiply', label: '*', width: 'w-16' },
+  ],
+  [
+    { key: 'key.keyboard.keypad.1', label: '1', width: 'w-16' },
+    { key: 'key.keyboard.keypad.2', label: '2', width: 'w-16' },
+    { key: 'key.keyboard.keypad.3', label: '3', width: 'w-16' },
+    { key: 'key.keyboard.keypad.subtract', label: '-', width: 'w-16' },
+  ],
+  [
+    { key: 'key.keyboard.keypad.0', label: '0', width: 'w-32' },
+    { key: 'key.keyboard.keypad.decimal', label: '.', width: 'w-16' },
+    { key: 'key.keyboard.keypad.add', label: '+', width: 'w-16' },
+  ],
+  [
+    { key: 'key.keyboard.keypad.enter', label: 'Enter', width: 'w-full' },
+  ],
+];
+
 // マウスボタン（ホイール、MB5、MB4のみ - 攻撃/使うは固定）
 const MOUSE_BUTTONS = [
   { key: 'key.mouse.middle', label: 'ホイール', disabled: false },
@@ -296,8 +340,11 @@ export function VirtualKeyboard({
     return () => clearInterval(interval);
   }, []);
 
-  // キーボードレイアウトを選択
-  const KEYBOARD_LAYOUT = keyboardLayout === 'JIS' ? KEYBOARD_LAYOUT_JIS : KEYBOARD_LAYOUT_US;
+  // キーボードレイアウトを選択（TKLも含む）
+  const KEYBOARD_LAYOUT = (keyboardLayout === 'JIS' || keyboardLayout === 'JIS-TKL')
+    ? KEYBOARD_LAYOUT_JIS
+    : KEYBOARD_LAYOUT_US;
+  const isTenkeyless = keyboardLayout === 'JIS-TKL' || keyboardLayout === 'US-TKL';
 
   // キーに割り当てられたアクションを取得
   const getActionsForKey = (keyCode: string): string[] => {
@@ -672,6 +719,32 @@ export function VirtualKeyboard({
           </div>
         </div>
       </div>
+
+      {/* 編集キー */}
+      <div className="bg-[rgb(var(--card))] p-4 rounded-lg border border-[rgb(var(--border))]">
+        <h3 className="text-sm font-semibold mb-3">編集キー</h3>
+        <div className="space-y-1">
+          {EDIT_KEYS.map((row, i) => (
+            <div key={i} className="flex gap-1">
+              {row.map(renderKey)}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* テンキー（TKLでない場合のみ表示） */}
+      {!isTenkeyless && (
+        <div className="bg-[rgb(var(--card))] p-4 rounded-lg border border-[rgb(var(--border))]">
+          <h3 className="text-sm font-semibold mb-3">テンキー</h3>
+          <div className="space-y-1">
+            {NUMPAD_KEYS.map((row, i) => (
+              <div key={i} className="flex gap-1">
+                {row.map(renderKey)}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* カスタムキー */}
       {customKeys && customKeys.length > 0 && (
