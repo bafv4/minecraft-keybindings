@@ -125,15 +125,16 @@ export function KeyboardListView({ users }: KeyboardListViewProps) {
 
       {/* テーブル */}
       {filteredUsers.length === 0 ? (
-        <div className="text-center py-16 bg-[rgb(var(--card))] rounded-lg border border-[rgb(var(--border))]">
+        <div className="h-[calc(100vh-12rem)] flex items-center justify-center bg-[rgb(var(--card))] rounded-lg border border-[rgb(var(--border))]">
           <p className="text-[rgb(var(--muted-foreground))]">
             {searchQuery ? '検索結果が見つかりませんでした' : '登録プレイヤーなし'}
           </p>
         </div>
       ) : (
-        <div className="bg-[rgb(var(--card))] rounded-lg border border-[rgb(var(--border))] overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-[rgb(var(--muted))] border-b border-[rgb(var(--border))]">
+        <div className="bg-[rgb(var(--card))] rounded-lg border border-[rgb(var(--border))] overflow-hidden h-[calc(100vh-12rem)] flex flex-col">
+          <div className="flex-1 overflow-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-[rgb(var(--muted))] border-b border-[rgb(var(--border))] sticky top-0 z-10">
               <tr>
                 <th
                   className="px-4 py-3 text-left font-semibold cursor-pointer hover:bg-[rgb(var(--muted))]/80 transition-colors"
@@ -214,6 +215,7 @@ export function KeyboardListView({ users }: KeyboardListViewProps) {
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       )}
     </div>

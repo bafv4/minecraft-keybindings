@@ -60,15 +60,15 @@ export function PlayerListView({ users }: PlayerListViewProps) {
 
       {/* プレイヤーリスト */}
       {filteredUsers.length === 0 ? (
-        <div className="text-center py-16 bg-[rgb(var(--card))] rounded-lg border border-[rgb(var(--border))]">
+        <div className="h-[calc(100vh-12rem)] flex items-center justify-center bg-[rgb(var(--card))] rounded-lg border border-[rgb(var(--border))]">
           <p className="text-[rgb(var(--muted-foreground))]">
             {searchQuery ? '検索結果が見つかりませんでした' : '登録プレイヤーなし'}
           </p>
         </div>
       ) : (
-        <div className="bg-[rgb(var(--card))] rounded-lg border border-[rgb(var(--border))] overflow-hidden">
-          {/* テーブルヘッダー（デスクトップ） */}
-          <div className="hidden lg:grid lg:grid-cols-[180px_240px_repeat(8,minmax(60px,1fr))] gap-3 px-4 py-2 border-b border-[rgb(var(--border))] bg-[rgb(var(--muted))] text-xs font-semibold">
+        <div className="bg-[rgb(var(--card))] rounded-lg border border-[rgb(var(--border))] overflow-hidden h-[calc(100vh-12rem)] flex flex-col">
+          {/* テーブルヘッダー（デスクトップ） - 固定 */}
+          <div className="hidden lg:grid lg:grid-cols-[180px_240px_repeat(8,minmax(60px,1fr))] gap-3 px-4 py-2 border-b border-[rgb(var(--border))] bg-[rgb(var(--muted))] text-xs font-semibold sticky top-0 z-10">
             <div>プレイヤー</div>
             <div>ホットバー</div>
             <div className="text-center">オフハンド</div>
@@ -81,8 +81,8 @@ export function PlayerListView({ users }: PlayerListViewProps) {
             <div className="text-center">振り向き</div>
           </div>
 
-          {/* テーブルヘッダー（モバイル/タブレット） */}
-          <div className="lg:hidden px-4 py-2 border-b border-[rgb(var(--border))] bg-[rgb(var(--muted))] text-xs font-semibold space-y-1">
+          {/* テーブルヘッダー（モバイル/タブレット） - 固定 */}
+          <div className="lg:hidden px-4 py-2 border-b border-[rgb(var(--border))] bg-[rgb(var(--muted))] text-xs font-semibold space-y-1 sticky top-0 z-10">
             <div className="flex items-center justify-between">
               <div>プレイヤー</div>
               <div className="flex items-center gap-2">
@@ -95,10 +95,12 @@ export function PlayerListView({ users }: PlayerListViewProps) {
             </div>
           </div>
 
-          {/* プレイヤー行 */}
-          {filteredUsers.map((user) => (
-            <PlayerListItem key={user.uuid} user={user} />
-          ))}
+          {/* プレイヤー行 - スクロール可能 */}
+          <div className="flex-1 overflow-y-auto">
+            {filteredUsers.map((user) => (
+              <PlayerListItem key={user.uuid} user={user} />
+            ))}
+          </div>
         </div>
       )}
     </div>
