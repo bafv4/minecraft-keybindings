@@ -179,7 +179,7 @@ export function KeyboardListView({ users }: KeyboardListViewProps) {
                       href={`/player/${user.mcid}`}
                       className="flex items-center gap-3 hover:opacity-80 transition-opacity"
                     >
-                      <MinecraftAvatar uuid={user.uuid} size={32} />
+                      <MinecraftAvatar uuid={user.uuid} mcid={user.mcid} size={32} />
                       <div>
                         <div className="font-medium">{user.displayName || user.mcid}</div>
                         {user.displayName && (
