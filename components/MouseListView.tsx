@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { MinecraftAvatar } from './MinecraftAvatar';
+import { calculateCursorSpeed } from '@/lib/utils';
 import type { User } from '@/types/player';
 import { MagnifyingGlassIcon, ChevronUpIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
 
@@ -17,32 +18,6 @@ export function MouseListView({ users }: MouseListViewProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortKey, setSortKey] = useState<SortKey>('player');
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
-
-  // Windows速度に応じた係数
-  const getWindowsSpeedMultiplier = (speed: number | null | undefined): number => {
-    if (speed === null || speed === undefined) return 1.0;
-    const multipliers: { [key: number]: number } = {
-      1: 0.03125,
-      2: 0.0625,
-      3: 0.25,
-      4: 0.5,
-      5: 0.75,
-      6: 1.0,
-      7: 1.5,
-      8: 2.0,
-      9: 2.5,
-      10: 3.0,
-      11: 3.5,
-    };
-    return multipliers[speed] || 1.0;
-  };
-
-  // カーソル速度を計算
-  const calculateCursorSpeed = (dpi: number | null | undefined, windowsSpeed: number | null | undefined): number | null => {
-    if (!dpi) return null;
-    const multiplier = getWindowsSpeedMultiplier(windowsSpeed);
-    return Math.round(dpi * multiplier);
-  };
 
   // ソートハンドラー
   const handleSort = (key: SortKey) => {
@@ -119,8 +94,22 @@ export function MouseListView({ users }: MouseListViewProps) {
           break;
 
         case 'cursorSpeed':
-          const cursorSpeedA = calculateCursorSpeed(a.settings?.mouseDpi, a.settings?.windowsSpeed) || 0;
-          const cursorSpeedB = calculateCursorSpeed(b.settings?.mouseDpi, b.settings?.windowsSpeed) || 0;
+          const cursorSpeedA = a.settings?.mouseDpi
+            ? calculateCursorSpeed(
+                a.settings.mouseDpi,
+                a.settings.windowsSpeed ?? 10,
+                a.settings.rawInput ?? true,
+                a.settings.mouseAcceleration ?? false
+              ) || 0
+            : 0;
+          const cursorSpeedB = b.settings?.mouseDpi
+            ? calculateCursorSpeed(
+                b.settings.mouseDpi,
+                b.settings.windowsSpeed ?? 10,
+                b.settings.rawInput ?? true,
+                b.settings.mouseAcceleration ?? false
+              ) || 0
+            : 0;
           compareValue = cursorSpeedA - cursorSpeedB;
           break;
       }
@@ -290,7 +279,7 @@ export function MouseListView({ users }: MouseListViewProps) {
                   {/* ゲーム内感度 */}
                   <td className="px-4 py-3 text-center">
                     {user.settings?.gameSensitivity !== null && user.settings?.gameSensitivity !== undefined
-                      ? `${user.settings.gameSensitivity}%`
+                      ? `${Math.floor(Number(user.settings.gameSensitivity) * 200)}%`
                       : '-'}
                   </td>
 
@@ -309,8 +298,14 @@ export function MouseListView({ users }: MouseListViewProps) {
                   {/* カーソル速度 */}
                   <td className="px-4 py-3 text-center">
                     {(() => {
-                      const cursorSpeed = calculateCursorSpeed(user.settings?.mouseDpi, user.settings?.windowsSpeed);
-                      return cursorSpeed !== null ? cursorSpeed.toLocaleString() : '-';
+                      if (!user.settings?.mouseDpi) return '-';
+                      const cursorSpeed = calculateCursorSpeed(
+                        user.settings.mouseDpi,
+                        user.settings.windowsSpeed ?? 10,
+                        user.settings.rawInput ?? true,
+                        user.settings.mouseAcceleration ?? false
+                      );
+                      return cursorSpeed !== null ? `${cursorSpeed.toLocaleString()}dpi` : '計算不可';
                     })()}
                   </td>
                 </tr>
