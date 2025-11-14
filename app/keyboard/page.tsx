@@ -1,6 +1,11 @@
 import { prisma } from '@/lib/db';
-import { KeyboardListView } from '@/components/KeyboardListView';
+import dynamic from 'next/dynamic';
 import type { User } from '@/types/player';
+
+const KeyboardListView = dynamic(() => import('@/components/KeyboardListView').then(mod => ({ default: mod.KeyboardListView })), {
+  ssr: true,
+  loading: () => <div className="flex items-center justify-center py-12"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div></div>
+});
 
 export default async function KeyboardPage() {
   // 設定があるユーザーのみを取得

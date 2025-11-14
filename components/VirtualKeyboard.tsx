@@ -342,10 +342,40 @@ export function VirtualKeyboard({
 
   // 複数の指が割り当てられたキーの色を1.5秒ごとに切り替える
   useEffect(() => {
-    const interval = setInterval(() => {
-      setColorCycleIndex(prev => prev + 1);
-    }, 1500);
-    return () => clearInterval(interval);
+    let interval: NodeJS.Timeout | null = null;
+
+    const startInterval = () => {
+      interval = setInterval(() => {
+        setColorCycleIndex(prev => prev + 1);
+      }, 1500);
+    };
+
+    const stopInterval = () => {
+      if (interval) {
+        clearInterval(interval);
+        interval = null;
+      }
+    };
+
+    // ページが表示されているときのみインターバルを実行
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        stopInterval();
+      } else {
+        startInterval();
+      }
+    };
+
+    // 初期実行
+    startInterval();
+
+    // Page Visibility APIでタブの状態を監視
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      stopInterval();
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, []);
 
   // メニュー外クリックで閉じる
