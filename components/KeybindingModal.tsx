@@ -590,16 +590,6 @@ export function KeybindingModal({
                   </button>
                 ))}
               </div>
-              {selectedAction && (
-                <div className="mt-4">
-                  <button
-                    onClick={() => setSelectedAction(null)}
-                    className="px-4 py-2 text-sm text-red-600 hover:text-red-700 border border-red-500 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
-                  >
-                    操作割り当てをクリア
-                  </button>
-                </div>
-              )}
             </div>
           )}
 
@@ -679,16 +669,6 @@ export function KeybindingModal({
                     })}
                   </div>
                 </div>
-                {selectedFingers.length > 0 && (
-                  <div className="flex justify-center">
-                    <button
-                      onClick={() => setSelectedFingers([])}
-                      className="px-4 py-2 text-sm text-red-600 hover:text-red-700 border border-red-500 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
-                    >
-                      すべての指の割り当てをクリア
-                    </button>
-                  </div>
-                )}
               </div>
             </div>
           )}
@@ -757,18 +737,6 @@ export function KeybindingModal({
                   <p className="text-xs text-[rgb(var(--muted-foreground))] mt-1">
                     キーコード: <code className="px-1 py-0.5 bg-[rgb(var(--background))] rounded text-xs">{parseInputToKeyCode(remapInput)}</code>
                   </p>
-                </div>
-              )}
-
-              {/* リマップクリアボタン */}
-              {remapInput.trim() && (
-                <div className="mt-4">
-                  <button
-                    onClick={() => setRemapInput('')}
-                    className="px-4 py-2 text-sm text-red-600 hover:text-red-700 border border-red-500 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
-                  >
-                    リマップをクリア
-                  </button>
                 </div>
               )}
 
@@ -864,39 +832,68 @@ export function KeybindingModal({
                   className="w-full px-4 py-2 border border-[rgb(var(--border))] rounded-lg bg-[rgb(var(--background))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--ring))]"
                 />
               </div>
-              {externalToolName && (
-                <div className="mt-4">
-                  <button
-                    onClick={() => {
-                      setExternalToolName('');
-                      setExternalToolAction('');
-                      setExternalToolDescription('');
-                      setSelectedPreset('');
-                    }}
-                    className="px-4 py-2 text-sm text-red-600 hover:text-red-700 border border-red-500 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
-                  >
-                    外部ツール割り当てをクリア
-                  </button>
-                </div>
-              )}
             </div>
           )}
         </div>
 
         {/* フッター */}
-        <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-[rgb(var(--border))] flex-shrink-0">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 text-sm font-medium text-[rgb(var(--muted-foreground))] hover:text-[rgb(var(--foreground))] transition-colors"
-          >
-            キャンセル
-          </button>
-          <button
-            onClick={handleSave}
-            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            保存
-          </button>
+        <div className="flex items-center justify-between px-6 py-4 border-t border-[rgb(var(--border))] flex-shrink-0">
+          {/* 左側: 各タブのクリアボタン */}
+          <div>
+            {activeTab === 'action' && selectedAction && (
+              <button
+                onClick={() => setSelectedAction(null)}
+                className="px-4 py-2 text-sm text-red-600 hover:text-red-700 border border-red-500 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
+              >
+                操作割り当てをクリア
+              </button>
+            )}
+            {activeTab === 'finger' && selectedFingers.length > 0 && (
+              <button
+                onClick={() => setSelectedFingers([])}
+                className="px-4 py-2 text-sm text-red-600 hover:text-red-700 border border-red-500 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
+              >
+                すべての指の割り当てをクリア
+              </button>
+            )}
+            {activeTab === 'remap' && remapInput.trim() && (
+              <button
+                onClick={() => setRemapInput('')}
+                className="px-4 py-2 text-sm text-red-600 hover:text-red-700 border border-red-500 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
+              >
+                リマップをクリア
+              </button>
+            )}
+            {activeTab === 'external' && externalToolName && (
+              <button
+                onClick={() => {
+                  setExternalToolName('');
+                  setExternalToolAction('');
+                  setExternalToolDescription('');
+                  setSelectedPreset('');
+                }}
+                className="px-4 py-2 text-sm text-red-600 hover:text-red-700 border border-red-500 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
+              >
+                外部ツール割り当てをクリア
+              </button>
+            )}
+          </div>
+
+          {/* 右側: 保存・キャンセルボタン */}
+          <div className="flex items-center gap-3">
+            <button
+              onClick={onClose}
+              className="px-4 py-2 text-sm font-medium text-[rgb(var(--muted-foreground))] hover:text-[rgb(var(--foreground))] transition-colors"
+            >
+              キャンセル
+            </button>
+            <button
+              onClick={handleSave}
+              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              保存
+            </button>
+          </div>
         </div>
       </div>
     </div>
