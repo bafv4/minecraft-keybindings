@@ -188,8 +188,10 @@ export function KeyboardListView({ users }: KeyboardListViewProps) {
                     >
                       <MinecraftAvatar uuid={user.uuid} mcid={user.mcid} size={32} />
                       <div>
-                        <div className="font-medium">{user.displayName || user.mcid}</div>
-                        {user.displayName && (
+                        <div className="font-medium">
+                          {user.displayName && user.displayName.trim() !== '' ? user.displayName : user.mcid}
+                        </div>
+                        {user.displayName && user.displayName.trim() !== '' && user.displayName !== user.mcid && (
                           <div className="text-xs text-[rgb(var(--muted-foreground))]">
                             {user.mcid}
                           </div>

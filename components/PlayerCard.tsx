@@ -50,7 +50,7 @@ export function PlayerCard({ user }: PlayerCardProps) {
                       <>
                         <span className="text-[rgb(var(--border))]">•</span>
                         <span>
-                          カーソル速度 {cursorSpeed !== null ? `${cursorSpeed}dpi` : '計算不可'}
+                          カーソル速度 {cursorSpeed !== null ? `${cursorSpeed}dpi` : '-'}
                         </span>
                       </>
                     );

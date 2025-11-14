@@ -389,7 +389,7 @@ export function KeybindingDisplay({ settings }: KeybindingDisplayProps) {
                   settings.rawInput,
                   settings.mouseAcceleration
                 );
-                return cursorSpeed !== null ? `${cursorSpeed}` : '計算不可';
+                return cursorSpeed !== null ? `${cursorSpeed}` : '-';
               })()}
             </div>
           </div>

@@ -244,8 +244,10 @@ export function MouseListView({ users }: MouseListViewProps) {
                     >
                       <MinecraftAvatar uuid={user.uuid} mcid={user.mcid} size={32} />
                       <div>
-                        <div className="font-medium">{user.displayName || user.mcid}</div>
-                        {user.displayName && (
+                        <div className="font-medium">
+                          {user.displayName && user.displayName.trim() !== '' ? user.displayName : user.mcid}
+                        </div>
+                        {user.displayName && user.displayName.trim() !== '' && user.displayName !== user.mcid && (
                           <div className="text-xs text-[rgb(var(--muted-foreground))]">
                             {user.mcid}
                           </div>
@@ -311,7 +313,7 @@ export function MouseListView({ users }: MouseListViewProps) {
                         user.settings.rawInput ?? true,
                         user.settings.mouseAcceleration ?? false
                       );
-                      return cursorSpeed !== null ? `${cursorSpeed.toLocaleString()}dpi` : '計算不可';
+                      return cursorSpeed !== null ? `${cursorSpeed.toLocaleString()}dpi` : '-';
                     })()}
                   </td>
                 </tr>

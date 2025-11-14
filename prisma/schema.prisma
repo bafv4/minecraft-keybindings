@@ -16,7 +16,7 @@ model User {
   uuid         String   @id @default(uuid())  // Minecraft UUID（主キー）
   mcid         String   @unique              // Minecraft ID（変更可能）
   passphrase   String?                       // パスフレーズ（変更時の認証用、ハッシュ化）
-  displayName  String                        // 表示名
+  displayName  String?                       // 表示名
 
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt

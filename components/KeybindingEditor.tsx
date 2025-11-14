@@ -894,7 +894,7 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
                   rawInput,
                   mouseAcceleration
                 );
-                return cursorSpeed !== null ? `${cursorSpeed} dpi` : '計算不可';
+                return cursorSpeed !== null ? `${cursorSpeed} dpi` : '-';
               })()}
             </span>
           </div>
