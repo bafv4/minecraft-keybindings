@@ -243,10 +243,22 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
     return flattened;
   });
 
-  // 指の割り当て設定
-  const [fingerAssignments, setFingerAssignments] = useState<FingerAssignments>(
-    initialSettings?.fingerAssignments || {}
-  );
+  // 指の割り当て設定（後方互換性のため、古い形式を配列に変換）
+  const [fingerAssignments, setFingerAssignments] = useState<FingerAssignments>(() => {
+    if (!initialSettings?.fingerAssignments) return {};
+
+    const normalized: FingerAssignments = {};
+    Object.entries(initialSettings.fingerAssignments).forEach(([key, value]) => {
+      // 古い形式（単一の文字列）または新しい形式（配列）のどちらにも対応
+      if (Array.isArray(value)) {
+        normalized[key] = value;
+      } else if (typeof value === 'string') {
+        // 古い形式：文字列を配列に変換
+        normalized[key] = [value as Finger];
+      }
+    });
+    return normalized;
+  });
 
   // 指の色分け表示のトグル
   const [showFingerColors, setShowFingerColors] = useState(true);
