@@ -7,12 +7,15 @@ export async function POST(request: Request) {
     const { mcid, passphrase, displayName } = await request.json();
 
     // バリデーション
-    if (!mcid || !displayName) {
+    if (!mcid) {
       return NextResponse.json(
-        { error: 'MCID、表示名は必須です' },
+        { error: 'MCIDは必須です' },
         { status: 400 }
       );
     }
+
+    // 表示名が未入力の場合はMCIDを使用
+    const finalDisplayName = displayName && displayName.trim() ? displayName.trim() : mcid;
 
     // Mojang APIからUUIDを取得
     let uuid: string;
@@ -78,7 +81,7 @@ export async function POST(request: Request) {
         uuid,
         mcid,
         passphrase: hashedPassphrase,
-        displayName,
+        displayName: finalDisplayName,
       },
     });
 

@@ -25,7 +25,7 @@ export function RegisterForm() {
         },
         body: JSON.stringify({
           mcid,
-          displayName,
+          displayName: displayName.trim() || mcid, // 未入力の場合はMCIDを使用
           passphrase: passphrase || undefined,
         }),
       });
@@ -68,19 +68,18 @@ export function RegisterForm() {
 
       <div>
         <label htmlFor="displayName" className="block text-sm font-medium mb-1.5">
-          表示名 <span className="text-red-500">*</span>
+          表示名 <span className="text-xs text-[rgb(var(--muted-foreground))]">(任意)</span>
         </label>
         <input
           id="displayName"
           type="text"
           value={displayName}
           onChange={(e) => setDisplayName(e.target.value)}
-          required
           placeholder="例: スティーブ"
           className="w-full px-3 py-2 rounded border border-[rgb(var(--border))] bg-[rgb(var(--background))] focus:outline-none focus:ring-1 focus:ring-[rgb(var(--ring))]"
         />
         <p className="text-xs text-[rgb(var(--muted-foreground))] mt-1">
-          ※ プレイヤー一覧に表示される名前です
+          ※ プレイヤー一覧に表示される名前です（未入力の場合はMCIDが使用されます）
         </p>
       </div>
 
