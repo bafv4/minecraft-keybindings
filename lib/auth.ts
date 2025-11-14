@@ -31,7 +31,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           // パスフレーズ未設定の場合は空文字列でもログイン可能
           return {
             id: user.uuid,
-            name: user.displayName,
+            name: user.displayName || user.mcid,
             mcid: user.mcid,
             uuid: user.uuid,
           };
@@ -53,7 +53,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
         return {
           id: user.uuid,
-          name: user.displayName,
+          name: user.displayName || user.mcid,
           mcid: user.mcid,
           uuid: user.uuid,
         };

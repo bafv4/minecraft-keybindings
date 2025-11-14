@@ -149,14 +149,14 @@ export function MouseListView({ users }: MouseListViewProps) {
         </div>
 
         {/* 検索ボックス */}
-        <div className="relative w-full sm:w-64">
+        <div className="relative w-full sm:w-96">
           <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[rgb(var(--muted-foreground))]" />
           <input
             type="text"
             placeholder="プレイヤー / マウス機種で検索"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-[rgb(var(--border))] rounded-lg bg-[rgb(var(--background))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--ring))]"
+            className="w-full pl-10 pr-4 py-3 text-base border border-[rgb(var(--border))] rounded-lg bg-[rgb(var(--background))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--ring))]"
           />
         </div>
       </div>
