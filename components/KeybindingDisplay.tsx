@@ -100,9 +100,26 @@ function formatKey(keyCode: string | undefined): string {
 }
 
 export function KeybindingDisplay({ settings }: KeybindingDisplayProps) {
+  // 指の割り当て設定を正規化（後方互換性のため、古い形式を配列に変換）
+  const normalizedFingerAssignments: FingerAssignments = (() => {
+    if (!settings.fingerAssignments) return {};
+
+    const normalized: FingerAssignments = {};
+    Object.entries(settings.fingerAssignments).forEach(([key, value]) => {
+      // 古い形式（単一の文字列）または新しい形式（配列）のどちらにも対応
+      if (Array.isArray(value)) {
+        normalized[key] = value;
+      } else if (typeof value === 'string') {
+        // 古い形式：文字列を配列に変換
+        normalized[key] = [value as any];
+      }
+    });
+    return normalized;
+  })();
+
   // 指の色分け表示のトグル（初期値: 指の割り当てがある場合は表示）
   const [showFingerColors, setShowFingerColors] = useState(
-    !!settings.fingerAssignments && Object.keys(settings.fingerAssignments).length > 0
+    Object.keys(normalizedFingerAssignments).length > 0
   );
 
   // 仮想キーボード用のバインディングマップ
@@ -171,7 +188,7 @@ export function KeybindingDisplay({ settings }: KeybindingDisplayProps) {
       <section>
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-bold">キー配置</h2>
-          {settings.fingerAssignments && Object.keys(settings.fingerAssignments).length > 0 && (
+          {Object.keys(normalizedFingerAssignments).length > 0 && (
             <div className="flex items-center gap-2">
               <label className="text-sm font-medium">指の色分け表示</label>
               <button
@@ -197,7 +214,7 @@ export function KeybindingDisplay({ settings }: KeybindingDisplayProps) {
           mode="display"
           remappings={settings.remappings as { [key: string]: string } || {}}
           externalTools={flattenedExternalTools}
-          fingerAssignments={(settings.fingerAssignments as FingerAssignments) || {}}
+          fingerAssignments={normalizedFingerAssignments}
           showFingerColors={showFingerColors}
           keyboardLayout={(settings.keyboardLayout as 'JIS' | 'US') || 'JIS'}
         />
