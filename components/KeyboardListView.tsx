@@ -4,7 +4,8 @@ import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { MinecraftAvatar } from './MinecraftAvatar';
 import type { User } from '@/types/player';
-import { MagnifyingGlassIcon, ChevronUpIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
+import { MagnifyingGlassIcon, ChevronUpIcon, ChevronDownIcon, ArrowLeftIcon } from '@heroicons/react/24/outline';
+import { getLanguageName } from '@/lib/utils';
 
 interface KeyboardListViewProps {
   users: User[];
@@ -102,12 +103,17 @@ export function KeyboardListView({ users }: KeyboardListViewProps) {
     <div className="flex flex-col h-full">
       {/* ヘッダーと検索 */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-        <div>
+        <div className="flex items-center gap-3">
+          {/* 戻るボタン */}
+          <Link
+            href="/"
+            className="inline-flex items-center justify-center w-10 h-10 bg-[rgb(var(--card))] hover:bg-[rgb(var(--muted))] border border-[rgb(var(--border))] rounded-lg transition-colors"
+            title="プレイヤー一覧に戻る"
+          >
+            <ArrowLeftIcon className="w-5 h-5" />
+          </Link>
+
           <h1 className="text-2xl font-semibold">キーボード設定一覧</h1>
-          <p className="text-sm text-[rgb(var(--muted-foreground))] mt-1">
-            {filteredUsers.length}人
-            {searchQuery && ` / ${users.length}人中`}
-          </p>
         </div>
 
         {/* 検索ボックス */}
@@ -204,7 +210,7 @@ export function KeyboardListView({ users }: KeyboardListViewProps) {
 
                   {/* 言語 */}
                   <td className="px-4 py-3 text-center">
-                    {user.settings?.gameLanguage || '-'}
+                    {user.settings?.gameLanguage ? getLanguageName(user.settings.gameLanguage) : '-'}
                   </td>
 
                   {/* リマップ数 */}

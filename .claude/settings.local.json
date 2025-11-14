@@ -30,7 +30,11 @@
       "Bash(ping:*)",
       "Bash(set PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION=\"yes\")",
       "Bash(git add:*)",
-      "Bash(copy \"c:\\Users\\yuanq\\dev\\minecraft-keybindings\\public\\icon.svg\" \"c:\\Users\\yuanq\\dev\\minecraft-keybindings\\app\\icon.svg\")"
+      "Bash(copy \"c:\\Users\\yuanq\\dev\\minecraft-keybindings\\public\\icon.svg\" \"c:\\Users\\yuanq\\dev\\minecraft-keybindings\\app\\icon.svg\")",
+      "Bash(pnpm prisma studio:*)",
+      "Bash(node check-schema.js:*)",
+      "Bash(del check-schema.js)",
+      "Bash(psql:*)"
     ],
     "deny": [],
     "ask": []

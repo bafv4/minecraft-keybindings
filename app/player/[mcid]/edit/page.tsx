@@ -33,7 +33,7 @@ export default async function EditPage({ params }: EditPageProps) {
   }
 
   return (
-    <div>
+    <div className="pb-6">
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">設定を編集</h1>
         <p className="text-[rgb(var(--muted-foreground))]">

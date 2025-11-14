@@ -29,10 +29,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ja">
-      <body>
+    <html lang="ja" className="h-full">
+      <body className="h-full flex flex-col">
         <Header />
-        <main className="container mx-auto px-4 py-8">
+        <main className="container mx-auto px-4 py-8 pt-28 flex-1 flex flex-col min-h-0">
           {children}
         </main>
       </body>

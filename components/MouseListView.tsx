@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { MinecraftAvatar } from './MinecraftAvatar';
 import { calculateCursorSpeed } from '@/lib/utils';
 import type { User } from '@/types/player';
-import { MagnifyingGlassIcon, ChevronUpIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
+import { MagnifyingGlassIcon, ChevronUpIcon, ChevronDownIcon, ArrowLeftIcon } from '@heroicons/react/24/outline';
 
 interface MouseListViewProps {
   users: User[];
@@ -135,12 +135,17 @@ export function MouseListView({ users }: MouseListViewProps) {
     <div className="flex flex-col h-full">
       {/* ヘッダーと検索 */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-        <div>
+        <div className="flex items-center gap-3">
+          {/* 戻るボタン */}
+          <Link
+            href="/"
+            className="inline-flex items-center justify-center w-10 h-10 bg-[rgb(var(--card))] hover:bg-[rgb(var(--muted))] border border-[rgb(var(--border))] rounded-lg transition-colors"
+            title="プレイヤー一覧に戻る"
+          >
+            <ArrowLeftIcon className="w-5 h-5" />
+          </Link>
+
           <h1 className="text-2xl font-semibold">マウス設定一覧</h1>
-          <p className="text-sm text-[rgb(var(--muted-foreground))] mt-1">
-            {filteredUsers.length}人
-            {searchQuery && ` / ${users.length}人中`}
-          </p>
         </div>
 
         {/* 検索ボックス */}
@@ -215,7 +220,7 @@ export function MouseListView({ users }: MouseListViewProps) {
                   className="px-4 py-3 text-center font-semibold cursor-pointer hover:bg-[rgb(var(--muted))]/80 transition-colors"
                   onClick={() => handleSort('windowsSpeed')}
                 >
-                  Windows速度 <SortIcon columnKey="windowsSpeed" />
+                  Win Sens <SortIcon columnKey="windowsSpeed" />
                 </th>
                 <th
                   className="px-4 py-3 text-center font-semibold cursor-pointer hover:bg-[rgb(var(--muted))]/80 transition-colors"
@@ -262,18 +267,18 @@ export function MouseListView({ users }: MouseListViewProps) {
                   {/* マウス加速 */}
                   <td className="px-4 py-3 text-center">
                     {user.settings?.mouseAcceleration ? (
-                      <span className="text-green-600 dark:text-green-400">有</span>
+                      <span className="text-green-600 dark:text-green-400">ON</span>
                     ) : (
-                      <span className="text-[rgb(var(--muted-foreground))]">無</span>
+                      <span className="text-[rgb(var(--muted-foreground))]">OFF</span>
                     )}
                   </td>
 
                   {/* RawInput */}
                   <td className="px-4 py-3 text-center">
                     {user.settings?.rawInput ? (
-                      <span className="text-green-600 dark:text-green-400">有</span>
+                      <span className="text-green-600 dark:text-green-400">ON</span>
                     ) : (
-                      <span className="text-[rgb(var(--muted-foreground))]">無</span>
+                      <span className="text-[rgb(var(--muted-foreground))]">OFF</span>
                     )}
                   </td>
 

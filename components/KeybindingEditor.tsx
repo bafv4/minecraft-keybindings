@@ -226,21 +226,9 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
     initialSettings?.remappings || {}
   );
 
-  // 外部ツール設定を平坦化（key -> {tool, action, description}）
-  const [externalTools, setExternalTools] = useState<{ [key: string]: { tool: string; action: string; description?: string } }>(() => {
-    if (!initialSettings?.externalTools) return {};
-
-    const flattened: { [key: string]: { tool: string; action: string; description?: string } } = {};
-    Object.entries(initialSettings.externalTools).forEach(([toolName, config]) => {
-      config.actions.forEach((actionDef) => {
-        flattened[actionDef.trigger] = {
-          tool: toolName,
-          action: actionDef.action,
-          description: actionDef.description,
-        };
-      });
-    });
-    return flattened;
+  // 外部ツール設定（key -> action名）
+  const [externalTools, setExternalTools] = useState<{ [key: string]: string }>(() => {
+    return (initialSettings?.externalTools as { [key: string]: string }) || {};
   });
 
   // 指の割り当て設定（後方互換性のため、古い形式を配列に変換）
@@ -383,7 +371,7 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
   const handleUpdateConfig = (keyCode: string, config: {
     action?: string;
     remap?: string;
-    externalTool?: { tool: string; action: string; description?: string };
+    externalTool?: string;
     finger?: Finger[];
   }) => {
     console.log('handleUpdateConfig called:', { keyCode, config });
@@ -422,8 +410,8 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
     if (config.externalTool !== undefined) {
       setExternalTools(prev => {
         const updated = { ...prev };
-        if (config.externalTool && config.externalTool.tool) {
-          // toolが存在すれば保存（actionは空でもOK - プリセットの場合）
+        if (config.externalTool) {
+          // アクション名を保存
           updated[keyCode] = config.externalTool;
         } else {
           delete updated[keyCode];
@@ -450,15 +438,6 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
     setSaving(true);
 
     try {
-      // 外部ツールを平坦化形式から nested structure に変換
-      const nestedExternalTools: { [toolName: string]: { actions: Array<{ trigger: string; action: string; description?: string }> } } = {};
-      Object.entries(externalTools).forEach(([trigger, config]) => {
-        const { tool, action, description } = config;
-        if (!nestedExternalTools[tool]) {
-          nestedExternalTools[tool] = { actions: [] };
-        }
-        nestedExternalTools[tool].actions.push({ trigger, action, description });
-      });
 
       const data = {
         uuid, // UUIDを送信
@@ -510,7 +489,7 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
 
         // リマップと外部ツール（空のオブジェクトの場合はnullに変換）
         remappings: Object.keys(remappings).length > 0 ? remappings : null,
-        externalTools: Object.keys(nestedExternalTools).length > 0 ? nestedExternalTools : null,
+        externalTools: Object.keys(externalTools).length > 0 ? externalTools : null,
         fingerAssignments: Object.keys(fingerAssignments).length > 0 ? fingerAssignments : null,
 
         // 追加設定（additionalSettings JSONフィールドに保存）
@@ -527,7 +506,7 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
         notes: notes.trim() || undefined,
       };
 
-      console.log('Saving keybindings:', { remappings, externalTools, nestedExternalTools, fingerAssignments });
+      console.log('Saving keybindings:', { remappings, externalTools, fingerAssignments });
 
       const response = await fetch('/api/keybindings', {
         method: 'POST',
@@ -687,70 +666,6 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
           キーをクリックして、操作の割り当て・指の割り当て・リマップ・外部ツールの設定を行えます
         </p>
 
-        {/* カスタムキー管理 */}
-        <div className="mb-6 p-4 bg-[rgb(var(--muted))] rounded-lg border border-[rgb(var(--border))]">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-lg font-semibold">カスタムキー</h3>
-            <button
-              type="button"
-              onClick={() => {
-                const newId = `custom-${Date.now()}`;
-                const newKey: CustomKey = {
-                  id: newId,
-                  label: `CK${customKeys.length + 1}`,
-                  keyCode: `key.custom.${customKeys.length + 1}`
-                };
-                setCustomKeys([...customKeys, newKey]);
-              }}
-              className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
-            >
-              + キーを追加
-            </button>
-          </div>
-          <p className="text-xs text-[rgb(var(--muted-foreground))] mb-3">
-            物理キーボードにないカスタムキー（F13以降、サイドボタンなど）を追加できます
-          </p>
-          {customKeys.length > 0 ? (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
-              {customKeys.map((customKey, index) => (
-                <div
-                  key={customKey.id}
-                  className="flex items-center gap-2 p-2 bg-[rgb(var(--card))] rounded border border-[rgb(var(--border))]"
-                >
-                  <input
-                    type="text"
-                    value={customKey.label}
-                    onChange={(e) => {
-                      const updated = [...customKeys];
-                      updated[index] = { ...customKey, label: e.target.value };
-                      setCustomKeys(updated);
-                    }}
-                    className="flex-1 px-2 py-1 text-sm border border-[rgb(var(--border))] rounded bg-[rgb(var(--background))] focus:outline-none focus:ring-1 focus:ring-[rgb(var(--ring))]"
-                    placeholder="ラベル"
-                    maxLength={6}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setCustomKeys(customKeys.filter((_, i) => i !== index));
-                    }}
-                    className="p-1 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30 rounded transition-colors"
-                    title="削除"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-sm text-[rgb(var(--muted-foreground))] text-center py-4">
-              カスタムキーがありません。「+ キーを追加」ボタンで追加できます。
-            </p>
-          )}
-        </div>
-
         <VirtualKeyboard
           bindings={bindings}
           mode="edit"
@@ -761,6 +676,22 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
           onUpdateConfig={handleUpdateConfig}
           keyboardLayout={keyboardLayout}
           customKeys={customKeys}
+          onAddCustomKey={(section, label) => {
+            const newKey: CustomKey = {
+              id: `custom-${section}-${Date.now()}`,
+              label: label,
+              keyCode: `key.custom.${section}.${customKeys.filter(k => k.keyCode.includes(`custom.${section}`)).length + 1}`
+            };
+            setCustomKeys([...customKeys, newKey]);
+          }}
+          onUpdateCustomKey={(keyCode, label) => {
+            setCustomKeys(customKeys.map(key =>
+              key.keyCode === keyCode ? { ...key, label } : key
+            ));
+          }}
+          onDeleteCustomKey={(keyCode) => {
+            setCustomKeys(customKeys.filter(key => key.keyCode !== keyCode));
+          }}
         />
       </section>
 
@@ -1064,7 +995,7 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
 
           {/* 自由使用欄 */}
           <div>
-            <label htmlFor="notes" className="font-semibold text-base mb-2 block">自由使用欄</label>
+            <label htmlFor="notes" className="font-semibold text-base mb-2 block">コメント</label>
             <textarea
               id="notes"
               value={notes}

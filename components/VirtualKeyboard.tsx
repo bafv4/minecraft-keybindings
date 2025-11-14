@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { KeybindingModal } from './KeybindingModal';
+import { EllipsisVerticalIcon, PlusIcon } from '@heroicons/react/24/outline';
 import type { Finger, FingerAssignments, CustomKey } from '@/types/player';
 
 interface VirtualKeyboardProps {
@@ -14,17 +15,20 @@ interface VirtualKeyboardProps {
   onSelectAction?: (action: string) => void;
   // リマップと外部ツールの設定
   remappings?: { [key: string]: string };
-  externalTools?: { [key: string]: { tool: string; action: string; description?: string } };
+  externalTools?: { [key: string]: string }; // keyCode -> action名
   fingerAssignments?: FingerAssignments;
   onUpdateConfig?: (key: string, config: {
     action?: string;
     remap?: string;
-    externalTool?: { tool: string; action: string; description?: string };
+    externalTool?: string; // アクション名
     finger?: Finger[];
   }) => void;
   keyboardLayout?: 'JIS' | 'JIS-TKL' | 'US' | 'US-TKL';
   showFingerColors?: boolean;
   customKeys?: CustomKey[];
+  onAddCustomKey?: (section: 'keyboard' | 'edit' | 'numpad' | 'mouse', label: string) => void;
+  onUpdateCustomKey?: (keyCode: string, label: string) => void;
+  onDeleteCustomKey?: (keyCode: string) => void;
 }
 
 // JISキーボードレイアウト定義
@@ -98,7 +102,7 @@ const KEYBOARD_LAYOUT_JIS = [
     { key: 'key.keyboard.apostrophe', label: ':', width: 'w-16' },
     { key: 'key.keyboard.enter', label: 'Enter', width: 'w-24' },
   ],
-  // ZXCV列 + 矢印キー（上）
+  // ZXCV列
   [
     { key: 'key.keyboard.left.shift', label: 'Shift', width: 'w-28' },
     { key: 'key.keyboard.z', label: 'Z', width: 'w-16' },
@@ -113,12 +117,8 @@ const KEYBOARD_LAYOUT_JIS = [
     { key: 'key.keyboard.slash', label: '/', width: 'w-16' },
     { key: 'key.keyboard.backslash', label: '\\', width: 'w-16' },
     { key: 'key.keyboard.right.shift', label: 'Shift', width: 'w-20' },
-    { key: 'spacer', width: 'w-6' },
-    { key: 'spacer', width: 'w-16' },
-    { key: 'key.keyboard.up', label: '↑', width: 'w-16' },
-    { key: 'spacer', width: 'w-16' },
   ],
-  // 最下段 + 矢印キー（下・左・右）
+  // 最下段
   [
     { key: 'key.keyboard.left.control', label: 'Ctrl', width: 'w-20' },
     { key: 'key.keyboard.left.win', label: 'Win', width: 'w-16' },
@@ -131,10 +131,6 @@ const KEYBOARD_LAYOUT_JIS = [
     { key: 'key.keyboard.right.win', label: 'Win', width: 'w-16' },
     { key: 'key.keyboard.menu', label: 'Fn', width: 'w-16' },
     { key: 'key.keyboard.right.control', label: 'Ctrl', width: 'w-20' },
-    { key: 'spacer', width: 'w-6' },
-    { key: 'key.keyboard.left', label: '←', width: 'w-16' },
-    { key: 'key.keyboard.down', label: '↓', width: 'w-16' },
-    { key: 'key.keyboard.right', label: '→', width: 'w-16' },
   ],
 ];
 
@@ -209,7 +205,7 @@ const KEYBOARD_LAYOUT_US = [
     { key: 'key.keyboard.apostrophe', label: "'", width: 'w-16' },
     { key: 'key.keyboard.enter', label: 'Enter', width: 'w-24' },
   ],
-  // ZXCV列 + 矢印キー（上）
+  // ZXCV列
   [
     { key: 'key.keyboard.left.shift', label: 'Shift', width: 'w-32' },
     { key: 'key.keyboard.z', label: 'Z', width: 'w-16' },
@@ -223,12 +219,8 @@ const KEYBOARD_LAYOUT_US = [
     { key: 'key.keyboard.period', label: '.', width: 'w-16' },
     { key: 'key.keyboard.slash', label: '/', width: 'w-16' },
     { key: 'key.keyboard.right.shift', label: 'Shift', width: 'w-28' },
-    { key: 'spacer', width: 'w-6' },
-    { key: 'spacer', width: 'w-16' },
-    { key: 'key.keyboard.up', label: '↑', width: 'w-16' },
-    { key: 'spacer', width: 'w-16' },
   ],
-  // 最下段 + 矢印キー（下・左・右）
+  // 最下段
   [
     { key: 'key.keyboard.left.control', label: 'Ctrl', width: 'w-20' },
     { key: 'key.keyboard.left.win', label: 'Win', width: 'w-16' },
@@ -238,14 +230,10 @@ const KEYBOARD_LAYOUT_US = [
     { key: 'key.keyboard.right.win', label: 'Win', width: 'w-16' },
     { key: 'key.keyboard.menu', label: 'Fn', width: 'w-16' },
     { key: 'key.keyboard.right.control', label: 'Ctrl', width: 'w-20' },
-    { key: 'spacer', width: 'w-6' },
-    { key: 'key.keyboard.left', label: '←', width: 'w-16' },
-    { key: 'key.keyboard.down', label: '↓', width: 'w-16' },
-    { key: 'key.keyboard.right', label: '→', width: 'w-16' },
   ],
 ];
 
-// 編集キー
+// 編集キー + 矢印キー
 const EDIT_KEYS = [
   [
     { key: 'key.keyboard.insert', label: 'Ins', width: 'w-16' },
@@ -257,43 +245,56 @@ const EDIT_KEYS = [
     { key: 'key.keyboard.end', label: 'End', width: 'w-16' },
     { key: 'key.keyboard.page.down', label: 'PgDn', width: 'w-16' },
   ],
+  [
+    { key: 'spacer', width: 'w-16' },
+    { key: 'key.keyboard.up', label: '↑', width: 'w-16' },
+    { key: 'spacer', width: 'w-16' },
+  ],
+  [
+    { key: 'key.keyboard.left', label: '←', width: 'w-16' },
+    { key: 'key.keyboard.down', label: '↓', width: 'w-16' },
+    { key: 'key.keyboard.right', label: '→', width: 'w-16' },
+  ],
 ];
 
 // テンキー
 const NUMPAD_KEYS = [
   [
+    { key: 'key.keyboard.num.lock', label: 'NumLock', width: 'w-16' },
+    { key: 'key.keyboard.keypad.divide', label: '/', width: 'w-16' },
+    { key: 'key.keyboard.keypad.multiply', label: '*', width: 'w-16' },
+    { key: 'key.keyboard.keypad.subtract', label: '-', width: 'w-16' },
+  ],
+  [
     { key: 'key.keyboard.keypad.7', label: '7', width: 'w-16' },
     { key: 'key.keyboard.keypad.8', label: '8', width: 'w-16' },
     { key: 'key.keyboard.keypad.9', label: '9', width: 'w-16' },
-    { key: 'key.keyboard.keypad.divide', label: '/', width: 'w-16' },
+    { key: 'key.keyboard.keypad.add', label: '+', width: 'w-16', rowspan: 2 },
   ],
   [
     { key: 'key.keyboard.keypad.4', label: '4', width: 'w-16' },
     { key: 'key.keyboard.keypad.5', label: '5', width: 'w-16' },
     { key: 'key.keyboard.keypad.6', label: '6', width: 'w-16' },
-    { key: 'key.keyboard.keypad.multiply', label: '*', width: 'w-16' },
   ],
   [
     { key: 'key.keyboard.keypad.1', label: '1', width: 'w-16' },
     { key: 'key.keyboard.keypad.2', label: '2', width: 'w-16' },
     { key: 'key.keyboard.keypad.3', label: '3', width: 'w-16' },
-    { key: 'key.keyboard.keypad.subtract', label: '-', width: 'w-16' },
+    { key: 'key.keyboard.keypad.enter', label: 'Enter', width: 'w-16', rowspan: 2 },
   ],
   [
-    { key: 'key.keyboard.keypad.0', label: '0', width: 'w-32' },
+    { key: 'key.keyboard.keypad.0', label: '0', width: 'w-[132px]' },
     { key: 'key.keyboard.keypad.decimal', label: '.', width: 'w-16' },
-    { key: 'key.keyboard.keypad.add', label: '+', width: 'w-16' },
-  ],
-  [
-    { key: 'key.keyboard.keypad.enter', label: 'Enter', width: 'w-full' },
   ],
 ];
 
-// マウスボタン（ホイール、MB5、MB4のみ - 攻撃/使うは固定）
+// マウスボタン（左・右クリックは表示のみ、他は編集可能）
 const MOUSE_BUTTONS = [
+  { key: 'key.mouse.left', label: '左クリック', disabled: true },
+  { key: 'key.mouse.right', label: '右クリック', disabled: true },
   { key: 'key.mouse.middle', label: 'ホイール', disabled: false },
-  { key: 'key.mouse.5', label: 'MB5', disabled: false },
   { key: 'key.mouse.4', label: 'MB4', disabled: false },
+  { key: 'key.mouse.5', label: 'MB5', disabled: false },
 ];
 
 // 指ごとの色定義（パステルカラー）
@@ -326,11 +327,18 @@ export function VirtualKeyboard({
   keyboardLayout = 'JIS',
   showFingerColors = false,
   customKeys = [],
+  onAddCustomKey,
+  onUpdateCustomKey,
+  onDeleteCustomKey,
 }: VirtualKeyboardProps) {
   const [hoveredKey, setHoveredKey] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
+  const [selectedCustomKey, setSelectedCustomKey] = useState<CustomKey | null>(null);
   const [colorCycleIndex, setColorCycleIndex] = useState(0);
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [addingKeySection, setAddingKeySection] = useState<'keyboard' | 'edit' | 'numpad' | 'mouse' | null>(null);
+  const [newKeyLabel, setNewKeyLabel] = useState('');
 
   // 複数の指が割り当てられたキーの色を1.5秒ごとに切り替える
   useEffect(() => {
@@ -339,6 +347,55 @@ export function VirtualKeyboard({
     }, 1500);
     return () => clearInterval(interval);
   }, []);
+
+  // メニュー外クリックで閉じる
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest('[data-menu]')) {
+        setOpenMenuId(null);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // カスタムキーを各カード内のキーリストに分類
+  const getCustomKeysForSection = (section: 'keyboard' | 'edit' | 'numpad' | 'mouse') => {
+    // keyCodeのプレフィックスでセクションを判定
+    return (customKeys || []).filter(key => {
+      if (key.keyCode.includes(`custom.${section}`)) return true;
+      // 古い形式との互換性のため、プレフィックスがない場合はkeyboardに表示
+      if (section === 'keyboard' && !key.keyCode.includes('custom.edit') &&
+          !key.keyCode.includes('custom.numpad') && !key.keyCode.includes('custom.mouse')) {
+        return true;
+      }
+      return false;
+    });
+  };
+
+  // カスタムキー追加ハンドラー
+  const handleAddCustomKey = (section: 'keyboard' | 'edit' | 'numpad' | 'mouse') => {
+    setAddingKeySection(section);
+    setNewKeyLabel('');
+    setOpenMenuId(null);
+  };
+
+  // カスタムキー作成の確定
+  const handleConfirmAddCustomKey = () => {
+    if (!addingKeySection || !newKeyLabel.trim()) return;
+    if (onAddCustomKey) {
+      onAddCustomKey(addingKeySection, newKeyLabel.trim());
+    }
+    setAddingKeySection(null);
+    setNewKeyLabel('');
+  };
+
+  // カスタムキー作成のキャンセル
+  const handleCancelAddCustomKey = () => {
+    setAddingKeySection(null);
+    setNewKeyLabel('');
+  };
 
   // キーボードレイアウトを選択（TKLも含む）
   const KEYBOARD_LAYOUT = (keyboardLayout === 'JIS' || keyboardLayout === 'JIS-TKL')
@@ -397,7 +454,8 @@ export function VirtualKeyboard({
   const handleModalSave = (config: {
     action?: string;
     remap?: string;
-    externalTool?: { tool: string; action: string; description?: string };
+    externalTool?: string;
+    finger?: Finger[];
   }) => {
     console.log('VirtualKeyboard handleModalSave called:', { selectedKey, config, onUpdateConfig: !!onUpdateConfig });
     if (!selectedKey) {
@@ -505,7 +563,7 @@ export function VirtualKeyboard({
     const fingerColorClass = showFingerColors && currentFinger ? getFingerColor(currentFinger) : '';
 
     let backgroundClass = defaultColorClass;
-    if (assignedFingers.length > 0 && showFingerColors) {
+    if (fingerColorClass) {
       backgroundClass = fingerColorClass;
     } else if (hasAnyMapping) {
       backgroundClass = primaryColorClass;
@@ -521,7 +579,7 @@ export function VirtualKeyboard({
         parts.push(`操作: ${actions.join(', ')}`);
       }
       if (hasExternalTool && externalTool) {
-        parts.push(`外部ツール: ${externalTool.tool}${externalTool.description ? ` - ${externalTool.description}` : ''}`);
+        parts.push(`外部ツール: ${externalTool}`);
       }
       if (assignedFingers.length > 0) {
         const fingerLabels: Record<string, string> = {
@@ -542,6 +600,11 @@ export function VirtualKeyboard({
       return parts.join('\n');
     };
 
+    // rowspan サポート: 2行分の場合は高さを2倍 + gap分（4px）
+    // h-16 = 64px, gap-1 = 4px, so 2 rows = 64*2 + 4 = 132px
+    // ただし、keyDef.heightが指定されている場合はそれを優先（Grid用のh-fullなど）
+    const heightClass = keyDef.height || (keyDef.rowspan === 2 ? 'h-[132px]' : 'h-16');
+
     return (
       <button
         key={keyDef.key}
@@ -551,7 +614,7 @@ export function VirtualKeyboard({
         onMouseLeave={() => setHoveredKey(null)}
         disabled={mode === 'display'}
         title={mode === 'display' && (hasAnyMapping || assignedFingers.length > 0) ? tooltipContent() : undefined}
-        className={`${keyDef.width} h-16 rounded border text-sm font-medium transition-all relative ${backgroundClass} ${mode === 'edit' ? 'hover:border-blue-500 cursor-pointer' : 'cursor-default'} ${isHovered && (hasAnyMapping || assignedFingers.length > 0) ? 'ring-2 ring-blue-500' : ''}`}
+        className={`${keyDef.width} ${heightClass} rounded border text-sm font-medium transition-all relative ${backgroundClass} ${mode === 'edit' ? 'hover:border-blue-500 cursor-pointer' : 'cursor-default'} ${isHovered && (hasAnyMapping || assignedFingers.length > 0) ? 'ring-2 ring-blue-500' : ''}`}
       >
         {/* リマップ表示：左上にもともとのキー名（低コントラスト）とリマップ後のキー名（大きく） */}
         {hasRemap && remapTarget ? (
@@ -577,8 +640,8 @@ export function VirtualKeyboard({
           {/* 外部ツール表示 */}
           {hasExternalTool && externalTool && (
             <div className="flex justify-end">
-              <span className="px-1 py-0 text-[8px] font-medium bg-gray-400/30 dark:bg-gray-600/30 text-gray-800 dark:text-gray-200 rounded-sm whitespace-nowrap max-w-[90%] overflow-hidden text-ellipsis border border-gray-500/40 dark:border-gray-500/40" title={`${externalTool.tool}${externalTool.description ? ': ' + externalTool.description : ''}${externalTool.action ? '\n' + externalTool.action : ''}`}>
-                {externalTool.description ? externalTool.description.replace(/^(.*?)\s*（.*）\s*$/, '$1').replace(/\s*-\s*.*$/, '').trim() : externalTool.tool}
+              <span className="px-1 py-0 text-[8px] font-medium bg-gray-400/30 dark:bg-gray-600/30 text-gray-800 dark:text-gray-200 rounded-sm whitespace-nowrap max-w-[90%] overflow-hidden text-ellipsis border border-gray-500/40 dark:border-gray-500/40" title={externalTool}>
+                {externalTool.replace(/^(.*?)[:：].*$/, '$1').trim()}
               </span>
             </div>
           )}
@@ -588,7 +651,7 @@ export function VirtualKeyboard({
   };
 
   // マウスボタンをレンダリング（簡潔な表示）
-  const renderMouseButton = (btn: typeof MOUSE_BUTTONS[0]) => {
+  const renderMouseButton = (btn: typeof MOUSE_BUTTONS[0], customSize?: { width: string; height: string }) => {
     const actions = getActionsForKey(btn.key);
     const hasBinding = actions.length > 0;
     const hasRemap = !!remappings[btn.key];
@@ -608,7 +671,7 @@ export function VirtualKeyboard({
     const fingerColorClass = showFingerColors && currentFinger ? getFingerColor(currentFinger) : '';
 
     let backgroundClass = defaultColorClass;
-    if (assignedFingers.length > 0 && showFingerColors) {
+    if (fingerColorClass) {
       backgroundClass = fingerColorClass;
     } else if (hasAnyMapping) {
       backgroundClass = primaryColorClass;
@@ -624,7 +687,7 @@ export function VirtualKeyboard({
         parts.push(`操作: ${actions.join(', ')}`);
       }
       if (hasExternalTool && externalTool) {
-        parts.push(`外部ツール: ${externalTool.tool}${externalTool.description ? ` - ${externalTool.description}` : ''}`);
+        parts.push(`外部ツール: ${externalTool}`);
       }
       if (assignedFingers.length > 0) {
         const fingerLabels: Record<string, string> = {
@@ -645,6 +708,8 @@ export function VirtualKeyboard({
       return parts.join('\n');
     };
 
+    const sizeClass = customSize ? `${customSize.width} ${customSize.height}` : 'w-28 h-16';
+
     return (
       <button
         key={btn.key}
@@ -655,7 +720,7 @@ export function VirtualKeyboard({
         }}
         disabled={mode === 'display' || btn.disabled}
         title={mode === 'display' && (hasAnyMapping || assignedFingers.length > 0) ? tooltipContent() : undefined}
-        className={`w-28 h-16 rounded border text-sm font-medium transition-all relative ${backgroundClass} ${mode === 'edit' && !btn.disabled ? 'hover:border-blue-500 cursor-pointer' : 'cursor-default'}`}
+        className={`${sizeClass} rounded border text-sm font-medium transition-all relative ${backgroundClass} ${mode === 'edit' && !btn.disabled ? 'hover:border-blue-500 cursor-pointer' : 'cursor-default'}`}
       >
         {/* リマップ表示：左上にもともとのキー名（低コントラスト）とリマップ後のキー名（大きく） */}
         {hasRemap && remapTarget ? (
@@ -681,8 +746,8 @@ export function VirtualKeyboard({
           {/* 外部ツール表示 */}
           {hasExternalTool && externalTool && (
             <div className="flex justify-center">
-              <span className="px-1 py-0 text-[8px] font-medium bg-gray-400/30 dark:bg-gray-600/30 text-gray-800 dark:text-gray-200 rounded-sm whitespace-nowrap max-w-[90%] overflow-hidden text-ellipsis border border-gray-500/40 dark:border-gray-500/40" title={`${externalTool.tool}${externalTool.description ? ': ' + externalTool.description : ''}${externalTool.action ? '\n' + externalTool.action : ''}`}>
-                {externalTool.description ? externalTool.description.replace(/^(.*?)\s*（.*）\s*$/, '$1').replace(/\s*-\s*.*$/, '').trim() : externalTool.tool}
+              <span className="px-1 py-0 text-[8px] font-medium bg-gray-400/30 dark:bg-gray-600/30 text-gray-800 dark:text-gray-200 rounded-sm whitespace-nowrap max-w-[90%] overflow-hidden text-ellipsis border border-gray-500/40 dark:border-gray-500/40" title={externalTool}>
+                {externalTool.replace(/^(.*?)[:：].*$/, '$1').trim()}
               </span>
             </div>
           )}
@@ -693,75 +758,430 @@ export function VirtualKeyboard({
 
   return (
     <div className="space-y-4">
-      {/* キーボード + マウスボタン */}
+      {/* キーボード本体 */}
       <div className="bg-[rgb(var(--card))] p-4 rounded-lg border border-[rgb(var(--border))]">
-        <h3 className="text-sm font-semibold mb-3">キーボード / マウス ({keyboardLayout})</h3>
-        <div className="overflow-x-auto">
-          <div className="flex gap-4 min-w-max">
-            {/* キーボード */}
-            <div className="flex-1 space-y-1">
-              {KEYBOARD_LAYOUT.map((row, i) => (
-                <div key={i} className="flex gap-1">
-                  {row.map(renderKey)}
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-sm font-semibold">キーボード ({keyboardLayout})</h3>
+          {mode === 'edit' && (
+            <div className="relative" data-menu>
+              <button
+                type="button"
+                onClick={() => setOpenMenuId(openMenuId === 'keyboard' ? null : 'keyboard')}
+                className="p-1 hover:bg-[rgb(var(--muted))] rounded transition-colors"
+              >
+                <EllipsisVerticalIcon className="w-5 h-5" />
+              </button>
+              {openMenuId === 'keyboard' && (
+                <div className="absolute right-0 top-8 bg-[rgb(var(--card))] border border-[rgb(var(--border))] rounded-lg shadow-lg p-2 z-20 min-w-[150px]">
+                  <button
+                    type="button"
+                    onClick={() => handleAddCustomKey('keyboard')}
+                    className="flex items-center gap-2 w-full px-3 py-2 text-sm hover:bg-[rgb(var(--muted))] rounded transition-colors whitespace-nowrap"
+                  >
+                    <PlusIcon className="w-4 h-4 flex-shrink-0" />
+                    <span>キーを追加</span>
+                  </button>
                 </div>
-              ))}
+              )}
             </div>
-
-            {/* マウスボタン（右側に配置） */}
-            <div className="flex flex-col gap-2 justify-center">
-              <div className="text-xs font-semibold text-center mb-1">マウス</div>
-              {MOUSE_BUTTONS.map(renderMouseButton)}
-              <div className="text-xs text-[rgb(var(--muted-foreground))] text-center mt-2">
-                <div className="text-[10px]">攻撃/使うは</div>
-                <div className="text-[10px]">変更不可</div>
-              </div>
-            </div>
-          </div>
+          )}
         </div>
-      </div>
-
-      {/* 編集キー */}
-      <div className="bg-[rgb(var(--card))] p-4 rounded-lg border border-[rgb(var(--border))]">
-        <h3 className="text-sm font-semibold mb-3">編集キー</h3>
-        <div className="space-y-1">
-          {EDIT_KEYS.map((row, i) => (
-            <div key={i} className="flex gap-1">
-              {row.map(renderKey)}
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* テンキー（TKLでない場合のみ表示） */}
-      {!isTenkeyless && (
-        <div className="bg-[rgb(var(--card))] p-4 rounded-lg border border-[rgb(var(--border))]">
-          <h3 className="text-sm font-semibold mb-3">テンキー</h3>
+        <div className="overflow-x-auto">
           <div className="space-y-1">
-            {NUMPAD_KEYS.map((row, i) => (
+            {KEYBOARD_LAYOUT.map((row, i) => (
               <div key={i} className="flex gap-1">
                 {row.map(renderKey)}
               </div>
             ))}
           </div>
         </div>
-      )}
-
-      {/* カスタムキー */}
-      {customKeys && customKeys.length > 0 && (
-        <div className="bg-[rgb(var(--card))] p-4 rounded-lg border border-[rgb(var(--border))]">
-          <h3 className="text-sm font-semibold mb-3">カスタムキー</h3>
-          <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2">
-            {customKeys.map((customKey) => {
-              const keyDef = { key: customKey.keyCode, label: customKey.label, width: 'w-20' };
-              return (
-                <div key={customKey.id}>
-                  {renderKey(keyDef)}
+        {/* カスタムキー表示 */}
+        {(getCustomKeysForSection('keyboard').length > 0 || addingKeySection === 'keyboard') && (
+          <div className="mt-3 pt-3 border-t border-[rgb(var(--border))]">
+            <div className="text-xs font-semibold mb-2 text-[rgb(var(--muted-foreground))]">カスタムキー</div>
+            <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2">
+              {getCustomKeysForSection('keyboard').map((customKey) => {
+                const keyDef = { key: customKey.keyCode, label: customKey.label, width: 'w-full' };
+                return (
+                  <div key={customKey.id}>
+                    {renderKey(keyDef)}
+                  </div>
+                );
+              })}
+              {addingKeySection === 'keyboard' && (
+                <div className="w-full">
+                  <div className="h-16 rounded border-2 border-dashed border-blue-500 bg-blue-50 dark:bg-blue-950 flex flex-col items-center justify-center gap-1 p-1">
+                    <input
+                      type="text"
+                      value={newKeyLabel}
+                      onChange={(e) => setNewKeyLabel(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') handleConfirmAddCustomKey();
+                        if (e.key === 'Escape') handleCancelAddCustomKey();
+                      }}
+                      placeholder="名前"
+                      autoFocus
+                      maxLength={6}
+                      className="w-full px-1 py-0.5 text-xs text-center border border-blue-300 rounded bg-white dark:bg-gray-800 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    />
+                    <div className="flex gap-1">
+                      <button
+                        type="button"
+                        onClick={handleConfirmAddCustomKey}
+                        className="px-2 py-0.5 text-[10px] bg-blue-500 text-white rounded hover:bg-blue-600"
+                      >
+                        OK
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleCancelAddCustomKey}
+                        className="px-2 py-0.5 text-[10px] bg-gray-300 dark:bg-gray-700 rounded hover:bg-gray-400 dark:hover:bg-gray-600"
+                      >
+                        キャンセル
+                      </button>
+                    </div>
+                  </div>
                 </div>
-              );
-            })}
+              )}
+            </div>
           </div>
+        )}
+      </div>
+
+      {/* 編集キー・テンキー・マウス（3段組み） */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* 編集キー */}
+        <div className="bg-[rgb(var(--card))] p-4 rounded-lg border border-[rgb(var(--border))]">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-semibold">編集キー</h3>
+            {mode === 'edit' && (
+              <div className="relative" data-menu>
+                <button
+                  type="button"
+                  onClick={() => setOpenMenuId(openMenuId === 'edit' ? null : 'edit')}
+                  className="p-1 hover:bg-[rgb(var(--muted))] rounded transition-colors"
+                >
+                  <EllipsisVerticalIcon className="w-5 h-5" />
+                </button>
+                {openMenuId === 'edit' && (
+                  <div className="absolute right-0 top-8 bg-[rgb(var(--card))] border border-[rgb(var(--border))] rounded-lg shadow-lg p-2 z-20 min-w-[150px]">
+                    <button
+                      type="button"
+                      onClick={() => handleAddCustomKey('edit')}
+                      className="flex items-center gap-2 w-full px-3 py-2 text-sm hover:bg-[rgb(var(--muted))] rounded transition-colors whitespace-nowrap"
+                    >
+                      <PlusIcon className="w-4 h-4 flex-shrink-0" />
+                      <span>キーを追加</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+          <div className="space-y-1">
+            {EDIT_KEYS.map((row, i) => (
+              <div key={i} className="flex gap-1">
+                {row.map(renderKey)}
+              </div>
+            ))}
+          </div>
+          {/* カスタムキー表示 */}
+          {(getCustomKeysForSection('edit').length > 0 || addingKeySection === 'edit') && (
+            <div className="mt-3 pt-3 border-t border-[rgb(var(--border))]">
+              <div className="text-xs font-semibold mb-2 text-[rgb(var(--muted-foreground))]">カスタムキー</div>
+              <div className="grid grid-cols-3 gap-2">
+                {getCustomKeysForSection('edit').map((customKey) => {
+                  const keyDef = { key: customKey.keyCode, label: customKey.label, width: 'w-full' };
+                  return (
+                    <div key={customKey.id}>
+                      {renderKey(keyDef)}
+                    </div>
+                  );
+                })}
+                {addingKeySection === 'edit' && (
+                  <div className="w-full">
+                    <div className="h-16 rounded border-2 border-dashed border-blue-500 bg-blue-50 dark:bg-blue-950 flex flex-col items-center justify-center gap-1 p-1">
+                      <input
+                        type="text"
+                        value={newKeyLabel}
+                        onChange={(e) => setNewKeyLabel(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') handleConfirmAddCustomKey();
+                          if (e.key === 'Escape') handleCancelAddCustomKey();
+                        }}
+                        placeholder="名前"
+                        autoFocus
+                        maxLength={6}
+                        className="w-full px-1 py-0.5 text-xs text-center border border-blue-300 rounded bg-white dark:bg-gray-800 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      />
+                      <div className="flex gap-1">
+                        <button
+                          type="button"
+                          onClick={handleConfirmAddCustomKey}
+                          className="px-2 py-0.5 text-[10px] bg-blue-500 text-white rounded hover:bg-blue-600"
+                        >
+                          OK
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleCancelAddCustomKey}
+                          className="px-2 py-0.5 text-[10px] bg-gray-300 dark:bg-gray-700 rounded hover:bg-gray-400 dark:hover:bg-gray-600"
+                        >
+                          キャンセル
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
-      )}
+
+        {/* テンキー（TKLでない場合のみ表示） */}
+        {!isTenkeyless && (
+          <div className="bg-[rgb(var(--card))] p-4 rounded-lg border border-[rgb(var(--border))]">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-semibold">テンキー</h3>
+              {mode === 'edit' && (
+                <div className="relative" data-menu>
+                  <button
+                    type="button"
+                    onClick={() => setOpenMenuId(openMenuId === 'numpad' ? null : 'numpad')}
+                    className="p-1 hover:bg-[rgb(var(--muted))] rounded transition-colors"
+                  >
+                    <EllipsisVerticalIcon className="w-5 h-5" />
+                  </button>
+                  {openMenuId === 'numpad' && (
+                    <div className="absolute right-0 top-8 bg-[rgb(var(--card))] border border-[rgb(var(--border))] rounded-lg shadow-lg p-2 z-20 min-w-[150px]">
+                      <button
+                        type="button"
+                        onClick={() => handleAddCustomKey('numpad')}
+                        className="flex items-center gap-2 w-full px-3 py-2 text-sm hover:bg-[rgb(var(--muted))] rounded transition-colors whitespace-nowrap"
+                      >
+                        <PlusIcon className="w-4 h-4 flex-shrink-0" />
+                        <span>キーを追加</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+            <div className="grid grid-cols-[repeat(4,64px)] gap-1 auto-rows-[64px]">
+              {/* Row 0: NumLock, /, *, - */}
+              {renderKey({ ...NUMPAD_KEYS[0][0], width: 'w-full', height: 'h-full' })}
+              {renderKey({ ...NUMPAD_KEYS[0][1], width: 'w-full', height: 'h-full' })}
+              {renderKey({ ...NUMPAD_KEYS[0][2], width: 'w-full', height: 'h-full' })}
+              {renderKey({ ...NUMPAD_KEYS[0][3], width: 'w-full', height: 'h-full' })}
+
+              {/* Row 1: 7, 8, 9, + (rowspan 2) */}
+              {renderKey({ ...NUMPAD_KEYS[1][0], width: 'w-full', height: 'h-full' })}
+              {renderKey({ ...NUMPAD_KEYS[1][1], width: 'w-full', height: 'h-full' })}
+              {renderKey({ ...NUMPAD_KEYS[1][2], width: 'w-full', height: 'h-full' })}
+              <div className="row-span-2">
+                {renderKey({ ...NUMPAD_KEYS[1][3], width: 'w-full', height: 'h-full', rowspan: 2 })}
+              </div>
+
+              {/* Row 2: 4, 5, 6 */}
+              {renderKey({ ...NUMPAD_KEYS[2][0], width: 'w-full', height: 'h-full' })}
+              {renderKey({ ...NUMPAD_KEYS[2][1], width: 'w-full', height: 'h-full' })}
+              {renderKey({ ...NUMPAD_KEYS[2][2], width: 'w-full', height: 'h-full' })}
+
+              {/* Row 3: 1, 2, 3, Enter (rowspan 2) */}
+              {renderKey({ ...NUMPAD_KEYS[3][0], width: 'w-full', height: 'h-full' })}
+              {renderKey({ ...NUMPAD_KEYS[3][1], width: 'w-full', height: 'h-full' })}
+              {renderKey({ ...NUMPAD_KEYS[3][2], width: 'w-full', height: 'h-full' })}
+              <div className="row-span-2">
+                {renderKey({ ...NUMPAD_KEYS[3][3], width: 'w-full', height: 'h-full', rowspan: 2 })}
+              </div>
+
+              {/* Row 4: 0 (colspan 2), . */}
+              <div className="col-span-2">
+                {renderKey({ ...NUMPAD_KEYS[4][0], width: 'w-full', height: 'h-full' })}
+              </div>
+              {renderKey({ ...NUMPAD_KEYS[4][1], width: 'w-full', height: 'h-full' })}
+            </div>
+            {/* カスタムキー表示 */}
+            {(getCustomKeysForSection('numpad').length > 0 || addingKeySection === 'numpad') && (
+              <div className="mt-3 pt-3 border-t border-[rgb(var(--border))]">
+                <div className="text-xs font-semibold mb-2 text-[rgb(var(--muted-foreground))]">カスタムキー</div>
+                <div className="grid grid-cols-4 gap-2">
+                  {getCustomKeysForSection('numpad').map((customKey) => {
+                    const keyDef = { key: customKey.keyCode, label: customKey.label, width: 'w-full' };
+                    return (
+                      <div key={customKey.id}>
+                        {renderKey(keyDef)}
+                      </div>
+                    );
+                  })}
+                  {addingKeySection === 'numpad' && (
+                    <div className="w-full">
+                      <div className="h-16 rounded border-2 border-dashed border-blue-500 bg-blue-50 dark:bg-blue-950 flex flex-col items-center justify-center gap-1 p-1">
+                        <input
+                          type="text"
+                          value={newKeyLabel}
+                          onChange={(e) => setNewKeyLabel(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') handleConfirmAddCustomKey();
+                            if (e.key === 'Escape') handleCancelAddCustomKey();
+                          }}
+                          placeholder="名前"
+                          autoFocus
+                          maxLength={6}
+                          className="w-full px-1 py-0.5 text-xs text-center border border-blue-300 rounded bg-white dark:bg-gray-800 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        />
+                        <div className="flex gap-1">
+                          <button
+                            type="button"
+                            onClick={handleConfirmAddCustomKey}
+                            className="px-2 py-0.5 text-[10px] bg-blue-500 text-white rounded hover:bg-blue-600"
+                          >
+                            OK
+                          </button>
+                          <button
+                            type="button"
+                            onClick={handleCancelAddCustomKey}
+                            className="px-2 py-0.5 text-[10px] bg-gray-300 dark:bg-gray-700 rounded hover:bg-gray-400 dark:hover:bg-gray-600"
+                          >
+                            キャンセル
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* マウス */}
+        <div className="bg-[rgb(var(--card))] p-4 rounded-lg border border-[rgb(var(--border))]">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-semibold">マウス</h3>
+            {mode === 'edit' && (
+              <div className="relative" data-menu>
+                <button
+                  type="button"
+                  onClick={() => setOpenMenuId(openMenuId === 'mouse' ? null : 'mouse')}
+                  className="p-1 hover:bg-[rgb(var(--muted))] rounded transition-colors"
+                >
+                  <EllipsisVerticalIcon className="w-5 h-5" />
+                </button>
+                {openMenuId === 'mouse' && (
+                  <div className="absolute right-0 top-8 bg-[rgb(var(--card))] border border-[rgb(var(--border))] rounded-lg shadow-lg p-2 z-20 min-w-[150px]">
+                    <button
+                      type="button"
+                      onClick={() => handleAddCustomKey('mouse')}
+                      className="flex items-center gap-2 w-full px-3 py-2 text-sm hover:bg-[rgb(var(--muted))] rounded transition-colors whitespace-nowrap"
+                    >
+                      <PlusIcon className="w-4 h-4 flex-shrink-0" />
+                      <span>キーを追加</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+          <div className="flex flex-col items-center gap-2 max-w-[200px] mx-auto">
+            {/* 上部：左クリック、ホイール、右クリック */}
+            <div className="flex gap-1">
+              {/* 左クリック */}
+              <button
+                type="button"
+                disabled={true}
+                className="w-16 h-20 rounded-tl-2xl rounded-bl-lg border bg-[rgb(var(--card))] border-[rgb(var(--border))] cursor-default relative"
+              >
+                <div className="absolute top-1 left-1.5 text-[10px]">左</div>
+                <div className="absolute bottom-1 left-1 right-1 flex justify-center">
+                  <span className="px-1 py-0 text-[8px] font-medium bg-gray-300 dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded whitespace-nowrap">
+                    {getActionsForKey('key.mouse.left').slice(0, 1)[0] || '攻撃'}
+                  </span>
+                </div>
+              </button>
+
+              {/* ホイール（中央） */}
+              {renderMouseButton(MOUSE_BUTTONS[2], { width: 'w-16', height: 'h-20' })} {/* ホイール */}
+
+              {/* 右クリック */}
+              <button
+                type="button"
+                disabled={true}
+                className="w-16 h-20 rounded-tr-2xl rounded-br-lg border bg-[rgb(var(--card))] border-[rgb(var(--border))] cursor-default relative"
+              >
+                <div className="absolute top-1 right-1.5 text-[10px]">右</div>
+                <div className="absolute bottom-1 left-1 right-1 flex justify-center">
+                  <span className="px-1 py-0 text-[8px] font-medium bg-gray-300 dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded whitespace-nowrap">
+                    {getActionsForKey('key.mouse.right').slice(0, 1)[0] || '使う'}
+                  </span>
+                </div>
+              </button>
+            </div>
+
+            {/* 下部：MB4, MB5（サイドボタン） */}
+            <div className="flex gap-1">
+              {renderMouseButton(MOUSE_BUTTONS[3], { width: 'w-16', height: 'h-16' })} {/* MB4 */}
+              {renderMouseButton(MOUSE_BUTTONS[4], { width: 'w-16', height: 'h-16' })} {/* MB5 */}
+            </div>
+          </div>
+          <div className="text-xs text-[rgb(var(--muted-foreground))] text-center mt-3">
+            <div className="text-[10px]">左・右クリックは</div>
+            <div className="text-[10px]">変更不可</div>
+          </div>
+          {/* カスタムキー表示 */}
+          {(getCustomKeysForSection('mouse').length > 0 || addingKeySection === 'mouse') && (
+            <div className="mt-3 pt-3 border-t border-[rgb(var(--border))]">
+              <div className="text-xs font-semibold mb-2 text-[rgb(var(--muted-foreground))]">カスタムキー</div>
+              <div className="grid grid-cols-2 gap-2">
+                {getCustomKeysForSection('mouse').map((customKey) => {
+                  const keyDef = { key: customKey.keyCode, label: customKey.label, width: 'w-full' };
+                  return (
+                    <div key={customKey.id}>
+                      {renderKey(keyDef)}
+                    </div>
+                  );
+                })}
+                {addingKeySection === 'mouse' && (
+                  <div className="w-full">
+                    <div className="h-16 rounded border-2 border-dashed border-blue-500 bg-blue-50 dark:bg-blue-950 flex flex-col items-center justify-center gap-1 p-1">
+                      <input
+                        type="text"
+                        value={newKeyLabel}
+                        onChange={(e) => setNewKeyLabel(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') handleConfirmAddCustomKey();
+                          if (e.key === 'Escape') handleCancelAddCustomKey();
+                        }}
+                        placeholder="名前"
+                        autoFocus
+                        maxLength={6}
+                        className="w-full px-1 py-0.5 text-xs text-center border border-blue-300 rounded bg-white dark:bg-gray-800 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      />
+                      <div className="flex gap-1">
+                        <button
+                          type="button"
+                          onClick={handleConfirmAddCustomKey}
+                          className="px-2 py-0.5 text-[10px] bg-blue-500 text-white rounded hover:bg-blue-600"
+                        >
+                          OK
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleCancelAddCustomKey}
+                          className="px-2 py-0.5 text-[10px] bg-gray-300 dark:bg-gray-700 rounded hover:bg-gray-400 dark:hover:bg-gray-600"
+                        >
+                          キャンセル
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
 
       {/* 凡例 */}
       <div className="text-xs text-[rgb(var(--muted-foreground))] space-y-1">
@@ -786,20 +1206,34 @@ export function VirtualKeyboard({
       </div>
 
       {/* モーダル */}
-      {selectedKey && (
-        <KeybindingModal
-          isOpen={modalOpen}
-          onClose={() => setModalOpen(false)}
-          selectedKey={selectedKey}
-          currentAction={
-            Object.entries(bindings).find(([_, key]) => key === selectedKey)?.[0] || null
-          }
-          currentRemap={remappings[selectedKey]}
-          currentExternalTool={externalTools[selectedKey]}
-          currentFinger={fingerAssignments[selectedKey]}
-          onSave={handleModalSave}
-        />
-      )}
+      {selectedKey && (() => {
+        const customKey = customKeys?.find(k => k.keyCode === selectedKey);
+        const isCustom = !!customKey;
+
+        return (
+          <KeybindingModal
+            isOpen={modalOpen}
+            onClose={() => setModalOpen(false)}
+            selectedKey={selectedKey}
+            currentAction={
+              Object.entries(bindings).find(([_, key]) => key === selectedKey)?.[0] || null
+            }
+            currentRemap={remappings[selectedKey]}
+            currentExternalTool={externalTools[selectedKey]}
+            currentFinger={fingerAssignments[selectedKey]}
+            onSave={handleModalSave}
+            isCustomKey={isCustom}
+            customKeyLabel={customKey?.label || ''}
+            onUpdateCustomKey={isCustom && onUpdateCustomKey ? (label) => {
+              onUpdateCustomKey(selectedKey, label);
+            } : undefined}
+            onDeleteCustomKey={isCustom && onDeleteCustomKey ? () => {
+              onDeleteCustomKey(selectedKey);
+              setModalOpen(false);
+            } : undefined}
+          />
+        );
+      })()}
     </div>
   );
 }

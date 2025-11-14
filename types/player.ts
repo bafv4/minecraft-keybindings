@@ -43,18 +43,9 @@ export interface CustomKeysConfig {
   keys: CustomKey[];
 }
 
-// 外部ツールアクション
-export interface ExternalToolAction {
-  trigger: string;
-  action: string;
-  description?: string;
-}
-
-// 外部ツール設定
+// 外部ツール設定（キーごとにアクションを割り当て）
 export interface ExternalToolsConfig {
-  [toolName: string]: {
-    actions: ExternalToolAction[];
-  };
+  [keyCode: string]: string; // keyCode -> action (例: "key.keyboard.f" -> "リセット")
 }
 
 // キーバインディングの型定義

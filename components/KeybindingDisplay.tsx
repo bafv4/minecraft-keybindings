@@ -102,10 +102,20 @@ function formatKey(keyCode: string | undefined): string {
 export function KeybindingDisplay({ settings }: KeybindingDisplayProps) {
   // 指の割り当て設定を正規化（後方互換性のため、古い形式を配列に変換）
   const normalizedFingerAssignments: FingerAssignments = (() => {
-    if (!settings.fingerAssignments) return {};
+    if (!settings.fingerAssignments) {
+      return {};
+    }
+
+    // Prisma JsonValueを強制的にオブジェクトとして扱う
+    const rawFingerAssignments = settings.fingerAssignments as Record<string, unknown>;
+    const entries = Object.entries(rawFingerAssignments);
+
+    if (entries.length === 0) {
+      return {};
+    }
 
     const normalized: FingerAssignments = {};
-    Object.entries(settings.fingerAssignments).forEach(([key, value]) => {
+    entries.forEach(([key, value]) => {
       // 古い形式（単一の文字列）または新しい形式（配列）のどちらにも対応
       if (Array.isArray(value)) {
         normalized[key] = value;
@@ -158,19 +168,8 @@ export function KeybindingDisplay({ settings }: KeybindingDisplayProps) {
     playerList: (settings.additionalSettings as { playerList?: string })?.playerList || 'key.keyboard.tab',
   };
 
-  // 外部ツール設定を平坦化（key -> {tool, action, description}）
-  const flattenedExternalTools: { [key: string]: { tool: string; action: string; description?: string } } = {};
-  if (settings.externalTools) {
-    Object.entries(settings.externalTools).forEach(([toolName, config]) => {
-      config.actions.forEach((actionDef) => {
-        flattenedExternalTools[actionDef.trigger] = {
-          tool: toolName,
-          action: actionDef.action,
-          description: actionDef.description,
-        };
-      });
-    });
-  }
+  // 外部ツール設定（既に平坦化されている）
+  const flattenedExternalTools = (settings.externalTools as { [key: string]: string }) || {};
 
   // ホットバーキー
   const hotbarKeys = [
@@ -191,26 +190,32 @@ export function KeybindingDisplay({ settings }: KeybindingDisplayProps) {
       <section>
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-bold">キー配置</h2>
-          {Object.keys(normalizedFingerAssignments).length > 0 && (
-            <div className="flex items-center gap-2">
-              <label className="text-sm font-medium">指の色分け表示</label>
-              <button
-                type="button"
-                role="switch"
-                aria-checked={showFingerColors}
-                onClick={() => setShowFingerColors(!showFingerColors)}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                  showFingerColors ? 'bg-blue-600' : 'bg-[rgb(var(--border))]'
+          <div className="flex items-center gap-2">
+            <label className={`text-sm font-medium ${Object.keys(normalizedFingerAssignments).length === 0 ? 'text-[rgb(var(--muted-foreground))]' : ''}`}>
+              指の色分け表示
+            </label>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={showFingerColors}
+              onClick={() => setShowFingerColors(!showFingerColors)}
+              disabled={Object.keys(normalizedFingerAssignments).length === 0}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                Object.keys(normalizedFingerAssignments).length === 0
+                  ? 'bg-[rgb(var(--muted))] cursor-not-allowed opacity-50'
+                  : showFingerColors
+                  ? 'bg-blue-600'
+                  : 'bg-[rgb(var(--border))]'
+              }`}
+              title={Object.keys(normalizedFingerAssignments).length === 0 ? '指の割り当てがありません' : ''}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  showFingerColors ? 'translate-x-6' : 'translate-x-1'
                 }`}
-              >
-                <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                    showFingerColors ? 'translate-x-6' : 'translate-x-1'
-                  }`}
-                />
-              </button>
-            </div>
-          )}
+              />
+            </button>
+          </div>
         </div>
         <VirtualKeyboard
           bindings={bindings}
@@ -463,56 +468,47 @@ export function KeybindingDisplay({ settings }: KeybindingDisplayProps) {
       )}
 
       {/* 外部ツール */}
-      {settings.externalTools && Object.keys(settings.externalTools).length > 0 && (
-        <section className="bg-[rgb(var(--card))] p-6 rounded-lg border border-[rgb(var(--border))]">
-          <h2 className="text-xl font-bold mb-4">外部ツール設定</h2>
-          <p className="text-sm text-[rgb(var(--muted-foreground))] mb-4">
-            AutoHotKeyやマウスマクロなどの外部ツールによるアクション設定
-          </p>
-          <div className="space-y-6">
-            {Object.entries(settings.externalTools as Record<string, { actions: Array<{ trigger: string; action: string; description?: string }> }>).map(([toolName, config]) => (
-              <div key={toolName} className="bg-[rgb(var(--muted))]/30 p-4 rounded-lg border border-[rgb(var(--border))]">
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  <h3 className="font-bold text-lg">{toolName}</h3>
-                  <span className="ml-auto text-xs bg-[rgb(var(--muted))] px-2 py-1 rounded">
-                    {config.actions.length} アクション
-                  </span>
-                </div>
-                <div className="space-y-3">
-                  {config.actions.map((action, idx) => (
-                    <div key={idx} className="bg-[rgb(var(--background))] p-3 rounded-lg border border-[rgb(var(--border))]">
-                      <div className="flex items-start gap-3">
-                        <div className="flex-shrink-0">
-                          <div className="text-xs text-[rgb(var(--muted-foreground))] mb-1">トリガーキー</div>
-                          <code className="px-2 py-1 bg-[rgb(var(--muted))] border border-[rgb(var(--border))] rounded font-mono text-sm">
-                            {formatKeyName(action.trigger)}
-                          </code>
-                        </div>
-                        <svg className="w-4 h-4 text-[rgb(var(--muted-foreground))] mt-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                        </svg>
-                        <div className="flex-1 min-w-0">
-                          <div className="text-xs text-[rgb(var(--muted-foreground))] mb-1">実行アクション</div>
-                          <div className="px-2 py-1 bg-purple-500/10 border border-purple-500 rounded text-sm font-semibold text-purple-700 dark:text-purple-300">
-                            {action.action}
-                          </div>
-                          {action.description && (
-                            <div className="mt-2 text-xs text-[rgb(var(--muted-foreground))] leading-relaxed">
-                              <span className="font-semibold">説明: </span>
-                              {action.description}
-                            </div>
-                          )}
-                        </div>
+      {settings.externalTools && Object.keys(settings.externalTools).length > 0 && (() => {
+        // 新しい形式かチェック（string値のみ）
+        const isNewFormat = Object.values(settings.externalTools).every(v => typeof v === 'string');
+
+        if (!isNewFormat) {
+          // 古い形式の場合は表示しない（またはマイグレーション推奨メッセージを表示）
+          return null;
+        }
+
+        return (
+          <section className="bg-[rgb(var(--card))] p-6 rounded-lg border border-[rgb(var(--border))]">
+            <h2 className="text-xl font-bold mb-4">外部ツール設定</h2>
+            <p className="text-sm text-[rgb(var(--muted-foreground))] mb-4">
+              AutoHotKeyやマウスマクロなどの外部ツールによるアクション設定
+            </p>
+            <div className="space-y-3">
+              {Object.entries(settings.externalTools as Record<string, string>).map(([keyCode, action]) => (
+                <div key={keyCode} className="bg-[rgb(var(--background))] p-3 rounded-lg border border-[rgb(var(--border))]">
+                  <div className="flex items-start gap-3">
+                    <div className="flex-shrink-0">
+                      <div className="text-xs text-[rgb(var(--muted-foreground))] mb-1">トリガーキー</div>
+                      <code className="px-2 py-1 bg-[rgb(var(--muted))] border border-[rgb(var(--border))] rounded font-mono text-sm">
+                        {formatKeyName(keyCode)}
+                      </code>
+                    </div>
+                    <svg className="w-4 h-4 text-[rgb(var(--muted-foreground))] mt-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                    </svg>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-xs text-[rgb(var(--muted-foreground))] mb-1">実行アクション</div>
+                      <div className="px-2 py-1 bg-purple-500/10 border border-purple-500 rounded text-sm font-semibold text-purple-700 dark:text-purple-300">
+                        {action}
                       </div>
                     </div>
-                  ))}
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
+              ))}
+            </div>
+          </section>
+        );
+      })()}
     </div>
   );
 }

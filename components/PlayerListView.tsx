@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import Link from 'next/link';
 import { PlayerListItem } from './PlayerListItem';
 import type { User } from '@/types/player';
-import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import { MagnifyingGlassIcon, ComputerDesktopIcon, CursorArrowRaysIcon } from '@heroicons/react/24/outline';
 
 interface PlayerListViewProps {
   users: User[];
@@ -34,19 +35,33 @@ export function PlayerListView({ users }: PlayerListViewProps) {
   }, [sortedUsers, searchQuery]);
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full min-h-0">
       {/* ヘッダーと検索 */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-        <div>
+      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 mb-6 flex-shrink-0">
+        <div className="flex items-center gap-4">
           <h1 className="text-2xl font-semibold">プレイヤー一覧</h1>
-          <p className="text-sm text-[rgb(var(--muted-foreground))] mt-1">
-            {filteredUsers.length}人
-            {searchQuery && ` / ${users.length}人中`}
-          </p>
+
+          {/* ナビゲーションボタン */}
+          <div className="flex gap-2">
+            <Link
+              href="/keyboard"
+              className="flex items-center gap-2 px-4 py-2 bg-[rgb(var(--card))] hover:bg-[rgb(var(--muted))] border border-[rgb(var(--border))] rounded-lg transition-colors"
+            >
+              <ComputerDesktopIcon className="w-5 h-5" />
+              <span className="text-sm font-medium">キーボード設定一覧</span>
+            </Link>
+            <Link
+              href="/mouse"
+              className="flex items-center gap-2 px-4 py-2 bg-[rgb(var(--card))] hover:bg-[rgb(var(--muted))] border border-[rgb(var(--border))] rounded-lg transition-colors"
+            >
+              <CursorArrowRaysIcon className="w-5 h-5" />
+              <span className="text-sm font-medium">マウス設定一覧</span>
+            </Link>
+          </div>
         </div>
 
         {/* 検索ボックス */}
-        <div className="relative w-full sm:w-64">
+        <div className="relative w-full lg:w-64">
           <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[rgb(var(--muted-foreground))]" />
           <input
             type="text"

@@ -12,31 +12,37 @@ interface KeybindingModalProps {
   onSave: (config: {
     action?: string;
     remap?: string;
-    externalTool?: { tool: string; action: string; description?: string };
+    externalTool?: string; // アクション名（例: "Jingle:ThinBT" or カスタム文字列）
     finger?: Finger[];
   }) => void;
   // 既存の設定を渡す
   currentRemap?: string;
-  currentExternalTool?: { tool: string; action: string; description?: string };
+  currentExternalTool?: string; // アクション名
   currentFinger?: Finger[];
+  // カスタムキー関連
+  isCustomKey?: boolean;
+  customKeyLabel?: string;
+  onUpdateCustomKey?: (label: string) => void;
+  onDeleteCustomKey?: () => void;
 }
 
-type TabType = 'action' | 'remap' | 'external' | 'finger';
+type TabType = 'action' | 'remap' | 'external' | 'finger' | 'custom';
 
-// 外部ツールのプリセット定義
-const EXTERNAL_TOOL_PRESETS = {
-  'Jingle': [
-    { name: 'ThinBT', description: 'ThinBT (細めのBT)', action: '' },
-    { name: 'Wide', description: 'Wide (広めのBT)', action: '' },
-    { name: 'Zoom', description: 'Zoom', action: '' },
-  ],
-  'NinjabrainBot': [
-    { name: 'Add Throw', description: '投擲を追加', action: '' },
-    { name: 'Reset', description: 'リセット', action: '' },
-    { name: 'Lock Direction', description: '方向をロック', action: '' },
-    { name: 'Undo', description: '元に戻す', action: '' },
-  ],
-};
+// 外部ツールアクションのプリセット定義
+const EXTERNAL_TOOL_ACTIONS = [
+  // Jingle
+  { value: 'Jingle:ThinBT', label: 'Jingle: ThinBT (細めのBT)' },
+  { value: 'Jingle:Wide', label: 'Jingle: Wide (広めのBT)' },
+  { value: 'Jingle:Zoom', label: 'Jingle: Zoom' },
+  // NinjabrainBot
+  { value: 'NinjabrainBot:AddThrow', label: 'NinjabrainBot: 投擲を追加' },
+  { value: 'NinjabrainBot:Reset', label: 'NinjabrainBot: リセット' },
+  { value: 'NinjabrainBot:LockDirection', label: 'NinjabrainBot: 方向をロック' },
+  { value: 'NinjabrainBot:Undo', label: 'NinjabrainBot: 元に戻す' },
+  // その他
+  { value: 'Other:Pause', label: 'その他: 一時停止' },
+  { value: 'Other:Resume', label: 'その他: 再開' },
+];
 
 // 指の選択肢定義
 const FINGER_OPTIONS: { value: Finger; label: string; hand: 'left' | 'right' }[] = [
@@ -225,15 +231,17 @@ export function KeybindingModal({
   currentRemap,
   currentExternalTool,
   currentFinger,
+  isCustomKey = false,
+  customKeyLabel = '',
+  onUpdateCustomKey,
+  onDeleteCustomKey,
 }: KeybindingModalProps) {
   const [activeTab, setActiveTab] = useState<TabType>('action');
+  const [editedLabel, setEditedLabel] = useState(customKeyLabel);
   const [selectedAction, setSelectedAction] = useState<string | null>(currentAction);
   const [remapInput, setRemapInput] = useState<string>(''); // ユーザー入力値（表示用）
   const [showRemapDropdown, setShowRemapDropdown] = useState(false);
-  const [externalToolName, setExternalToolName] = useState<string>(currentExternalTool?.tool || '');
-  const [externalToolAction, setExternalToolAction] = useState<string>(currentExternalTool?.action || '');
-  const [externalToolDescription, setExternalToolDescription] = useState<string>(currentExternalTool?.description || '');
-  const [selectedPreset, setSelectedPreset] = useState<string>('');
+  const [externalToolAction, setExternalToolAction] = useState<string>(currentExternalTool || '');
   const [selectedFingers, setSelectedFingers] = useState<Finger[]>(currentFinger || []);
   const remapDropdownRef = useRef<HTMLDivElement>(null);
 
@@ -362,10 +370,7 @@ export function KeybindingModal({
       setSelectedAction(currentAction);
       // 既存のリマップをラベル形式で表示
       setRemapInput(currentRemap ? getKeyLabel(currentRemap) : '');
-      setExternalToolName(currentExternalTool?.tool || '');
-      setExternalToolAction(currentExternalTool?.action || '');
-      setExternalToolDescription(currentExternalTool?.description || '');
-      setSelectedPreset('');
+      setExternalToolAction(currentExternalTool || '');
       setSelectedFingers(currentFinger || []);
       setActiveTab('action');
     }
@@ -394,41 +399,22 @@ export function KeybindingModal({
     return filtered;
   }, [remapInput]);
 
-  // プリセット選択時のハンドラー
-  const handlePresetSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const value = e.target.value;
-    setSelectedPreset(value);
-
-    if (!value) return;
-
-    const [tool, presetName] = value.split('::');
-    const preset = EXTERNAL_TOOL_PRESETS[tool as keyof typeof EXTERNAL_TOOL_PRESETS]?.find(
-      (p) => p.name === presetName
-    );
-
-    if (preset) {
-      setExternalToolName(tool);
-      setExternalToolDescription(preset.description);
-      // actionは空文字列なので既存の値を保持するか、カスタム入力を促す
-      if (preset.action) {
-        setExternalToolAction(preset.action);
-      }
-    }
-  };
-
   if (!isOpen) return null;
 
   const handleSave = () => {
+    // カスタムキーのラベル更新
+    if (isCustomKey && onUpdateCustomKey && editedLabel !== customKeyLabel) {
+      onUpdateCustomKey(editedLabel);
+    }
+
     // 入力値をキーコードに変換
     const finalRemapKey = remapInput.trim() ? parseInputToKeyCode(remapInput) : undefined;
 
     const config = {
       action: selectedAction || undefined,
       remap: finalRemapKey,
-      // 外部ツールはツール名があれば保存（アクションは空でもOK - プリセットの場合）
-      externalTool: externalToolName && externalToolName.trim()
-        ? { tool: externalToolName.trim(), action: externalToolAction || '', description: externalToolDescription || undefined }
-        : undefined,
+      // 外部ツールアクション（空文字列でない場合のみ保存）
+      externalTool: externalToolAction.trim() || undefined,
       finger: selectedFingers.length > 0 ? selectedFingers : undefined,
     };
     console.log('KeybindingModal saving:', { selectedKey, config, parsedRemap: finalRemapKey });
@@ -629,6 +615,19 @@ export function KeybindingModal({
           >
             外部ツール
           </button>
+          {isCustomKey && (
+            <button
+              type="button"
+              onClick={() => setActiveTab('custom')}
+              className={`flex-1 px-4 py-3 font-medium transition-colors text-sm ${
+                activeTab === 'custom'
+                  ? 'border-b-2 border-blue-500 text-blue-600'
+                  : 'text-[rgb(var(--muted-foreground))] hover:text-[rgb(var(--foreground))]'
+              }`}
+            >
+              カスタムキー
+            </button>
+          )}
         </div>
 
         {/* コンテンツ */}
@@ -822,78 +821,73 @@ export function KeybindingModal({
           {activeTab === 'external' && (
             <div className="space-y-4">
               <p className="text-sm text-[rgb(var(--muted-foreground))]">
-                外部ツール（AutoHotKey、マクロソフトウェアなど）で実行するアクションを記録します。
+                外部ツール（AutoHotKey、マクロソフトウェアなど）で実行するアクションを設定します。
+                ドロップダウンから選択するか、直接入力してください。
               </p>
 
-              {/* プリセット選択 */}
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  プリセット（Jingle / NinjabrainBot）
-                </label>
-                <select
-                  value={selectedPreset}
-                  onChange={handlePresetSelect}
-                  className="w-full px-4 py-2 border border-[rgb(var(--border))] rounded-lg bg-[rgb(var(--background))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--ring))]"
-                >
-                  <option value="">-- プリセットを選択 --</option>
-                  <optgroup label="Jingle">
-                    {EXTERNAL_TOOL_PRESETS.Jingle.map((preset) => (
-                      <option key={preset.name} value={`Jingle::${preset.name}`}>
-                        {preset.description}
-                      </option>
-                    ))}
-                  </optgroup>
-                  <optgroup label="NinjabrainBot">
-                    {EXTERNAL_TOOL_PRESETS.NinjabrainBot.map((preset) => (
-                      <option key={preset.name} value={`NinjabrainBot::${preset.name}`}>
-                        {preset.description}
-                      </option>
-                    ))}
-                  </optgroup>
-                </select>
-                <p className="text-xs text-[rgb(var(--muted-foreground))] mt-2">
-                  プリセットを選択すると、ツール名と説明が自動的に入力されます
-                </p>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  ツール名
-                </label>
-                <input
-                  type="text"
-                  value={externalToolName}
-                  onChange={(e) => setExternalToolName(e.target.value)}
-                  placeholder="例: AutoHotKey, Jingle, NinjabrainBot"
-                  className="w-full px-4 py-2 border border-[rgb(var(--border))] rounded-lg bg-[rgb(var(--background))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--ring))]"
-                />
-              </div>
+              {/* アクション選択・入力 */}
               <div>
                 <label className="block text-sm font-medium mb-2">
                   アクション
                 </label>
-                <textarea
+                <input
+                  type="text"
+                  list="external-tool-actions"
                   value={externalToolAction}
                   onChange={(e) => setExternalToolAction(e.target.value)}
-                  placeholder="例: Send {LButton Down}&#x0A;Sleep 10&#x0A;Send {LButton Up}"
-                  rows={4}
-                  className="w-full px-4 py-2 border border-[rgb(var(--border))] rounded-lg bg-[rgb(var(--background))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--ring))] font-mono text-sm"
+                  placeholder="ドロップダウンから選択、または直接入力"
+                  className="w-full px-4 py-2 border border-[rgb(var(--border))] rounded-lg bg-[rgb(var(--background))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--ring))]"
                 />
+                <datalist id="external-tool-actions">
+                  {EXTERNAL_TOOL_ACTIONS.map((action) => (
+                    <option key={action.value} value={action.value}>
+                      {action.label}
+                    </option>
+                  ))}
+                </datalist>
                 <p className="text-xs text-[rgb(var(--muted-foreground))] mt-2">
-                  このキーが押されたときに実行される外部ツールのスクリプトを記述してください（プリセットの場合は空でもOK）
+                  プリセットから選択するか、カスタムアクション名を入力してください（例: "Jingle:ThinBT"、"カスタム操作"）
                 </p>
               </div>
+            </div>
+          )}
+
+          {activeTab === 'custom' && isCustomKey && (
+            <div className="space-y-4">
+              <p className="text-sm text-[rgb(var(--muted-foreground))] mb-4">
+                カスタムキーの名前を変更、または削除できます
+              </p>
               <div>
                 <label className="block text-sm font-medium mb-2">
-                  説明（任意）
+                  キー名
                 </label>
                 <input
                   type="text"
-                  value={externalToolDescription}
-                  onChange={(e) => setExternalToolDescription(e.target.value)}
-                  placeholder="このアクションの説明"
+                  value={editedLabel}
+                  onChange={(e) => setEditedLabel(e.target.value)}
+                  placeholder="キー名（例: F13, MB4）"
+                  maxLength={6}
                   className="w-full px-4 py-2 border border-[rgb(var(--border))] rounded-lg bg-[rgb(var(--background))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--ring))]"
                 />
+                <p className="text-xs text-[rgb(var(--muted-foreground))] mt-2">
+                  キーボード上に表示される名前です（最大6文字）
+                </p>
+              </div>
+              <div className="pt-4 border-t border-[rgb(var(--border))]">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (onDeleteCustomKey && confirm('このカスタムキーを削除しますか？')) {
+                      onDeleteCustomKey();
+                    }
+                  }}
+                  className="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                >
+                  このカスタムキーを削除
+                </button>
+                <p className="text-xs text-[rgb(var(--muted-foreground))] mt-2 text-center">
+                  削除すると、このキーに割り当てられた設定もすべて失われます
+                </p>
               </div>
             </div>
           )}
@@ -927,14 +921,9 @@ export function KeybindingModal({
                 リマップをクリア
               </button>
             )}
-            {activeTab === 'external' && externalToolName && (
+            {activeTab === 'external' && externalToolAction && (
               <button
-                onClick={() => {
-                  setExternalToolName('');
-                  setExternalToolAction('');
-                  setExternalToolDescription('');
-                  setSelectedPreset('');
-                }}
+                onClick={() => setExternalToolAction('')}
                 className="px-4 py-2 text-sm text-red-600 hover:text-red-700 border border-red-500 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
               >
                 外部ツール割り当てをクリア
