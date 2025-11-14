@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { formatKeyName, calculateCursorSpeed } from '@/lib/utils';
-import type { PlayerSettings, FingerAssignments } from '@/types/player';
+import type { PlayerSettings, FingerAssignments, CustomKey } from '@/types/player';
 import { VirtualKeyboard } from './VirtualKeyboard';
 
 interface KeybindingDisplayProps {
@@ -117,6 +117,9 @@ export function KeybindingDisplay({ settings }: KeybindingDisplayProps) {
     return normalized;
   })();
 
+  // カスタムキーを取得
+  const customKeys: CustomKey[] = (settings.additionalSettings as { customKeys?: { keys: CustomKey[] } })?.customKeys?.keys || [];
+
   // 指の色分け表示のトグル（初期値: 指の割り当てがある場合は表示）
   const [showFingerColors, setShowFingerColors] = useState(
     Object.keys(normalizedFingerAssignments).length > 0
@@ -217,6 +220,7 @@ export function KeybindingDisplay({ settings }: KeybindingDisplayProps) {
           fingerAssignments={normalizedFingerAssignments}
           showFingerColors={showFingerColors}
           keyboardLayout={(settings.keyboardLayout as 'JIS' | 'US') || 'JIS'}
+          customKeys={customKeys}
         />
       </section>
 

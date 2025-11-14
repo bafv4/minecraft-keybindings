@@ -3,7 +3,7 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { calculateCm360, calculateCursorSpeed } from '@/lib/utils';
-import type { PlayerSettings, Finger, FingerAssignments } from '@/types/player';
+import type { PlayerSettings, Finger, FingerAssignments, CustomKey } from '@/types/player';
 import { VirtualKeyboard } from './VirtualKeyboard';
 
 // Minecraft言語リスト（全言語）
@@ -260,6 +260,11 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
     return normalized;
   });
 
+  // カスタムキー設定
+  const [customKeys, setCustomKeys] = useState<CustomKey[]>(
+    (initialSettings?.additionalSettings as { customKeys?: { keys: CustomKey[] } })?.customKeys?.keys || []
+  );
+
   // 指の色分け表示のトグル
   const [showFingerColors, setShowFingerColors] = useState(true);
 
@@ -509,7 +514,11 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
         fingerAssignments: Object.keys(fingerAssignments).length > 0 ? fingerAssignments : null,
 
         // 追加設定（additionalSettings JSONフィールドに保存）
-        additionalSettings: { reset, playerList },
+        additionalSettings: {
+          reset,
+          playerList,
+          customKeys: customKeys.length > 0 ? { keys: customKeys } : undefined
+        },
 
         // プレイヤー環境設定
         gameLanguage: gameLanguage.trim() || undefined,
@@ -655,6 +664,71 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
         <p className="text-sm text-[rgb(var(--muted-foreground))] mb-4">
           キーをクリックして、操作の割り当て・指の割り当て・リマップ・外部ツールの設定を行えます
         </p>
+
+        {/* カスタムキー管理 */}
+        <div className="mb-6 p-4 bg-[rgb(var(--muted))] rounded-lg border border-[rgb(var(--border))]">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-lg font-semibold">カスタムキー</h3>
+            <button
+              type="button"
+              onClick={() => {
+                const newId = `custom-${Date.now()}`;
+                const newKey: CustomKey = {
+                  id: newId,
+                  label: `CK${customKeys.length + 1}`,
+                  keyCode: `key.custom.${customKeys.length + 1}`
+                };
+                setCustomKeys([...customKeys, newKey]);
+              }}
+              className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+            >
+              + キーを追加
+            </button>
+          </div>
+          <p className="text-xs text-[rgb(var(--muted-foreground))] mb-3">
+            物理キーボードにないカスタムキー（F13以降、サイドボタンなど）を追加できます
+          </p>
+          {customKeys.length > 0 ? (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+              {customKeys.map((customKey, index) => (
+                <div
+                  key={customKey.id}
+                  className="flex items-center gap-2 p-2 bg-[rgb(var(--card))] rounded border border-[rgb(var(--border))]"
+                >
+                  <input
+                    type="text"
+                    value={customKey.label}
+                    onChange={(e) => {
+                      const updated = [...customKeys];
+                      updated[index] = { ...customKey, label: e.target.value };
+                      setCustomKeys(updated);
+                    }}
+                    className="flex-1 px-2 py-1 text-sm border border-[rgb(var(--border))] rounded bg-[rgb(var(--background))] focus:outline-none focus:ring-1 focus:ring-[rgb(var(--ring))]"
+                    placeholder="ラベル"
+                    maxLength={6}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCustomKeys(customKeys.filter((_, i) => i !== index));
+                    }}
+                    className="p-1 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30 rounded transition-colors"
+                    title="削除"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-[rgb(var(--muted-foreground))] text-center py-4">
+              カスタムキーがありません。「+ キーを追加」ボタンで追加できます。
+            </p>
+          )}
+        </div>
+
         <VirtualKeyboard
           bindings={bindings}
           mode="edit"
@@ -664,6 +738,7 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
           showFingerColors={showFingerColors}
           onUpdateConfig={handleUpdateConfig}
           keyboardLayout={keyboardLayout}
+          customKeys={customKeys}
         />
       </section>
 

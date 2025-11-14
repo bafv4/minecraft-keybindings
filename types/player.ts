@@ -31,6 +31,18 @@ export interface FingerAssignments {
   [keyCode: string]: Finger[];
 }
 
+// カスタムキー定義
+export interface CustomKey {
+  id: string; // 一意のID（例: "custom-1", "custom-2"）
+  label: string; // 表示名（数文字、例: "F13", "XB1", "M4"）
+  keyCode: string; // 内部キーコード（例: "key.custom.1"）
+}
+
+// カスタムキー設定
+export interface CustomKeysConfig {
+  keys: CustomKey[];
+}
+
 // 外部ツールアクション
 export interface ExternalToolAction {
   trigger: string;
@@ -87,6 +99,7 @@ export interface Keybinding {
 export interface AdditionalSettings {
   reset?: string;
   playerList?: string;
+  customKeys?: CustomKeysConfig;
   [key: string]: unknown;
 }
 

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { KeybindingModal } from './KeybindingModal';
-import type { Finger, FingerAssignments } from '@/types/player';
+import type { Finger, FingerAssignments, CustomKey } from '@/types/player';
 
 interface VirtualKeyboardProps {
   bindings: {
@@ -24,6 +24,7 @@ interface VirtualKeyboardProps {
   }) => void;
   keyboardLayout?: 'JIS' | 'US';
   showFingerColors?: boolean;
+  customKeys?: CustomKey[];
 }
 
 // JISキーボードレイアウト定義
@@ -280,6 +281,7 @@ export function VirtualKeyboard({
   onUpdateConfig,
   keyboardLayout = 'JIS',
   showFingerColors = false,
+  customKeys = [],
 }: VirtualKeyboardProps) {
   const [hoveredKey, setHoveredKey] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
@@ -670,6 +672,23 @@ export function VirtualKeyboard({
           </div>
         </div>
       </div>
+
+      {/* カスタムキー */}
+      {customKeys && customKeys.length > 0 && (
+        <div className="bg-[rgb(var(--card))] p-4 rounded-lg border border-[rgb(var(--border))]">
+          <h3 className="text-sm font-semibold mb-3">カスタムキー</h3>
+          <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2">
+            {customKeys.map((customKey) => {
+              const keyDef = { key: customKey.keyCode, label: customKey.label, width: 'w-20' };
+              return (
+                <div key={customKey.id}>
+                  {renderKey(keyDef)}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* 凡例 */}
       <div className="text-xs text-[rgb(var(--muted-foreground))] space-y-1">
