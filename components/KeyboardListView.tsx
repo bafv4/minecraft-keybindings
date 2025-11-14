@@ -99,9 +99,9 @@ export function KeyboardListView({ users }: KeyboardListViewProps) {
   }, [sortedUsers, searchQuery]);
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col h-full">
       {/* ヘッダーと検索 */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
         <div>
           <h1 className="text-2xl font-semibold">キーボード設定一覧</h1>
           <p className="text-sm text-[rgb(var(--muted-foreground))] mt-1">
@@ -125,14 +125,14 @@ export function KeyboardListView({ users }: KeyboardListViewProps) {
 
       {/* テーブル */}
       {filteredUsers.length === 0 ? (
-        <div className="h-[calc(100vh-12rem)] flex items-center justify-center bg-[rgb(var(--card))] rounded-lg border border-[rgb(var(--border))]">
+        <div className="flex-1 flex items-center justify-center bg-[rgb(var(--card))] rounded-lg border border-[rgb(var(--border))]">
           <p className="text-[rgb(var(--muted-foreground))]">
             {searchQuery ? '検索結果が見つかりませんでした' : '登録プレイヤーなし'}
           </p>
         </div>
       ) : (
-        <div className="bg-[rgb(var(--card))] rounded-lg border border-[rgb(var(--border))] overflow-hidden h-[calc(100vh-12rem)] flex flex-col">
-          <div className="flex-1 overflow-auto">
+        <div className="flex-1 bg-[rgb(var(--card))] rounded-lg border border-[rgb(var(--border))] overflow-hidden flex flex-col min-h-0">
+          <div className="flex-1 overflow-auto min-h-0">
             <table className="w-full text-sm">
               <thead className="bg-[rgb(var(--muted))] border-b border-[rgb(var(--border))] sticky top-0 z-10">
               <tr>

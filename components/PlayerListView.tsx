@@ -34,9 +34,9 @@ export function PlayerListView({ users }: PlayerListViewProps) {
   }, [sortedUsers, searchQuery]);
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col h-full">
       {/* ヘッダーと検索 */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
         <div>
           <h1 className="text-2xl font-semibold">プレイヤー一覧</h1>
           <p className="text-sm text-[rgb(var(--muted-foreground))] mt-1">
@@ -60,13 +60,13 @@ export function PlayerListView({ users }: PlayerListViewProps) {
 
       {/* プレイヤーリスト */}
       {filteredUsers.length === 0 ? (
-        <div className="h-[calc(100vh-12rem)] flex items-center justify-center bg-[rgb(var(--card))] rounded-lg border border-[rgb(var(--border))]">
+        <div className="flex-1 flex items-center justify-center bg-[rgb(var(--card))] rounded-lg border border-[rgb(var(--border))]">
           <p className="text-[rgb(var(--muted-foreground))]">
             {searchQuery ? '検索結果が見つかりませんでした' : '登録プレイヤーなし'}
           </p>
         </div>
       ) : (
-        <div className="bg-[rgb(var(--card))] rounded-lg border border-[rgb(var(--border))] overflow-hidden h-[calc(100vh-12rem)] flex flex-col">
+        <div className="flex-1 bg-[rgb(var(--card))] rounded-lg border border-[rgb(var(--border))] overflow-hidden flex flex-col min-h-0">
           {/* テーブルヘッダー（デスクトップ） - 固定 */}
           <div className="hidden lg:grid lg:grid-cols-[180px_240px_repeat(8,minmax(60px,1fr))] gap-3 px-4 py-2 border-b border-[rgb(var(--border))] bg-[rgb(var(--muted))] text-xs font-semibold sticky top-0 z-10">
             <div>プレイヤー</div>
