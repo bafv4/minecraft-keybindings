@@ -10,13 +10,39 @@ interface MouseListViewProps {
   users: User[];
 }
 
-type SortKey = 'player' | 'model' | 'dpi' | 'acceleration' | 'rawInput' | 'sensitivity' | 'cm360' | 'windowsSpeed';
+type SortKey = 'player' | 'model' | 'dpi' | 'acceleration' | 'rawInput' | 'sensitivity' | 'cm360' | 'windowsSpeed' | 'cursorSpeed';
 type SortOrder = 'asc' | 'desc';
 
 export function MouseListView({ users }: MouseListViewProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortKey, setSortKey] = useState<SortKey>('player');
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
+
+  // Windows速度に応じた係数
+  const getWindowsSpeedMultiplier = (speed: number | null | undefined): number => {
+    if (speed === null || speed === undefined) return 1.0;
+    const multipliers: { [key: number]: number } = {
+      1: 0.03125,
+      2: 0.0625,
+      3: 0.25,
+      4: 0.5,
+      5: 0.75,
+      6: 1.0,
+      7: 1.5,
+      8: 2.0,
+      9: 2.5,
+      10: 3.0,
+      11: 3.5,
+    };
+    return multipliers[speed] || 1.0;
+  };
+
+  // カーソル速度を計算
+  const calculateCursorSpeed = (dpi: number | null | undefined, windowsSpeed: number | null | undefined): number | null => {
+    if (!dpi) return null;
+    const multiplier = getWindowsSpeedMultiplier(windowsSpeed);
+    return Math.round(dpi * multiplier);
+  };
 
   // ソートハンドラー
   const handleSort = (key: SortKey) => {
@@ -90,6 +116,12 @@ export function MouseListView({ users }: MouseListViewProps) {
           const sensA = a.settings?.gameSensitivity || 0;
           const sensB = b.settings?.gameSensitivity || 0;
           compareValue = sensA - sensB;
+          break;
+
+        case 'cursorSpeed':
+          const cursorSpeedA = calculateCursorSpeed(a.settings?.mouseDpi, a.settings?.windowsSpeed) || 0;
+          const cursorSpeedB = calculateCursorSpeed(b.settings?.mouseDpi, b.settings?.windowsSpeed) || 0;
+          compareValue = cursorSpeedA - cursorSpeedB;
           break;
       }
 
@@ -195,6 +227,12 @@ export function MouseListView({ users }: MouseListViewProps) {
                 >
                   Windows速度 <SortIcon columnKey="windowsSpeed" />
                 </th>
+                <th
+                  className="px-4 py-3 text-center font-semibold cursor-pointer hover:bg-[rgb(var(--muted))]/80 transition-colors"
+                  onClick={() => handleSort('cursorSpeed')}
+                >
+                  カーソル速度 <SortIcon columnKey="cursorSpeed" />
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -266,6 +304,14 @@ export function MouseListView({ users }: MouseListViewProps) {
                     {user.settings?.windowsSpeed !== null && user.settings?.windowsSpeed !== undefined
                       ? user.settings.windowsSpeed
                       : '-'}
+                  </td>
+
+                  {/* カーソル速度 */}
+                  <td className="px-4 py-3 text-center">
+                    {(() => {
+                      const cursorSpeed = calculateCursorSpeed(user.settings?.mouseDpi, user.settings?.windowsSpeed);
+                      return cursorSpeed !== null ? cursorSpeed.toLocaleString() : '-';
+                    })()}
                   </td>
                 </tr>
               ))}
