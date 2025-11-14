@@ -30,18 +30,22 @@ type TabType = 'action' | 'remap' | 'external' | 'finger' | 'custom';
 
 // 外部ツールアクションのプリセット定義
 const EXTERNAL_TOOL_ACTIONS = [
-  // Jingle
-  { value: 'Jingle:ThinBT', label: 'Jingle: ThinBT (細めのBT)' },
-  { value: 'Jingle:Wide', label: 'Jingle: Wide (広めのBT)' },
-  { value: 'Jingle:Zoom', label: 'Jingle: Zoom' },
-  // NinjabrainBot
-  { value: 'NinjabrainBot:AddThrow', label: 'NinjabrainBot: 投擲を追加' },
-  { value: 'NinjabrainBot:Reset', label: 'NinjabrainBot: リセット' },
-  { value: 'NinjabrainBot:LockDirection', label: 'NinjabrainBot: 方向をロック' },
-  { value: 'NinjabrainBot:Undo', label: 'NinjabrainBot: 元に戻す' },
-  // その他
-  { value: 'Other:Pause', label: 'その他: 一時停止' },
-  { value: 'Other:Resume', label: 'その他: 再開' },
+  { value: 'ThinBT', label: 'ThinBT' },
+  { value: 'Wide', label: 'Wide' },
+  { value: 'Zoom', label: 'Zoom' },
+  { value: 'マウス感度切替', label: 'マウス感度切替' },
+  { value: 'Ninb: リセット', label: 'Ninb: リセット' },
+  { value: 'Ninb: Undo', label: 'Ninb: Undo' },
+  { value: 'Ninb: Redo', label: 'Ninb: Redo' },
+  { value: 'Ninb: ロック', label: 'Ninb: ロック' },
+  { value: 'Ninb: +0.01', label: 'Ninb: +0.01' },
+  { value: 'Ninb: -0.01', label: 'Ninb: -0.01' },
+  { value: 'Ninb: 表示切替', label: 'Ninb: 表示切替' },
+  { value: 'Ninb: Blue Boat', label: 'Ninb: Blue Boat' },
+  { value: 'SeedQueue: Reset All', label: 'SeedQueue: Reset All' },
+  { value: 'SeedQueue: Play Instance', label: 'SeedQueue: Play Instance' },
+  { value: 'SeedQueue: Lock Instance', label: 'SeedQueue: Lock Instance' },
+  { value: 'SeedQueue: Play Next Lock', label: 'SeedQueue: Play Next Lock' },
 ];
 
 // 指の選択肢定義
@@ -613,7 +617,7 @@ export function KeybindingModal({
                 : 'text-[rgb(var(--muted-foreground))] hover:text-[rgb(var(--foreground))]'
             }`}
           >
-            外部ツール
+            外部ツール・Mod
           </button>
           {isCustomKey && (
             <button
@@ -821,7 +825,7 @@ export function KeybindingModal({
           {activeTab === 'external' && (
             <div className="space-y-4">
               <p className="text-sm text-[rgb(var(--muted-foreground))]">
-                外部ツール（AutoHotKey、マクロソフトウェアなど）で実行するアクションを設定します。
+                外部ツールやModで実行するアクションを設定します。
                 ドロップダウンから選択するか、直接入力してください。
               </p>
 
@@ -846,7 +850,7 @@ export function KeybindingModal({
                   ))}
                 </datalist>
                 <p className="text-xs text-[rgb(var(--muted-foreground))] mt-2">
-                  プリセットから選択するか、カスタムアクション名を入力してください（例: "Jingle:ThinBT"、"カスタム操作"）
+                  プリセットから選択するか、カスタムアクション名を入力してください
                 </p>
               </div>
             </div>
@@ -883,7 +887,7 @@ export function KeybindingModal({
                   }}
                   className="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
                 >
-                  このカスタムキーを削除
+                  カスタムキーを削除
                 </button>
                 <p className="text-xs text-[rgb(var(--muted-foreground))] mt-2 text-center">
                   削除すると、このキーに割り当てられた設定もすべて失われます
@@ -902,7 +906,7 @@ export function KeybindingModal({
                 onClick={() => setSelectedAction(null)}
                 className="px-4 py-2 text-sm text-red-600 hover:text-red-700 border border-red-500 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
               >
-                操作割り当てをクリア
+                割り当てをクリア
               </button>
             )}
             {activeTab === 'finger' && selectedFingers.length > 0 && (
@@ -910,7 +914,7 @@ export function KeybindingModal({
                 onClick={() => setSelectedFingers([])}
                 className="px-4 py-2 text-sm text-red-600 hover:text-red-700 border border-red-500 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
               >
-                すべての指の割り当てをクリア
+                割り当てをクリア
               </button>
             )}
             {activeTab === 'remap' && remapInput.trim() && (
@@ -926,7 +930,7 @@ export function KeybindingModal({
                 onClick={() => setExternalToolAction('')}
                 className="px-4 py-2 text-sm text-red-600 hover:text-red-700 border border-red-500 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
               >
-                外部ツール割り当てをクリア
+                割り当てをクリア
               </button>
             )}
           </div>

@@ -579,7 +579,7 @@ export function VirtualKeyboard({
         parts.push(`操作: ${actions.join(', ')}`);
       }
       if (hasExternalTool && externalTool) {
-        parts.push(`外部ツール: ${externalTool}`);
+        parts.push(`外部ツール・Mod: ${externalTool}`);
       }
       if (assignedFingers.length > 0) {
         const fingerLabels: Record<string, string> = {
@@ -641,7 +641,7 @@ export function VirtualKeyboard({
           {hasExternalTool && externalTool && (
             <div className="flex justify-end">
               <span className="px-1 py-0 text-[8px] font-medium bg-gray-400/30 dark:bg-gray-600/30 text-gray-800 dark:text-gray-200 rounded-sm whitespace-nowrap max-w-[90%] overflow-hidden text-ellipsis border border-gray-500/40 dark:border-gray-500/40" title={externalTool}>
-                {externalTool.replace(/^(.*?)[:：].*$/, '$1').trim()}
+                {externalTool.includes(':') ? externalTool.split(':')[1].trim() : externalTool}
               </span>
             </div>
           )}
@@ -687,7 +687,7 @@ export function VirtualKeyboard({
         parts.push(`操作: ${actions.join(', ')}`);
       }
       if (hasExternalTool && externalTool) {
-        parts.push(`外部ツール: ${externalTool}`);
+        parts.push(`外部ツール・Mod割り当て: ${externalTool}`);
       }
       if (assignedFingers.length > 0) {
         const fingerLabels: Record<string, string> = {
@@ -747,7 +747,7 @@ export function VirtualKeyboard({
           {hasExternalTool && externalTool && (
             <div className="flex justify-center">
               <span className="px-1 py-0 text-[8px] font-medium bg-gray-400/30 dark:bg-gray-600/30 text-gray-800 dark:text-gray-200 rounded-sm whitespace-nowrap max-w-[90%] overflow-hidden text-ellipsis border border-gray-500/40 dark:border-gray-500/40" title={externalTool}>
-                {externalTool.replace(/^(.*?)[:：].*$/, '$1').trim()}
+                {externalTool.includes(':') ? externalTool.split(':')[1].trim() : externalTool}
               </span>
             </div>
           )}
@@ -1185,7 +1185,6 @@ export function VirtualKeyboard({
 
       {/* 凡例 */}
       <div className="text-xs text-[rgb(var(--muted-foreground))] space-y-1">
-        <p>境界線が濃いキー: 割り当てあり</p>
         <div className="flex items-center gap-4 flex-wrap">
           <div className="flex items-center gap-1">
             <span className="px-1 py-0 text-[8px] font-medium bg-gray-300 dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded">
@@ -1197,7 +1196,7 @@ export function VirtualKeyboard({
             <span className="px-1 py-0 text-[8px] font-medium bg-gray-400/30 dark:bg-gray-600/30 text-gray-800 dark:text-gray-200 rounded-sm border border-gray-500/40 dark:border-gray-500/40">
               例
             </span>
-            <span>外部ツール</span>
+            <span>外部ツール・Mod</span>
           </div>
         </div>
         {mode === 'edit' && (

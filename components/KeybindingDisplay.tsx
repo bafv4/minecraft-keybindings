@@ -479,9 +479,9 @@ export function KeybindingDisplay({ settings }: KeybindingDisplayProps) {
 
         return (
           <section className="bg-[rgb(var(--card))] p-6 rounded-lg border border-[rgb(var(--border))]">
-            <h2 className="text-xl font-bold mb-4">外部ツール設定</h2>
+            <h2 className="text-xl font-bold mb-4">外部ツール・Modキー設定</h2>
             <p className="text-sm text-[rgb(var(--muted-foreground))] mb-4">
-              AutoHotKeyやマウスマクロなどの外部ツールによるアクション設定
+              JingleやAutoHotKeyなどの外部ツールによるアクション設定。SeedQueueの設定。
             </p>
             <div className="space-y-3">
               {Object.entries(settings.externalTools as Record<string, string>).map(([keyCode, action]) => (
