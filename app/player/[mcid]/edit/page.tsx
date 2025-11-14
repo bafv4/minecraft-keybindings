@@ -33,11 +33,11 @@ export default async function EditPage({ params }: EditPageProps) {
   }
 
   return (
-    <div>
+    <div className="pb-6">
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">設定を編集</h1>
         <p className="text-[rgb(var(--muted-foreground))]">
-          {user.displayName} ({user.mcid}) の操作設定を編集します
+          {user.displayName || user.mcid} ({user.mcid}) の操作設定を編集します
         </p>
       </div>
 
@@ -45,7 +45,7 @@ export default async function EditPage({ params }: EditPageProps) {
         initialSettings={(user.settings as PlayerSettings) || undefined}
         uuid={user.uuid}
         mcid={user.mcid}
-        displayName={user.displayName}
+        displayName={user.displayName || ''}
       />
     </div>
   );

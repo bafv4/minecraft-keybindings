@@ -143,3 +143,105 @@ export function formatUUID(uuid: string): string {
     uuid.substring(20, 32),
   ].join("-");
 }
+
+/**
+ * 言語コードを言語名に変換
+ * @param languageCode 言語コード（例: "ja_jp"）
+ * @returns 言語名（例: "日本語"）
+ */
+export function getLanguageName(languageCode: string): string {
+  const languageNames: { [key: string]: string } = {
+    // 日本語・英語
+    'ja_jp': '日本語',
+    'en_us': 'English (US)',
+    'en_gb': 'English (UK)',
+    'en_ca': 'English (Canada)',
+    'en_au': 'English (Australia)',
+    'en_nz': 'English (New Zealand)',
+
+    // ヨーロッパ言語
+    'de_de': 'Deutsch',
+    'de_at': 'Deutsch (Österreich)',
+    'de_ch': 'Deutsch (Schweiz)',
+    'es_es': 'Español (España)',
+    'es_mx': 'Español (México)',
+    'es_ar': 'Español (Argentina)',
+    'es_cl': 'Español (Chile)',
+    'es_uy': 'Español (Uruguay)',
+    'es_ve': 'Español (Venezuela)',
+    'fr_fr': 'Français',
+    'fr_ca': 'Français (Canada)',
+    'it_it': 'Italiano',
+    'nl_nl': 'Nederlands',
+    'nl_be': 'Nederlands (België)',
+    'pl_pl': 'Polski',
+    'pt_br': 'Português (Brasil)',
+    'pt_pt': 'Português (Portugal)',
+    'sv_se': 'Svenska',
+    'da_dk': 'Dansk',
+    'fi_fi': 'Suomi',
+    'no_no': 'Norsk',
+    'nb_no': 'Norsk bokmål',
+    'nn_no': 'Norsk nynorsk',
+    'is_is': 'Íslenska',
+
+    // 東アジア言語
+    'ko_kr': '한국어',
+    'zh_cn': '简体中文',
+    'zh_tw': '繁體中文',
+    'zh_hk': '繁體中文（香港）',
+
+    // スラブ語系
+    'ru_ru': 'Русский',
+    'uk_ua': 'Українська',
+    'be_by': 'Беларуская',
+    'bg_bg': 'Български',
+    'cs_cz': 'Čeština',
+    'sk_sk': 'Slovenčina',
+    'sl_si': 'Slovenščina',
+    'hr_hr': 'Hrvatski',
+    'sr_sp': 'Српски',
+    'mk_mk': 'Македонски',
+
+    // その他ヨーロッパ
+    'el_gr': 'Ελληνικά',
+    'hu_hu': 'Magyar',
+    'ro_ro': 'Română',
+    'tr_tr': 'Türkçe',
+    'et_ee': 'Eesti',
+    'lv_lv': 'Latviešu',
+    'lt_lt': 'Lietuvių',
+    'ca_es': 'Català',
+    'eu_es': 'Euskara',
+    'gl_es': 'Galego',
+    'cy_gb': 'Cymraeg',
+    'ga_ie': 'Gaeilge',
+    'gd_gb': 'Gàidhlig',
+    'mt_mt': 'Malti',
+
+    // 中東・アフリカ
+    'ar_sa': 'العربية',
+    'he_il': 'עברית',
+    'fa_ir': 'فارسی',
+    'af_za': 'Afrikaans',
+
+    // 東南アジア
+    'th_th': 'ภาษาไทย',
+    'vi_vn': 'Tiếng Việt',
+    'id_id': 'Bahasa Indonesia',
+    'ms_my': 'Bahasa Melayu',
+    'fil_ph': 'Filipino',
+    'tl_ph': 'Tagalog',
+
+    // アフリカ言語
+    'yo_ng': 'Yorùbá',
+    'so_so': 'Soomaali',
+    'ast_es': 'Asturianu',
+
+    // その他
+    'eo_uy': 'Esperanto',
+    'la_la': 'Latina',
+  };
+
+  return languageNames[languageCode.toLowerCase()] || languageCode;
+}

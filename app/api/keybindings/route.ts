@@ -23,11 +23,11 @@ export async function POST(request: Request) {
       );
     }
 
-    // 表示名を更新（送信されている場合）
-    if (data.displayName) {
+    // 表示名を更新（送信されている場合、空文字列の場合は削除）
+    if (data.displayName !== undefined) {
       await prisma.user.update({
         where: { uuid: data.uuid },
-        data: { displayName: data.displayName },
+        data: { displayName: data.displayName || null },
       });
     }
 

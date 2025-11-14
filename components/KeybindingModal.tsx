@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import type { Finger } from '@/types/player';
 
@@ -12,31 +12,41 @@ interface KeybindingModalProps {
   onSave: (config: {
     action?: string;
     remap?: string;
-    externalTool?: { tool: string; action: string; description?: string };
-    finger?: Finger;
+    externalTool?: string; // アクション名（例: "Jingle:ThinBT" or カスタム文字列）
+    finger?: Finger[];
   }) => void;
   // 既存の設定を渡す
   currentRemap?: string;
-  currentExternalTool?: { tool: string; action: string; description?: string };
-  currentFinger?: Finger;
+  currentExternalTool?: string; // アクション名
+  currentFinger?: Finger[];
+  // カスタムキー関連
+  isCustomKey?: boolean;
+  customKeyLabel?: string;
+  onUpdateCustomKey?: (label: string) => void;
+  onDeleteCustomKey?: () => void;
 }
 
-type TabType = 'action' | 'remap' | 'external' | 'finger';
+type TabType = 'action' | 'remap' | 'external' | 'finger' | 'custom';
 
-// 外部ツールのプリセット定義
-const EXTERNAL_TOOL_PRESETS = {
-  'Jingle': [
-    { name: 'ThinBT', description: 'ThinBT (細めのBT)', action: '' },
-    { name: 'Wide', description: 'Wide (広めのBT)', action: '' },
-    { name: 'Zoom', description: 'Zoom', action: '' },
-  ],
-  'NinjabrainBot': [
-    { name: 'Add Throw', description: '投擲を追加', action: '' },
-    { name: 'Reset', description: 'リセット', action: '' },
-    { name: 'Lock Direction', description: '方向をロック', action: '' },
-    { name: 'Undo', description: '元に戻す', action: '' },
-  ],
-};
+// 外部ツールアクションのプリセット定義
+const EXTERNAL_TOOL_ACTIONS = [
+  { value: 'ThinBT', label: 'ThinBT' },
+  { value: 'Wide', label: 'Wide' },
+  { value: 'Zoom', label: 'Zoom' },
+  { value: 'マウス感度切替', label: 'マウス感度切替' },
+  { value: 'Ninb: リセット', label: 'Ninb: リセット' },
+  { value: 'Ninb: Undo', label: 'Ninb: Undo' },
+  { value: 'Ninb: Redo', label: 'Ninb: Redo' },
+  { value: 'Ninb: ロック', label: 'Ninb: ロック' },
+  { value: 'Ninb: +0.01', label: 'Ninb: +0.01' },
+  { value: 'Ninb: -0.01', label: 'Ninb: -0.01' },
+  { value: 'Ninb: 表示切替', label: 'Ninb: 表示切替' },
+  { value: 'Ninb: Blue Boat', label: 'Ninb: Blue Boat' },
+  { value: 'SeedQueue: Reset All', label: 'SeedQueue: Reset All' },
+  { value: 'SeedQueue: Play Instance', label: 'SeedQueue: Play Instance' },
+  { value: 'SeedQueue: Lock Instance', label: 'SeedQueue: Lock Instance' },
+  { value: 'SeedQueue: Play Next Lock', label: 'SeedQueue: Play Next Lock' },
+];
 
 // 指の選択肢定義
 const FINGER_OPTIONS: { value: Finger; label: string; hand: 'left' | 'right' }[] = [
@@ -159,6 +169,33 @@ const REMAPPABLE_KEYS = {
     { value: 'key.keyboard.left', label: '←' },
     { value: 'key.keyboard.right', label: '→' },
   ],
+  '編集キー': [
+    { value: 'key.keyboard.insert', label: 'Insert' },
+    { value: 'key.keyboard.delete', label: 'Delete' },
+    { value: 'key.keyboard.home', label: 'Home' },
+    { value: 'key.keyboard.end', label: 'End' },
+    { value: 'key.keyboard.page.up', label: 'Page Up' },
+    { value: 'key.keyboard.page.down', label: 'Page Down' },
+  ],
+  'テンキー': [
+    { value: 'key.keyboard.keypad.0', label: 'テンキー 0' },
+    { value: 'key.keyboard.keypad.1', label: 'テンキー 1' },
+    { value: 'key.keyboard.keypad.2', label: 'テンキー 2' },
+    { value: 'key.keyboard.keypad.3', label: 'テンキー 3' },
+    { value: 'key.keyboard.keypad.4', label: 'テンキー 4' },
+    { value: 'key.keyboard.keypad.5', label: 'テンキー 5' },
+    { value: 'key.keyboard.keypad.6', label: 'テンキー 6' },
+    { value: 'key.keyboard.keypad.7', label: 'テンキー 7' },
+    { value: 'key.keyboard.keypad.8', label: 'テンキー 8' },
+    { value: 'key.keyboard.keypad.9', label: 'テンキー 9' },
+    { value: 'key.keyboard.keypad.add', label: 'テンキー +' },
+    { value: 'key.keyboard.keypad.subtract', label: 'テンキー -' },
+    { value: 'key.keyboard.keypad.multiply', label: 'テンキー *' },
+    { value: 'key.keyboard.keypad.divide', label: 'テンキー /' },
+    { value: 'key.keyboard.keypad.decimal', label: 'テンキー .' },
+    { value: 'key.keyboard.keypad.enter', label: 'テンキー Enter' },
+    { value: 'key.keyboard.keypad.equal', label: 'テンキー =' },
+  ],
   '国際キー / 特殊文字': [
     { value: 'key.keyboard.world.1', label: 'World 1 (汎用特殊キー1)' },
     { value: 'key.keyboard.world.2', label: 'World 2 (汎用特殊キー2)' },
@@ -198,65 +235,193 @@ export function KeybindingModal({
   currentRemap,
   currentExternalTool,
   currentFinger,
+  isCustomKey = false,
+  customKeyLabel = '',
+  onUpdateCustomKey,
+  onDeleteCustomKey,
 }: KeybindingModalProps) {
   const [activeTab, setActiveTab] = useState<TabType>('action');
+  const [editedLabel, setEditedLabel] = useState(customKeyLabel);
   const [selectedAction, setSelectedAction] = useState<string | null>(currentAction);
-  const [remapKey, setRemapKey] = useState<string>(currentRemap || '');
-  const [externalToolName, setExternalToolName] = useState<string>(currentExternalTool?.tool || '');
-  const [externalToolAction, setExternalToolAction] = useState<string>(currentExternalTool?.action || '');
-  const [externalToolDescription, setExternalToolDescription] = useState<string>(currentExternalTool?.description || '');
-  const [selectedPreset, setSelectedPreset] = useState<string>('');
-  const [selectedFinger, setSelectedFinger] = useState<Finger | undefined>(currentFinger);
+  const [remapInput, setRemapInput] = useState<string>(''); // ユーザー入力値（表示用）
+  const [showRemapDropdown, setShowRemapDropdown] = useState(false);
+  const [externalToolAction, setExternalToolAction] = useState<string>(currentExternalTool || '');
+  const [selectedFingers, setSelectedFingers] = useState<Finger[]>(currentFinger || []);
+  const remapDropdownRef = useRef<HTMLDivElement>(null);
+
+  // ドロップダウン外クリック検知
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (remapDropdownRef.current && !remapDropdownRef.current.contains(event.target as Node)) {
+        setShowRemapDropdown(false);
+      }
+    };
+
+    if (showRemapDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showRemapDropdown]);
+
+  // キーコードからラベルを取得
+  const getKeyLabel = (keyCode: string): string => {
+    if (!keyCode) return '';
+    // REMAPPABLE_KEYSから検索
+    for (const keys of Object.values(REMAPPABLE_KEYS)) {
+      const found = keys.find(k => k.value === keyCode);
+      if (found) return found.label;
+    }
+    // 見つからなければformatKeyLabelを使用
+    return formatKeyLabel(keyCode);
+  };
+
+  // ユーザー入力からキーコードに変換
+  const parseInputToKeyCode = (input: string): string => {
+    if (!input.trim()) return '';
+
+    const normalized = input.trim().toLowerCase();
+
+    // 既にキーコード形式なら検証してそのまま返す
+    if (normalized.startsWith('key.')) {
+      return input.trim();
+    }
+
+    // REMAPPABLE_KEYSから完全一致または部分一致を検索
+    for (const keys of Object.values(REMAPPABLE_KEYS)) {
+      const found = keys.find(k =>
+        k.label.toLowerCase() === normalized ||
+        k.label.toLowerCase().includes(normalized)
+      );
+      if (found) return found.value;
+    }
+
+    // ファンクションキー: f1-f20
+    const fKeyMatch = normalized.match(/^f(\d+)$/);
+    if (fKeyMatch) {
+      const num = parseInt(fKeyMatch[1]);
+      if (num >= 1 && num <= 20) return `key.keyboard.f${num}`;
+    }
+
+    // 単一文字
+    if (/^[a-z]$/.test(normalized)) {
+      return `key.keyboard.${normalized}`;
+    }
+
+    // 数字
+    if (/^[0-9]$/.test(normalized)) {
+      return `key.keyboard.${normalized}`;
+    }
+
+    // テンキー
+    if (normalized.startsWith('numpad') || normalized.startsWith('keypad')) {
+      const numMatch = normalized.match(/(\d+)$/);
+      if (numMatch) return `key.keyboard.keypad.${numMatch[1]}`;
+    }
+
+    // 特殊キーのエイリアス
+    const aliases: { [key: string]: string } = {
+      'space': 'key.keyboard.space',
+      'enter': 'key.keyboard.enter',
+      'tab': 'key.keyboard.tab',
+      'backspace': 'key.keyboard.backspace',
+      'esc': 'key.keyboard.escape',
+      'escape': 'key.keyboard.escape',
+      'caps': 'key.keyboard.caps.lock',
+      'capslock': 'key.keyboard.caps.lock',
+      'shift': 'key.keyboard.left.shift',
+      'lshift': 'key.keyboard.left.shift',
+      'rshift': 'key.keyboard.right.shift',
+      'ctrl': 'key.keyboard.left.control',
+      'control': 'key.keyboard.left.control',
+      'lctrl': 'key.keyboard.left.control',
+      'rctrl': 'key.keyboard.right.control',
+      'alt': 'key.keyboard.left.alt',
+      'lalt': 'key.keyboard.left.alt',
+      'ralt': 'key.keyboard.right.alt',
+      'win': 'key.keyboard.left.win',
+      'windows': 'key.keyboard.left.win',
+      'up': 'key.keyboard.up',
+      'down': 'key.keyboard.down',
+      'left': 'key.keyboard.left',
+      'right': 'key.keyboard.right',
+      '無変換': 'key.keyboard.nonconvert',
+      '変換': 'key.keyboard.convert',
+      'かな': 'key.keyboard.kana',
+      // 編集キー
+      'insert': 'key.keyboard.insert',
+      'ins': 'key.keyboard.insert',
+      'delete': 'key.keyboard.delete',
+      'del': 'key.keyboard.delete',
+      'home': 'key.keyboard.home',
+      'end': 'key.keyboard.end',
+      'pageup': 'key.keyboard.page.up',
+      'pgup': 'key.keyboard.page.up',
+      'pagedown': 'key.keyboard.page.down',
+      'pgdn': 'key.keyboard.page.down',
+    };
+
+    if (aliases[normalized]) return aliases[normalized];
+
+    // デフォルト: key.keyboard.として扱う
+    return `key.keyboard.${normalized}`;
+  };
 
   // モーダルが開くたびに現在の設定で状態をリセット
   useEffect(() => {
     if (isOpen) {
       setSelectedAction(currentAction);
-      setRemapKey(currentRemap || '');
-      setExternalToolName(currentExternalTool?.tool || '');
-      setExternalToolAction(currentExternalTool?.action || '');
-      setExternalToolDescription(currentExternalTool?.description || '');
-      setSelectedPreset('');
-      setSelectedFinger(currentFinger);
+      // 既存のリマップをラベル形式で表示
+      setRemapInput(currentRemap ? getKeyLabel(currentRemap) : '');
+      setExternalToolAction(currentExternalTool || '');
+      setSelectedFingers(currentFinger || []);
       setActiveTab('action');
     }
   }, [isOpen, currentAction, currentRemap, currentExternalTool, currentFinger]);
 
-  // プリセット選択時のハンドラー
-  const handlePresetSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const value = e.target.value;
-    setSelectedPreset(value);
+  // リマップ候補のフィルタリング
+  const filteredRemapOptions = useMemo(() => {
+    if (!remapInput.trim()) {
+      // 入力がない場合は全カテゴリを返す
+      return Object.entries(REMAPPABLE_KEYS);
+    }
 
-    if (!value) return;
+    const query = remapInput.toLowerCase();
+    const filtered: [string, typeof REMAPPABLE_KEYS[keyof typeof REMAPPABLE_KEYS]][] = [];
 
-    const [tool, presetName] = value.split('::');
-    const preset = EXTERNAL_TOOL_PRESETS[tool as keyof typeof EXTERNAL_TOOL_PRESETS]?.find(
-      (p) => p.name === presetName
-    );
-
-    if (preset) {
-      setExternalToolName(tool);
-      setExternalToolDescription(preset.description);
-      // actionは空文字列なので既存の値を保持するか、カスタム入力を促す
-      if (preset.action) {
-        setExternalToolAction(preset.action);
+    for (const [category, keys] of Object.entries(REMAPPABLE_KEYS)) {
+      const matchingKeys = keys.filter(k =>
+        k.label.toLowerCase().includes(query) ||
+        k.value.toLowerCase().includes(query)
+      );
+      if (matchingKeys.length > 0) {
+        filtered.push([category, matchingKeys]);
       }
     }
-  };
+
+    return filtered;
+  }, [remapInput]);
 
   if (!isOpen) return null;
 
   const handleSave = () => {
+    // カスタムキーのラベル更新
+    if (isCustomKey && onUpdateCustomKey && editedLabel !== customKeyLabel) {
+      onUpdateCustomKey(editedLabel);
+    }
+
+    // 入力値をキーコードに変換
+    const finalRemapKey = remapInput.trim() ? parseInputToKeyCode(remapInput) : undefined;
+
     const config = {
       action: selectedAction || undefined,
-      remap: remapKey || undefined,
-      // 外部ツールはツール名があれば保存（アクションは空でもOK - プリセットの場合）
-      externalTool: externalToolName && externalToolName.trim()
-        ? { tool: externalToolName.trim(), action: externalToolAction || '', description: externalToolDescription || undefined }
-        : undefined,
-      finger: selectedFinger,
+      remap: finalRemapKey,
+      // 外部ツールアクション（空文字列でない場合のみ保存）
+      externalTool: externalToolAction.trim() || undefined,
+      finger: selectedFingers.length > 0 ? selectedFingers : undefined,
     };
-    console.log('KeybindingModal saving:', { selectedKey, config });
+    console.log('KeybindingModal saving:', { selectedKey, config, parsedRemap: finalRemapKey });
     onSave(config);
     onClose();
   };
@@ -324,6 +489,31 @@ export function KeybindingModal({
         'c.cedilla': 'ç',
         'n.tilde': 'ñ',
         'disabled': '無効化',
+        // 編集キー
+        'insert': 'Insert',
+        'delete': 'Delete',
+        'home': 'Home',
+        'end': 'End',
+        'page.up': 'Page Up',
+        'page.down': 'Page Down',
+        // テンキー
+        'keypad.0': 'テンキー 0',
+        'keypad.1': 'テンキー 1',
+        'keypad.2': 'テンキー 2',
+        'keypad.3': 'テンキー 3',
+        'keypad.4': 'テンキー 4',
+        'keypad.5': 'テンキー 5',
+        'keypad.6': 'テンキー 6',
+        'keypad.7': 'テンキー 7',
+        'keypad.8': 'テンキー 8',
+        'keypad.9': 'テンキー 9',
+        'keypad.add': 'テンキー +',
+        'keypad.subtract': 'テンキー -',
+        'keypad.multiply': 'テンキー *',
+        'keypad.divide': 'テンキー /',
+        'keypad.decimal': 'テンキー .',
+        'keypad.enter': 'テンキー Enter',
+        'keypad.equal': 'テンキー =',
       };
 
       if (specialKeys[key]) return specialKeys[key];
@@ -427,8 +617,21 @@ export function KeybindingModal({
                 : 'text-[rgb(var(--muted-foreground))] hover:text-[rgb(var(--foreground))]'
             }`}
           >
-            外部ツール
+            外部ツール・Mod
           </button>
+          {isCustomKey && (
+            <button
+              type="button"
+              onClick={() => setActiveTab('custom')}
+              className={`flex-1 px-4 py-3 font-medium transition-colors text-sm ${
+                activeTab === 'custom'
+                  ? 'border-b-2 border-blue-500 text-blue-600'
+                  : 'text-[rgb(var(--muted-foreground))] hover:text-[rgb(var(--foreground))]'
+              }`}
+            >
+              カスタムキー
+            </button>
+          )}
         </div>
 
         {/* コンテンツ */}
@@ -453,85 +656,85 @@ export function KeybindingModal({
                   </button>
                 ))}
               </div>
-              {selectedAction && (
-                <div className="mt-4">
-                  <button
-                    onClick={() => setSelectedAction(null)}
-                    className="px-4 py-2 text-sm text-red-600 hover:text-red-700 border border-red-500 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
-                  >
-                    操作割り当てをクリア
-                  </button>
-                </div>
-              )}
             </div>
           )}
 
           {activeTab === 'finger' && (
             <div className="space-y-4">
               <p className="text-sm text-[rgb(var(--muted-foreground))]">
-                このキーをどの指で押すかを選択してください。指による色分け表示が有効になります。
+                このキーをどの指で押すかを選択してください。複数の指を選択できます。指による色分け表示が有効になります。
               </p>
               <div className="space-y-6">
                 {/* 左手 - 小指から親指の順 */}
                 <div>
                   <h3 className="text-sm font-semibold mb-3 text-center">左手</h3>
                   <div className="flex justify-center gap-1">
-                    {FINGER_OPTIONS.filter(f => f.hand === 'left').map((finger) => (
-                      <button
-                        key={finger.value}
-                        onClick={() => setSelectedFinger(finger.value)}
-                        className={`px-2 py-8 rounded-lg border transition-colors text-center text-xs w-16 ${
-                          selectedFinger === finger.value
-                            ? 'border-blue-500 bg-blue-500/10 text-blue-600'
-                            : 'border-[rgb(var(--border))] hover:bg-[rgb(var(--accent))]'
-                        }`}
-                        style={{
-                          marginTop: finger.value === 'left-pinky' ? '20px' :
-                                    finger.value === 'left-ring' ? '8px' :
-                                    finger.value === 'left-middle' ? '0px' :
-                                    finger.value === 'left-index' ? '4px' : '28px'
-                        }}
-                      >
-                        {finger.label.replace('左手 ', '')}
-                      </button>
-                    ))}
+                    {FINGER_OPTIONS.filter(f => f.hand === 'left').map((finger) => {
+                      const isSelected = selectedFingers.includes(finger.value);
+                      return (
+                        <button
+                          key={finger.value}
+                          onClick={() => {
+                            // トグル動作: 選択されていれば解除、されていなければ追加
+                            setSelectedFingers(prev =>
+                              isSelected
+                                ? prev.filter(f => f !== finger.value)
+                                : [...prev, finger.value]
+                            );
+                          }}
+                          className={`px-2 py-8 rounded-lg border transition-colors text-center text-xs w-16 ${
+                            isSelected
+                              ? 'border-blue-500 bg-blue-500/10 text-blue-600 font-bold'
+                              : 'border-[rgb(var(--border))] hover:bg-[rgb(var(--accent))]'
+                          }`}
+                          style={{
+                            marginTop: finger.value === 'left-pinky' ? '20px' :
+                                      finger.value === 'left-ring' ? '8px' :
+                                      finger.value === 'left-middle' ? '0px' :
+                                      finger.value === 'left-index' ? '4px' : '28px'
+                          }}
+                        >
+                          {finger.label.replace('左手 ', '')}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
                 {/* 右手 - 正順で配置（親指から小指） */}
                 <div>
                   <h3 className="text-sm font-semibold mb-3 text-center">右手</h3>
                   <div className="flex justify-center gap-1">
-                    {FINGER_OPTIONS.filter(f => f.hand === 'right').map((finger) => (
-                      <button
-                        key={finger.value}
-                        onClick={() => setSelectedFinger(finger.value)}
-                        className={`px-2 py-8 rounded-lg border transition-colors text-center text-xs w-16 ${
-                          selectedFinger === finger.value
-                            ? 'border-blue-500 bg-blue-500/10 text-blue-600'
-                            : 'border-[rgb(var(--border))] hover:bg-[rgb(var(--accent))]'
-                        }`}
-                        style={{
-                          marginTop: finger.value === 'right-thumb' ? '28px' :
-                                    finger.value === 'right-index' ? '4px' :
-                                    finger.value === 'right-middle' ? '0px' :
-                                    finger.value === 'right-ring' ? '8px' : '20px'
-                        }}
-                      >
-                        {finger.label.replace('右手 ', '')}
-                      </button>
-                    ))}
+                    {FINGER_OPTIONS.filter(f => f.hand === 'right').map((finger) => {
+                      const isSelected = selectedFingers.includes(finger.value);
+                      return (
+                        <button
+                          key={finger.value}
+                          onClick={() => {
+                            // トグル動作: 選択されていれば解除、されていなければ追加
+                            setSelectedFingers(prev =>
+                              isSelected
+                                ? prev.filter(f => f !== finger.value)
+                                : [...prev, finger.value]
+                            );
+                          }}
+                          className={`px-2 py-8 rounded-lg border transition-colors text-center text-xs w-16 ${
+                            isSelected
+                              ? 'border-blue-500 bg-blue-500/10 text-blue-600 font-bold'
+                              : 'border-[rgb(var(--border))] hover:bg-[rgb(var(--accent))]'
+                          }`}
+                          style={{
+                            marginTop: finger.value === 'right-thumb' ? '28px' :
+                                      finger.value === 'right-index' ? '4px' :
+                                      finger.value === 'right-middle' ? '0px' :
+                                      finger.value === 'right-ring' ? '8px' : '20px'
+                          }}
+                        >
+                          {finger.label.replace('右手 ', '')}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
-                {selectedFinger && (
-                  <div className="flex justify-center">
-                    <button
-                      onClick={() => setSelectedFinger(undefined)}
-                      className="px-4 py-2 text-sm text-red-600 hover:text-red-700 border border-red-500 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
-                    >
-                      指の割り当てをクリア
-                    </button>
-                  </div>
-                )}
               </div>
             </div>
           )}
@@ -541,161 +744,212 @@ export function KeybindingModal({
               <p className="text-sm text-[rgb(var(--muted-foreground))]">
                 このキーを別のキーに置き換えます。ハードウェアレベルでの変更をシミュレートします。
               </p>
-              <div>
+              <div className="relative" ref={remapDropdownRef}>
                 <label className="block text-sm font-medium mb-2">
                   リマップ先のキー
                 </label>
-                <select
-                  value={remapKey}
-                  onChange={(e) => setRemapKey(e.target.value)}
+                <input
+                  type="text"
+                  value={remapInput}
+                  onChange={(e) => {
+                    setRemapInput(e.target.value);
+                    if (!showRemapDropdown) setShowRemapDropdown(true);
+                  }}
+                  onFocus={() => setShowRemapDropdown(true)}
+                  placeholder="例: F13, Ctrl, A, 無変換, Numpad 0"
                   className="w-full px-4 py-2 border border-[rgb(var(--border))] rounded-lg bg-[rgb(var(--background))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--ring))]"
-                >
-                  <option value="">-- キーを選択 --</option>
-                  {Object.entries(REMAPPABLE_KEYS).map(([category, keys]) => (
-                    <optgroup key={category} label={category}>
-                      {keys.map((key) => (
-                        <option key={key.value} value={key.value}>
-                          {key.label}
-                        </option>
-                      ))}
-                    </optgroup>
-                  ))}
-                </select>
+                />
                 <p className="text-xs text-[rgb(var(--muted-foreground))] mt-2">
-                  よく使われるリマップ例: Caps Lock → Ctrl、無変換 → スペース
+                  キー名を入力してください。候補から選択するか、直接入力できます。
                 </p>
+
+                {/* ドロップダウン候補 */}
+                {showRemapDropdown && filteredRemapOptions.length > 0 && (
+                  <div className="absolute z-10 w-full mt-1 max-h-64 overflow-y-auto bg-[rgb(var(--card))] border border-[rgb(var(--border))] rounded-lg shadow-lg">
+                    {filteredRemapOptions.map(([category, keys]) => (
+                      <div key={category}>
+                        <div className="px-3 py-1 text-xs font-semibold text-[rgb(var(--muted-foreground))] bg-[rgb(var(--muted))] sticky top-0">
+                          {category}
+                        </div>
+                        {keys.map((key) => (
+                          <button
+                            key={key.value}
+                            type="button"
+                            onClick={() => {
+                              setRemapInput(key.label);
+                              setShowRemapDropdown(false);
+                            }}
+                            className="w-full px-3 py-2 text-left text-sm hover:bg-[rgb(var(--muted))] focus:bg-[rgb(var(--muted))] focus:outline-none"
+                          >
+                            {key.label}
+                          </button>
+                        ))}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
-              {remapKey && (
+
+              {/* プレビュー */}
+              {remapInput.trim() && (
                 <div className="p-4 bg-[rgb(var(--muted))] rounded-lg">
                   <p className="text-sm">
                     <span className="font-medium">{formatKeyLabel(selectedKey)}</span>
                     {' → '}
-                    <span className="font-medium text-blue-600 dark:text-blue-400">{formatKeyLabel(remapKey)}</span>
+                    <span className="font-medium text-blue-600 dark:text-blue-400">
+                      {remapInput}
+                    </span>
+                  </p>
+                  <p className="text-xs text-[rgb(var(--muted-foreground))] mt-1">
+                    キーコード: <code className="px-1 py-0.5 bg-[rgb(var(--background))] rounded text-xs">{parseInputToKeyCode(remapInput)}</code>
                   </p>
                 </div>
               )}
-              {remapKey && (
-                <div className="mt-4">
-                  <button
-                    onClick={() => setRemapKey('')}
-                    className="px-4 py-2 text-sm text-red-600 hover:text-red-700 border border-red-500 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
-                  >
-                    リマップをクリア
-                  </button>
-                </div>
-              )}
+
+              {/* ヘルプテキスト */}
+              <div className="mt-4 p-3 bg-blue-500/10 rounded-lg border border-blue-500/20">
+                <p className="text-xs text-[rgb(var(--muted-foreground))]">
+                  <strong>入力例:</strong><br />
+                  • ファンクションキー: F13, F14, F20<br />
+                  • 文字キー: A, B, C<br />
+                  • 修飾キー: Ctrl, Shift, Alt<br />
+                  • 特殊キー: Space, Enter, Tab<br />
+                  • テンキー: Numpad 0, Keypad 1<br />
+                  • 日本語: 無変換, 変換, かな<br />
+                  • カスタムコード: key.keyboard.f13
+                </p>
+              </div>
             </div>
           )}
 
           {activeTab === 'external' && (
             <div className="space-y-4">
               <p className="text-sm text-[rgb(var(--muted-foreground))]">
-                外部ツール（AutoHotKey、マクロソフトウェアなど）で実行するアクションを記録します。
+                外部ツールやModで実行するアクションを設定します。
+                ドロップダウンから選択するか、直接入力してください。
               </p>
 
-              {/* プリセット選択 */}
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  プリセット（Jingle / NinjabrainBot）
-                </label>
-                <select
-                  value={selectedPreset}
-                  onChange={handlePresetSelect}
-                  className="w-full px-4 py-2 border border-[rgb(var(--border))] rounded-lg bg-[rgb(var(--background))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--ring))]"
-                >
-                  <option value="">-- プリセットを選択 --</option>
-                  <optgroup label="Jingle">
-                    {EXTERNAL_TOOL_PRESETS.Jingle.map((preset) => (
-                      <option key={preset.name} value={`Jingle::${preset.name}`}>
-                        {preset.description}
-                      </option>
-                    ))}
-                  </optgroup>
-                  <optgroup label="NinjabrainBot">
-                    {EXTERNAL_TOOL_PRESETS.NinjabrainBot.map((preset) => (
-                      <option key={preset.name} value={`NinjabrainBot::${preset.name}`}>
-                        {preset.description}
-                      </option>
-                    ))}
-                  </optgroup>
-                </select>
-                <p className="text-xs text-[rgb(var(--muted-foreground))] mt-2">
-                  プリセットを選択すると、ツール名と説明が自動的に入力されます
-                </p>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  ツール名
-                </label>
-                <input
-                  type="text"
-                  value={externalToolName}
-                  onChange={(e) => setExternalToolName(e.target.value)}
-                  placeholder="例: AutoHotKey, Jingle, NinjabrainBot"
-                  className="w-full px-4 py-2 border border-[rgb(var(--border))] rounded-lg bg-[rgb(var(--background))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--ring))]"
-                />
-              </div>
+              {/* アクション選択・入力 */}
               <div>
                 <label className="block text-sm font-medium mb-2">
                   アクション
                 </label>
-                <textarea
+                <input
+                  type="text"
+                  list="external-tool-actions"
                   value={externalToolAction}
                   onChange={(e) => setExternalToolAction(e.target.value)}
-                  placeholder="例: Send {LButton Down}&#x0A;Sleep 10&#x0A;Send {LButton Up}"
-                  rows={4}
-                  className="w-full px-4 py-2 border border-[rgb(var(--border))] rounded-lg bg-[rgb(var(--background))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--ring))] font-mono text-sm"
+                  placeholder="ドロップダウンから選択、または直接入力"
+                  className="w-full px-4 py-2 border border-[rgb(var(--border))] rounded-lg bg-[rgb(var(--background))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--ring))]"
                 />
+                <datalist id="external-tool-actions">
+                  {EXTERNAL_TOOL_ACTIONS.map((action) => (
+                    <option key={action.value} value={action.value}>
+                      {action.label}
+                    </option>
+                  ))}
+                </datalist>
                 <p className="text-xs text-[rgb(var(--muted-foreground))] mt-2">
-                  このキーが押されたときに実行される外部ツールのスクリプトを記述してください（プリセットの場合は空でもOK）
+                  プリセットから選択するか、カスタムアクション名を入力してください
                 </p>
               </div>
+            </div>
+          )}
+
+          {activeTab === 'custom' && isCustomKey && (
+            <div className="space-y-4">
+              <p className="text-sm text-[rgb(var(--muted-foreground))] mb-4">
+                カスタムキーの名前を変更、または削除できます
+              </p>
               <div>
                 <label className="block text-sm font-medium mb-2">
-                  説明（任意）
+                  キー名
                 </label>
                 <input
                   type="text"
-                  value={externalToolDescription}
-                  onChange={(e) => setExternalToolDescription(e.target.value)}
-                  placeholder="このアクションの説明"
+                  value={editedLabel}
+                  onChange={(e) => setEditedLabel(e.target.value)}
+                  placeholder="キー名（例: F13, MB4）"
+                  maxLength={6}
                   className="w-full px-4 py-2 border border-[rgb(var(--border))] rounded-lg bg-[rgb(var(--background))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--ring))]"
                 />
+                <p className="text-xs text-[rgb(var(--muted-foreground))] mt-2">
+                  キーボード上に表示される名前です（最大6文字）
+                </p>
               </div>
-              {externalToolName && (
-                <div className="mt-4">
-                  <button
-                    onClick={() => {
-                      setExternalToolName('');
-                      setExternalToolAction('');
-                      setExternalToolDescription('');
-                      setSelectedPreset('');
-                    }}
-                    className="px-4 py-2 text-sm text-red-600 hover:text-red-700 border border-red-500 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
-                  >
-                    外部ツール割り当てをクリア
-                  </button>
-                </div>
-              )}
+              <div className="pt-4 border-t border-[rgb(var(--border))]">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (onDeleteCustomKey && confirm('このカスタムキーを削除しますか？')) {
+                      onDeleteCustomKey();
+                    }
+                  }}
+                  className="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                >
+                  カスタムキーを削除
+                </button>
+                <p className="text-xs text-[rgb(var(--muted-foreground))] mt-2 text-center">
+                  削除すると、このキーに割り当てられた設定もすべて失われます
+                </p>
+              </div>
             </div>
           )}
         </div>
 
         {/* フッター */}
-        <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-[rgb(var(--border))] flex-shrink-0">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 text-sm font-medium text-[rgb(var(--muted-foreground))] hover:text-[rgb(var(--foreground))] transition-colors"
-          >
-            キャンセル
-          </button>
-          <button
-            onClick={handleSave}
-            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            保存
-          </button>
+        <div className="flex items-center justify-between px-6 py-4 border-t border-[rgb(var(--border))] flex-shrink-0">
+          {/* 左側: 各タブのクリアボタン */}
+          <div>
+            {activeTab === 'action' && selectedAction && (
+              <button
+                onClick={() => setSelectedAction(null)}
+                className="px-4 py-2 text-sm text-red-600 hover:text-red-700 border border-red-500 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
+              >
+                割り当てをクリア
+              </button>
+            )}
+            {activeTab === 'finger' && selectedFingers.length > 0 && (
+              <button
+                onClick={() => setSelectedFingers([])}
+                className="px-4 py-2 text-sm text-red-600 hover:text-red-700 border border-red-500 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
+              >
+                割り当てをクリア
+              </button>
+            )}
+            {activeTab === 'remap' && remapInput.trim() && (
+              <button
+                onClick={() => setRemapInput('')}
+                className="px-4 py-2 text-sm text-red-600 hover:text-red-700 border border-red-500 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
+              >
+                リマップをクリア
+              </button>
+            )}
+            {activeTab === 'external' && externalToolAction && (
+              <button
+                onClick={() => setExternalToolAction('')}
+                className="px-4 py-2 text-sm text-red-600 hover:text-red-700 border border-red-500 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
+              >
+                割り当てをクリア
+              </button>
+            )}
+          </div>
+
+          {/* 右側: 保存・キャンセルボタン */}
+          <div className="flex items-center gap-3">
+            <button
+              onClick={onClose}
+              className="px-4 py-2 text-sm font-medium text-[rgb(var(--muted-foreground))] hover:text-[rgb(var(--foreground))] transition-colors"
+            >
+              キャンセル
+            </button>
+            <button
+              onClick={handleSave}
+              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              保存
+            </button>
+          </div>
         </div>
       </div>
     </div>

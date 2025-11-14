@@ -9,6 +9,7 @@ interface PlayerListItemProps {
 
 export function PlayerListItem({ user }: PlayerListItemProps) {
   const { mcid, uuid, displayName, settings } = user;
+  const showDisplayName = displayName && displayName.trim() !== '';
 
   return (
     <Link
@@ -21,8 +22,10 @@ export function PlayerListItem({ user }: PlayerListItemProps) {
         <div className="flex items-center gap-2">
           <MinecraftAvatar uuid={uuid} mcid={mcid} size={32} />
           <div className="font-semibold truncate flex-1 min-w-0">
-            <div className="truncate text-sm group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{displayName}</div>
-            {displayName !== mcid && (
+            <div className="truncate text-sm group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+              {showDisplayName ? displayName : mcid}
+            </div>
+            {showDisplayName && displayName !== mcid && (
               <div className="text-[10px] text-[rgb(var(--muted-foreground))] truncate">
                 {mcid}
               </div>
@@ -95,8 +98,10 @@ export function PlayerListItem({ user }: PlayerListItemProps) {
           <div className="flex items-center gap-2 flex-1 min-w-0">
             <MinecraftAvatar uuid={uuid} mcid={mcid} size={32} />
             <div className="font-semibold truncate flex-1 min-w-0">
-              <div className="truncate text-sm group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{displayName}</div>
-              {displayName !== mcid && (
+              <div className="truncate text-sm group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                {showDisplayName ? displayName : mcid}
+              </div>
+              {showDisplayName && displayName !== mcid && (
                 <div className="text-[10px] text-[rgb(var(--muted-foreground))] truncate">
                   {mcid}
                 </div>

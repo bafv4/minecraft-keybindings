@@ -3,7 +3,7 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { calculateCm360, calculateCursorSpeed } from '@/lib/utils';
-import type { PlayerSettings, Finger, FingerAssignments } from '@/types/player';
+import type { PlayerSettings, Finger, FingerAssignments, CustomKey } from '@/types/player';
 import { VirtualKeyboard } from './VirtualKeyboard';
 
 // Minecraft言語リスト（全言語）
@@ -149,8 +149,8 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
   // ユーザー情報
   const [displayName, setDisplayName] = useState(initialDisplayName);
   const [currentMcid, setCurrentMcid] = useState(mcid);
-  const [keyboardLayout, setKeyboardLayout] = useState<'JIS' | 'US'>(
-    (initialSettings?.keyboardLayout as 'JIS' | 'US') || 'JIS'
+  const [keyboardLayout, setKeyboardLayout] = useState<'JIS' | 'JIS-TKL' | 'US' | 'US-TKL'>(
+    (initialSettings?.keyboardLayout as 'JIS' | 'JIS-TKL' | 'US' | 'US-TKL') || 'JIS'
   );
 
   // マウス設定
@@ -226,26 +226,31 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
     initialSettings?.remappings || {}
   );
 
-  // 外部ツール設定を平坦化（key -> {tool, action, description}）
-  const [externalTools, setExternalTools] = useState<{ [key: string]: { tool: string; action: string; description?: string } }>(() => {
-    if (!initialSettings?.externalTools) return {};
-
-    const flattened: { [key: string]: { tool: string; action: string; description?: string } } = {};
-    Object.entries(initialSettings.externalTools).forEach(([toolName, config]) => {
-      config.actions.forEach((actionDef) => {
-        flattened[actionDef.trigger] = {
-          tool: toolName,
-          action: actionDef.action,
-          description: actionDef.description,
-        };
-      });
-    });
-    return flattened;
+  // 外部ツール設定（key -> action名）
+  const [externalTools, setExternalTools] = useState<{ [key: string]: string }>(() => {
+    return (initialSettings?.externalTools as { [key: string]: string }) || {};
   });
 
-  // 指の割り当て設定
-  const [fingerAssignments, setFingerAssignments] = useState<FingerAssignments>(
-    initialSettings?.fingerAssignments || {}
+  // 指の割り当て設定（後方互換性のため、古い形式を配列に変換）
+  const [fingerAssignments, setFingerAssignments] = useState<FingerAssignments>(() => {
+    if (!initialSettings?.fingerAssignments) return {};
+
+    const normalized: FingerAssignments = {};
+    Object.entries(initialSettings.fingerAssignments).forEach(([key, value]) => {
+      // 古い形式（単一の文字列）または新しい形式（配列）のどちらにも対応
+      if (Array.isArray(value)) {
+        normalized[key] = value;
+      } else if (typeof value === 'string') {
+        // 古い形式：文字列を配列に変換
+        normalized[key] = [value as Finger];
+      }
+    });
+    return normalized;
+  });
+
+  // カスタムキー設定
+  const [customKeys, setCustomKeys] = useState<CustomKey[]>(
+    (initialSettings?.additionalSettings as { customKeys?: { keys: CustomKey[] } })?.customKeys?.keys || []
   );
 
   // 指の色分け表示のトグル
@@ -366,8 +371,8 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
   const handleUpdateConfig = (keyCode: string, config: {
     action?: string;
     remap?: string;
-    externalTool?: { tool: string; action: string; description?: string };
-    finger?: Finger;
+    externalTool?: string;
+    finger?: Finger[];
   }) => {
     console.log('handleUpdateConfig called:', { keyCode, config });
 
@@ -405,8 +410,8 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
     if (config.externalTool !== undefined) {
       setExternalTools(prev => {
         const updated = { ...prev };
-        if (config.externalTool && config.externalTool.tool) {
-          // toolが存在すれば保存（actionは空でもOK - プリセットの場合）
+        if (config.externalTool) {
+          // アクション名を保存
           updated[keyCode] = config.externalTool;
         } else {
           delete updated[keyCode];
@@ -433,15 +438,6 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
     setSaving(true);
 
     try {
-      // 外部ツールを平坦化形式から nested structure に変換
-      const nestedExternalTools: { [toolName: string]: { actions: Array<{ trigger: string; action: string; description?: string }> } } = {};
-      Object.entries(externalTools).forEach(([trigger, config]) => {
-        const { tool, action, description } = config;
-        if (!nestedExternalTools[tool]) {
-          nestedExternalTools[tool] = { actions: [] };
-        }
-        nestedExternalTools[tool].actions.push({ trigger, action, description });
-      });
 
       const data = {
         uuid, // UUIDを送信
@@ -493,11 +489,15 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
 
         // リマップと外部ツール（空のオブジェクトの場合はnullに変換）
         remappings: Object.keys(remappings).length > 0 ? remappings : null,
-        externalTools: Object.keys(nestedExternalTools).length > 0 ? nestedExternalTools : null,
+        externalTools: Object.keys(externalTools).length > 0 ? externalTools : null,
         fingerAssignments: Object.keys(fingerAssignments).length > 0 ? fingerAssignments : null,
 
         // 追加設定（additionalSettings JSONフィールドに保存）
-        additionalSettings: { reset, playerList },
+        additionalSettings: {
+          reset,
+          playerList,
+          customKeys: customKeys.length > 0 ? { keys: customKeys } : undefined
+        },
 
         // プレイヤー環境設定
         gameLanguage: gameLanguage.trim() || undefined,
@@ -506,7 +506,7 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
         notes: notes.trim() || undefined,
       };
 
-      console.log('Saving keybindings:', { remappings, externalTools, nestedExternalTools, fingerAssignments });
+      console.log('Saving keybindings:', { remappings, externalTools, fingerAssignments });
 
       const response = await fetch('/api/keybindings', {
         method: 'POST',
@@ -592,28 +592,50 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
         </div>
         <div className="mt-4">
           <label className="font-semibold mb-2 block">キーボードレイアウト</label>
-          <div className="flex gap-2">
+          <div className="grid grid-cols-2 gap-2">
             <button
               type="button"
               onClick={() => setKeyboardLayout('JIS')}
-              className={`flex-1 px-4 py-2 rounded-lg border transition-colors font-medium ${
+              className={`px-4 py-2 rounded-lg border transition-colors font-medium ${
                 keyboardLayout === 'JIS'
                   ? 'border-blue-500 bg-blue-500/10 text-blue-600'
                   : 'border-[rgb(var(--border))] hover:bg-[rgb(var(--accent))]'
               }`}
             >
-              JIS (日本語)
+              JIS
             </button>
             <button
               type="button"
               onClick={() => setKeyboardLayout('US')}
-              className={`flex-1 px-4 py-2 rounded-lg border transition-colors font-medium ${
+              className={`px-4 py-2 rounded-lg border transition-colors font-medium ${
                 keyboardLayout === 'US'
                   ? 'border-blue-500 bg-blue-500/10 text-blue-600'
                   : 'border-[rgb(var(--border))] hover:bg-[rgb(var(--accent))]'
               }`}
             >
-              US (英語)
+              US
+            </button>
+            <button
+              type="button"
+              onClick={() => setKeyboardLayout('JIS-TKL')}
+              className={`px-4 py-2 rounded-lg border transition-colors font-medium ${
+                keyboardLayout === 'JIS-TKL'
+                  ? 'border-blue-500 bg-blue-500/10 text-blue-600'
+                  : 'border-[rgb(var(--border))] hover:bg-[rgb(var(--accent))]'
+              }`}
+            >
+              JIS (TKL)
+            </button>
+            <button
+              type="button"
+              onClick={() => setKeyboardLayout('US-TKL')}
+              className={`px-4 py-2 rounded-lg border transition-colors font-medium ${
+                keyboardLayout === 'US-TKL'
+                  ? 'border-blue-500 bg-blue-500/10 text-blue-600'
+                  : 'border-[rgb(var(--border))] hover:bg-[rgb(var(--accent))]'
+              }`}
+            >
+              US (TKL)
             </button>
           </div>
         </div>
@@ -643,6 +665,7 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
         <p className="text-sm text-[rgb(var(--muted-foreground))] mb-4">
           キーをクリックして、操作の割り当て・指の割り当て・リマップ・外部ツールの設定を行えます
         </p>
+
         <VirtualKeyboard
           bindings={bindings}
           mode="edit"
@@ -652,6 +675,23 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
           showFingerColors={showFingerColors}
           onUpdateConfig={handleUpdateConfig}
           keyboardLayout={keyboardLayout}
+          customKeys={customKeys}
+          onAddCustomKey={(section, label) => {
+            const newKey: CustomKey = {
+              id: `custom-${section}-${Date.now()}`,
+              label: label,
+              keyCode: `key.custom.${section}.${customKeys.filter(k => k.keyCode.includes(`custom.${section}`)).length + 1}`
+            };
+            setCustomKeys([...customKeys, newKey]);
+          }}
+          onUpdateCustomKey={(keyCode, label) => {
+            setCustomKeys(customKeys.map(key =>
+              key.keyCode === keyCode ? { ...key, label } : key
+            ));
+          }}
+          onDeleteCustomKey={(keyCode) => {
+            setCustomKeys(customKeys.filter(key => key.keyCode !== keyCode));
+          }}
         />
       </section>
 
@@ -854,7 +894,7 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
                   rawInput,
                   mouseAcceleration
                 );
-                return cursorSpeed !== null ? `${cursorSpeed} dpi` : '計算不可';
+                return cursorSpeed !== null ? `${cursorSpeed} dpi` : '-';
               })()}
             </span>
           </div>
@@ -955,7 +995,7 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
 
           {/* 自由使用欄 */}
           <div>
-            <label htmlFor="notes" className="font-semibold text-base mb-2 block">自由使用欄</label>
+            <label htmlFor="notes" className="font-semibold text-base mb-2 block">コメント</label>
             <textarea
               id="notes"
               value={notes}

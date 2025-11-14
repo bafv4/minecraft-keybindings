@@ -26,23 +26,26 @@ export type Finger =
   | 'right-ring'      // 右手薬指
   | 'right-pinky';    // 右手小指
 
-// 指の割り当て設定
+// 指の割り当て設定（複数の指を割り当て可能）
 export interface FingerAssignments {
-  [keyCode: string]: Finger;
+  [keyCode: string]: Finger[];
 }
 
-// 外部ツールアクション
-export interface ExternalToolAction {
-  trigger: string;
-  action: string;
-  description?: string;
+// カスタムキー定義
+export interface CustomKey {
+  id: string; // 一意のID（例: "custom-1", "custom-2"）
+  label: string; // 表示名（数文字、例: "F13", "XB1", "M4"）
+  keyCode: string; // 内部キーコード（例: "key.custom.1"）
 }
 
-// 外部ツール設定
+// カスタムキー設定
+export interface CustomKeysConfig {
+  keys: CustomKey[];
+}
+
+// 外部ツール設定（キーごとにアクションを割り当て）
 export interface ExternalToolsConfig {
-  [toolName: string]: {
-    actions: ExternalToolAction[];
-  };
+  [keyCode: string]: string; // keyCode -> action (例: "key.keyboard.f" -> "リセット")
 }
 
 // キーバインディングの型定義
@@ -87,6 +90,7 @@ export interface Keybinding {
 export interface AdditionalSettings {
   reset?: string;
   playerList?: string;
+  customKeys?: CustomKeysConfig;
   [key: string]: unknown;
 }
 

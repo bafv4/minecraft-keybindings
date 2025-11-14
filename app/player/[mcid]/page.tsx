@@ -22,14 +22,17 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
     notFound();
   }
 
+  const showDisplayName = user.displayName && user.displayName.trim() !== '';
+
   return (
-    <div>
+    <div className="pb-6">
       <div className="mb-8 flex items-center gap-4">
         <MinecraftAvatar uuid={user.uuid} mcid={user.mcid} size={96} />
         <div>
-          <h1 className="text-3xl font-bold">{user.displayName}</h1>
-          <p className="text-[rgb(var(--muted-foreground))] text-sm">{user.mcid}</p>
-          <p className="text-[rgb(var(--muted-foreground))] text-xs font-mono">{user.uuid}</p>
+          <h1 className="text-4xl font-bold">{showDisplayName ? user.displayName : user.mcid}</h1>
+          {showDisplayName && user.displayName !== user.mcid && (
+            <p className="text-[rgb(var(--muted-foreground))] text-lg mt-1">{user.mcid}</p>
+          )}
         </div>
       </div>
 

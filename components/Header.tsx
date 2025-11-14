@@ -7,7 +7,7 @@ export async function Header() {
   const session = await auth();
 
   return (
-    <header className="sticky top-0 z-50 border-b border-[rgb(var(--border))] bg-[rgb(var(--card))]/80 backdrop-blur-xl">
+    <header className="fixed top-0 left-0 right-0 z-50 border-b border-[rgb(var(--border))] bg-[rgb(var(--card))]/95 backdrop-blur-xl">
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3">
@@ -21,10 +21,10 @@ export async function Header() {
               />
             </div>
             <div className="hidden sm:block">
-              <h1 className="text-xl font-bold bg-gradient-to-r from-[#47a1d4] via-[#8b5cf6] to-[#64748b] bg-clip-text text-transparent leading-none">
+              <h1 className="text-xl font-bold bg-gradient-to-r from-[#47a1d4] via-[#8b5cf6] to-[#64748b] bg-clip-text text-transparent leading-tight z-50">
                 MCSRer Hotkeys
               </h1>
-              <p className="text-s text-[rgb(var(--muted-foreground))] mt-0.5 leading-none">RTA勢の設定はこうなっている！</p>
+              <p className="text-sm text-[rgb(var(--muted-foreground))] mt-0.5 leading-tight z-49 bg-transparent">RTA勢の設定はこうなっている！</p>
             </div>
           </Link>
 
