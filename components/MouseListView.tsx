@@ -10,7 +10,7 @@ interface MouseListViewProps {
   users: User[];
 }
 
-type SortKey = 'player' | 'model' | 'dpi' | 'acceleration' | 'rawInput' | 'cm360' | 'windowsSpeed' | 'sensitivity';
+type SortKey = 'player' | 'model' | 'dpi' | 'acceleration' | 'rawInput' | 'sensitivity' | 'cm360' | 'windowsSpeed';
 type SortOrder = 'asc' | 'desc';
 
 export function MouseListView({ users }: MouseListViewProps) {
@@ -179,6 +179,12 @@ export function MouseListView({ users }: MouseListViewProps) {
                 </th>
                 <th
                   className="px-4 py-3 text-center font-semibold cursor-pointer hover:bg-[rgb(var(--muted))]/80 transition-colors"
+                  onClick={() => handleSort('sensitivity')}
+                >
+                  ゲーム内感度 <SortIcon columnKey="sensitivity" />
+                </th>
+                <th
+                  className="px-4 py-3 text-center font-semibold cursor-pointer hover:bg-[rgb(var(--muted))]/80 transition-colors"
                   onClick={() => handleSort('cm360')}
                 >
                   振り向き <SortIcon columnKey="cm360" />
@@ -188,12 +194,6 @@ export function MouseListView({ users }: MouseListViewProps) {
                   onClick={() => handleSort('windowsSpeed')}
                 >
                   Windows速度 <SortIcon columnKey="windowsSpeed" />
-                </th>
-                <th
-                  className="px-4 py-3 text-center font-semibold cursor-pointer hover:bg-[rgb(var(--muted))]/80 transition-colors"
-                  onClick={() => handleSort('sensitivity')}
-                >
-                  カーソル速度 <SortIcon columnKey="sensitivity" />
                 </th>
               </tr>
             </thead>
@@ -249,6 +249,13 @@ export function MouseListView({ users }: MouseListViewProps) {
                     )}
                   </td>
 
+                  {/* ゲーム内感度 */}
+                  <td className="px-4 py-3 text-center">
+                    {user.settings?.gameSensitivity !== null && user.settings?.gameSensitivity !== undefined
+                      ? `${user.settings.gameSensitivity}%`
+                      : '-'}
+                  </td>
+
                   {/* 振り向き */}
                   <td className="px-4 py-3 text-center">
                     {user.settings?.cm360 ? `${user.settings.cm360}cm` : '-'}
@@ -258,13 +265,6 @@ export function MouseListView({ users }: MouseListViewProps) {
                   <td className="px-4 py-3 text-center">
                     {user.settings?.windowsSpeed !== null && user.settings?.windowsSpeed !== undefined
                       ? user.settings.windowsSpeed
-                      : '-'}
-                  </td>
-
-                  {/* カーソル速度 */}
-                  <td className="px-4 py-3 text-center">
-                    {user.settings?.gameSensitivity !== null && user.settings?.gameSensitivity !== undefined
-                      ? `${user.settings.gameSensitivity}%`
                       : '-'}
                   </td>
                 </tr>
