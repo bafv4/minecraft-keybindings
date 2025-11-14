@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { KeybindingModal } from './KeybindingModal';
 import type { Finger, FingerAssignments } from '@/types/player';
 
@@ -20,7 +20,7 @@ interface VirtualKeyboardProps {
     action?: string;
     remap?: string;
     externalTool?: { tool: string; action: string; description?: string };
-    finger?: Finger;
+    finger?: Finger[];
   }) => void;
   keyboardLayout?: 'JIS' | 'US';
   showFingerColors?: boolean;
@@ -284,6 +284,15 @@ export function VirtualKeyboard({
   const [hoveredKey, setHoveredKey] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
+  const [colorCycleIndex, setColorCycleIndex] = useState(0);
+
+  // 複数の指が割り当てられたキーの色を1.5秒ごとに切り替える
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setColorCycleIndex(prev => prev + 1);
+    }, 1500);
+    return () => clearInterval(interval);
+  }, []);
 
   // キーボードレイアウトを選択
   const KEYBOARD_LAYOUT = keyboardLayout === 'JIS' ? KEYBOARD_LAYOUT_JIS : KEYBOARD_LAYOUT_US;
@@ -424,7 +433,7 @@ export function VirtualKeyboard({
     const hasExternalTool = !!externalTools[keyDef.key];
     const remapTarget = remappings[keyDef.key];
     const externalTool = externalTools[keyDef.key];
-    const assignedFinger = fingerAssignments[keyDef.key];
+    const assignedFingers = fingerAssignments[keyDef.key] || [];
 
     const handleClick = () => {
       if (mode !== 'edit') return;
@@ -434,16 +443,20 @@ export function VirtualKeyboard({
     };
 
     // 背景色のロジック：
-    // 1. 指の割り当てがある場合 → 指の色
+    // 1. 指の割り当てがある場合 → 指の色（複数の場合は切り替え）
     // 2. 指の割り当てがないが、何らかのマッピングがある場合 → Primaryカラー（黒系/白系）
     // 3. 何もない場合 → デフォルト色
     const hasAnyMapping = hasBinding || hasRemap || hasExternalTool;
-    const fingerColorClass = showFingerColors && assignedFinger ? getFingerColor(assignedFinger) : '';
     const primaryColorClass = 'bg-gray-900/10 border-gray-900 dark:bg-gray-100/10 dark:border-gray-100';
     const defaultColorClass = 'bg-[rgb(var(--card))] border-[rgb(var(--border))]';
 
+    // 複数の指が割り当てられている場合は、colorCycleIndexを使って色を切り替える
+    const currentFingerIndex = assignedFingers.length > 0 ? colorCycleIndex % assignedFingers.length : -1;
+    const currentFinger = currentFingerIndex >= 0 ? assignedFingers[currentFingerIndex] : undefined;
+    const fingerColorClass = showFingerColors && currentFinger ? getFingerColor(currentFinger) : '';
+
     let backgroundClass = defaultColorClass;
-    if (assignedFinger && showFingerColors) {
+    if (assignedFingers.length > 0 && showFingerColors) {
       backgroundClass = fingerColorClass;
     } else if (hasAnyMapping) {
       backgroundClass = primaryColorClass;
@@ -461,7 +474,7 @@ export function VirtualKeyboard({
       if (hasExternalTool && externalTool) {
         parts.push(`外部ツール: ${externalTool.tool}${externalTool.description ? ` - ${externalTool.description}` : ''}`);
       }
-      if (assignedFinger) {
+      if (assignedFingers.length > 0) {
         const fingerLabels: Record<string, string> = {
           'left-pinky': '左手小指',
           'left-ring': '左手薬指',
@@ -474,7 +487,8 @@ export function VirtualKeyboard({
           'right-ring': '右手薬指',
           'right-pinky': '右手小指',
         };
-        parts.push(`指: ${fingerLabels[assignedFinger] || assignedFinger}`);
+        const fingerNames = assignedFingers.map(f => fingerLabels[f] || f).join(', ');
+        parts.push(`指: ${fingerNames}`);
       }
       return parts.join('\n');
     };
@@ -487,8 +501,8 @@ export function VirtualKeyboard({
         onMouseEnter={() => setHoveredKey(keyDef.key)}
         onMouseLeave={() => setHoveredKey(null)}
         disabled={mode === 'display'}
-        title={mode === 'display' && (hasAnyMapping || assignedFinger) ? tooltipContent() : undefined}
-        className={`${keyDef.width} h-16 rounded border text-sm font-medium transition-all relative ${backgroundClass} ${mode === 'edit' ? 'hover:border-blue-500 cursor-pointer' : 'cursor-default'} ${isHovered && (hasAnyMapping || assignedFinger) ? 'ring-2 ring-blue-500' : ''}`}
+        title={mode === 'display' && (hasAnyMapping || assignedFingers.length > 0) ? tooltipContent() : undefined}
+        className={`${keyDef.width} h-16 rounded border text-sm font-medium transition-all relative ${backgroundClass} ${mode === 'edit' ? 'hover:border-blue-500 cursor-pointer' : 'cursor-default'} ${isHovered && (hasAnyMapping || assignedFingers.length > 0) ? 'ring-2 ring-blue-500' : ''}`}
       >
         {/* リマップ表示：左上にもともとのキー名（低コントラスト）とリマップ後のキー名（大きく） */}
         {hasRemap && remapTarget ? (
@@ -532,16 +546,20 @@ export function VirtualKeyboard({
     const hasExternalTool = !!externalTools[btn.key];
     const remapTarget = remappings[btn.key];
     const externalTool = externalTools[btn.key];
-    const assignedFinger = fingerAssignments[btn.key];
+    const assignedFingers = fingerAssignments[btn.key] || [];
 
     // 背景色のロジック：renderKeyと同じ
     const hasAnyMapping = hasBinding || hasRemap || hasExternalTool;
-    const fingerColorClass = showFingerColors && assignedFinger ? getFingerColor(assignedFinger) : '';
     const primaryColorClass = 'bg-gray-900/10 border-gray-900 dark:bg-gray-100/10 dark:border-gray-100';
     const defaultColorClass = 'bg-[rgb(var(--card))] border-[rgb(var(--border))]';
 
+    // 複数の指が割り当てられている場合は、colorCycleIndexを使って色を切り替える
+    const currentFingerIndex = assignedFingers.length > 0 ? colorCycleIndex % assignedFingers.length : -1;
+    const currentFinger = currentFingerIndex >= 0 ? assignedFingers[currentFingerIndex] : undefined;
+    const fingerColorClass = showFingerColors && currentFinger ? getFingerColor(currentFinger) : '';
+
     let backgroundClass = defaultColorClass;
-    if (assignedFinger && showFingerColors) {
+    if (assignedFingers.length > 0 && showFingerColors) {
       backgroundClass = fingerColorClass;
     } else if (hasAnyMapping) {
       backgroundClass = primaryColorClass;
@@ -559,7 +577,7 @@ export function VirtualKeyboard({
       if (hasExternalTool && externalTool) {
         parts.push(`外部ツール: ${externalTool.tool}${externalTool.description ? ` - ${externalTool.description}` : ''}`);
       }
-      if (assignedFinger) {
+      if (assignedFingers.length > 0) {
         const fingerLabels: Record<string, string> = {
           'left-pinky': '左手小指',
           'left-ring': '左手薬指',
@@ -572,7 +590,8 @@ export function VirtualKeyboard({
           'right-ring': '右手薬指',
           'right-pinky': '右手小指',
         };
-        parts.push(`指: ${fingerLabels[assignedFinger] || assignedFinger}`);
+        const fingerNames = assignedFingers.map(f => fingerLabels[f] || f).join(', ');
+        parts.push(`指: ${fingerNames}`);
       }
       return parts.join('\n');
     };
@@ -586,7 +605,7 @@ export function VirtualKeyboard({
           handleOpenModal(btn.key);
         }}
         disabled={mode === 'display' || btn.disabled}
-        title={mode === 'display' && (hasAnyMapping || assignedFinger) ? tooltipContent() : undefined}
+        title={mode === 'display' && (hasAnyMapping || assignedFingers.length > 0) ? tooltipContent() : undefined}
         className={`w-28 h-16 rounded border text-sm font-medium transition-all relative ${backgroundClass} ${mode === 'edit' && !btn.disabled ? 'hover:border-blue-500 cursor-pointer' : 'cursor-default'}`}
       >
         {/* リマップ表示：左上にもともとのキー名（低コントラスト）とリマップ後のキー名（大きく） */}

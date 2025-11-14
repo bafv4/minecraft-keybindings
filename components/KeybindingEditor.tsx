@@ -367,7 +367,7 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
     action?: string;
     remap?: string;
     externalTool?: { tool: string; action: string; description?: string };
-    finger?: Finger;
+    finger?: Finger[];
   }) => {
     console.log('handleUpdateConfig called:', { keyCode, config });
 

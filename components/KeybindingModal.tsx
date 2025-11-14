@@ -13,12 +13,12 @@ interface KeybindingModalProps {
     action?: string;
     remap?: string;
     externalTool?: { tool: string; action: string; description?: string };
-    finger?: Finger;
+    finger?: Finger[];
   }) => void;
   // 既存の設定を渡す
   currentRemap?: string;
   currentExternalTool?: { tool: string; action: string; description?: string };
-  currentFinger?: Finger;
+  currentFinger?: Finger[];
 }
 
 type TabType = 'action' | 'remap' | 'external' | 'finger';
@@ -207,7 +207,7 @@ export function KeybindingModal({
   const [externalToolAction, setExternalToolAction] = useState<string>(currentExternalTool?.action || '');
   const [externalToolDescription, setExternalToolDescription] = useState<string>(currentExternalTool?.description || '');
   const [selectedPreset, setSelectedPreset] = useState<string>('');
-  const [selectedFinger, setSelectedFinger] = useState<Finger | undefined>(currentFinger);
+  const [selectedFingers, setSelectedFingers] = useState<Finger[]>(currentFinger || []);
   const remapDropdownRef = useRef<HTMLDivElement>(null);
 
   // ドロップダウン外クリック検知
@@ -328,7 +328,7 @@ export function KeybindingModal({
       setExternalToolAction(currentExternalTool?.action || '');
       setExternalToolDescription(currentExternalTool?.description || '');
       setSelectedPreset('');
-      setSelectedFinger(currentFinger);
+      setSelectedFingers(currentFinger || []);
       setActiveTab('action');
     }
   }, [isOpen, currentAction, currentRemap, currentExternalTool, currentFinger]);
@@ -391,7 +391,7 @@ export function KeybindingModal({
       externalTool: externalToolName && externalToolName.trim()
         ? { tool: externalToolName.trim(), action: externalToolAction || '', description: externalToolDescription || undefined }
         : undefined,
-      finger: selectedFinger,
+      finger: selectedFingers.length > 0 ? selectedFingers : undefined,
     };
     console.log('KeybindingModal saving:', { selectedKey, config, parsedRemap: finalRemapKey });
     onSave(config);
@@ -606,66 +606,86 @@ export function KeybindingModal({
           {activeTab === 'finger' && (
             <div className="space-y-4">
               <p className="text-sm text-[rgb(var(--muted-foreground))]">
-                このキーをどの指で押すかを選択してください。指による色分け表示が有効になります。
+                このキーをどの指で押すかを選択してください。複数の指を選択できます。指による色分け表示が有効になります。
               </p>
               <div className="space-y-6">
                 {/* 左手 - 小指から親指の順 */}
                 <div>
                   <h3 className="text-sm font-semibold mb-3 text-center">左手</h3>
                   <div className="flex justify-center gap-1">
-                    {FINGER_OPTIONS.filter(f => f.hand === 'left').map((finger) => (
-                      <button
-                        key={finger.value}
-                        onClick={() => setSelectedFinger(finger.value)}
-                        className={`px-2 py-8 rounded-lg border transition-colors text-center text-xs w-16 ${
-                          selectedFinger === finger.value
-                            ? 'border-blue-500 bg-blue-500/10 text-blue-600'
-                            : 'border-[rgb(var(--border))] hover:bg-[rgb(var(--accent))]'
-                        }`}
-                        style={{
-                          marginTop: finger.value === 'left-pinky' ? '20px' :
-                                    finger.value === 'left-ring' ? '8px' :
-                                    finger.value === 'left-middle' ? '0px' :
-                                    finger.value === 'left-index' ? '4px' : '28px'
-                        }}
-                      >
-                        {finger.label.replace('左手 ', '')}
-                      </button>
-                    ))}
+                    {FINGER_OPTIONS.filter(f => f.hand === 'left').map((finger) => {
+                      const isSelected = selectedFingers.includes(finger.value);
+                      return (
+                        <button
+                          key={finger.value}
+                          onClick={() => {
+                            // トグル動作: 選択されていれば解除、されていなければ追加
+                            setSelectedFingers(prev =>
+                              isSelected
+                                ? prev.filter(f => f !== finger.value)
+                                : [...prev, finger.value]
+                            );
+                          }}
+                          className={`px-2 py-8 rounded-lg border transition-colors text-center text-xs w-16 ${
+                            isSelected
+                              ? 'border-blue-500 bg-blue-500/10 text-blue-600 font-bold'
+                              : 'border-[rgb(var(--border))] hover:bg-[rgb(var(--accent))]'
+                          }`}
+                          style={{
+                            marginTop: finger.value === 'left-pinky' ? '20px' :
+                                      finger.value === 'left-ring' ? '8px' :
+                                      finger.value === 'left-middle' ? '0px' :
+                                      finger.value === 'left-index' ? '4px' : '28px'
+                          }}
+                        >
+                          {finger.label.replace('左手 ', '')}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
                 {/* 右手 - 正順で配置（親指から小指） */}
                 <div>
                   <h3 className="text-sm font-semibold mb-3 text-center">右手</h3>
                   <div className="flex justify-center gap-1">
-                    {FINGER_OPTIONS.filter(f => f.hand === 'right').map((finger) => (
-                      <button
-                        key={finger.value}
-                        onClick={() => setSelectedFinger(finger.value)}
-                        className={`px-2 py-8 rounded-lg border transition-colors text-center text-xs w-16 ${
-                          selectedFinger === finger.value
-                            ? 'border-blue-500 bg-blue-500/10 text-blue-600'
-                            : 'border-[rgb(var(--border))] hover:bg-[rgb(var(--accent))]'
-                        }`}
-                        style={{
-                          marginTop: finger.value === 'right-thumb' ? '28px' :
-                                    finger.value === 'right-index' ? '4px' :
-                                    finger.value === 'right-middle' ? '0px' :
-                                    finger.value === 'right-ring' ? '8px' : '20px'
-                        }}
-                      >
-                        {finger.label.replace('右手 ', '')}
-                      </button>
-                    ))}
+                    {FINGER_OPTIONS.filter(f => f.hand === 'right').map((finger) => {
+                      const isSelected = selectedFingers.includes(finger.value);
+                      return (
+                        <button
+                          key={finger.value}
+                          onClick={() => {
+                            // トグル動作: 選択されていれば解除、されていなければ追加
+                            setSelectedFingers(prev =>
+                              isSelected
+                                ? prev.filter(f => f !== finger.value)
+                                : [...prev, finger.value]
+                            );
+                          }}
+                          className={`px-2 py-8 rounded-lg border transition-colors text-center text-xs w-16 ${
+                            isSelected
+                              ? 'border-blue-500 bg-blue-500/10 text-blue-600 font-bold'
+                              : 'border-[rgb(var(--border))] hover:bg-[rgb(var(--accent))]'
+                          }`}
+                          style={{
+                            marginTop: finger.value === 'right-thumb' ? '28px' :
+                                      finger.value === 'right-index' ? '4px' :
+                                      finger.value === 'right-middle' ? '0px' :
+                                      finger.value === 'right-ring' ? '8px' : '20px'
+                          }}
+                        >
+                          {finger.label.replace('右手 ', '')}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
-                {selectedFinger && (
+                {selectedFingers.length > 0 && (
                   <div className="flex justify-center">
                     <button
-                      onClick={() => setSelectedFinger(undefined)}
+                      onClick={() => setSelectedFingers([])}
                       className="px-4 py-2 text-sm text-red-600 hover:text-red-700 border border-red-500 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
                     >
-                      指の割り当てをクリア
+                      すべての指の割り当てをクリア
                     </button>
                   </div>
                 )}

@@ -26,9 +26,9 @@ export type Finger =
   | 'right-ring'      // 右手薬指
   | 'right-pinky';    // 右手小指
 
-// 指の割り当て設定
+// 指の割り当て設定（複数の指を割り当て可能）
 export interface FingerAssignments {
-  [keyCode: string]: Finger;
+  [keyCode: string]: Finger[];
 }
 
 // 外部ツールアクション
