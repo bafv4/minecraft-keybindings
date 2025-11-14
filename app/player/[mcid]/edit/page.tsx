@@ -1,8 +1,12 @@
 import { redirect } from 'next/navigation';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/db';
-import { KeybindingEditor } from '@/components/KeybindingEditor';
+import dynamic from 'next/dynamic';
 import type { PlayerSettings } from '@/types/player';
+
+const KeybindingEditor = dynamic(() => import('@/components/KeybindingEditor').then(mod => ({ default: mod.KeybindingEditor })), {
+  loading: () => <div className="flex items-center justify-center py-12"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div></div>
+});
 
 interface EditPageProps {
   params: Promise<{

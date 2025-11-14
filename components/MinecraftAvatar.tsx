@@ -9,12 +9,48 @@ interface MinecraftAvatarProps {
   className?: string;
 }
 
+// 画像キャッシュ（メモリ内）
+const imageCache = new Map<string, string>();
+
 export function MinecraftAvatar({ uuid, mcid, size = 64, className = '' }: MinecraftAvatarProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const [imageData, setImageData] = useState<string | null>(null);
   const [error, setError] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
+
+  // Intersection Observerで表示領域に入ったときのみ画像を読み込む
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setIsVisible(true);
+            observer.disconnect();
+          }
+        });
+      },
+      { rootMargin: '50px' }
+    );
+
+    if (containerRef.current) {
+      observer.observe(containerRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
+    if (!isVisible) return;
+
+    // キャッシュチェック
+    const cacheKey = `${uuid}-${size}`;
+    const cached = imageCache.get(cacheKey);
+    if (cached) {
+      setImageData(cached);
+      return;
+    }
+
     const loadAndComposite = async () => {
       try {
         const canvas = canvasRef.current;
@@ -122,6 +158,9 @@ export function MinecraftAvatar({ uuid, mcid, size = 64, className = '' }: Minec
 
         // キャンバスの内容をデータURLに変換
         const dataUrl = canvas.toDataURL('image/png');
+
+        // キャッシュに保存
+        imageCache.set(cacheKey, dataUrl);
         setImageData(dataUrl);
       } catch (err) {
         console.error('Failed to composite avatar:', err);
@@ -130,7 +169,7 @@ export function MinecraftAvatar({ uuid, mcid, size = 64, className = '' }: Minec
     };
 
     loadAndComposite();
-  }, [uuid, size]);
+  }, [uuid, size, isVisible]);
 
   // エラー時はCrafatar APIのフォールバック
   if (error) {
@@ -149,7 +188,7 @@ export function MinecraftAvatar({ uuid, mcid, size = 64, className = '' }: Minec
   }
 
   return (
-    <div className={`relative ${className}`} style={{ width: size, height: size }}>
+    <div ref={containerRef} className={`relative ${className}`} style={{ width: size, height: size }}>
       {/* 非表示のキャンバス（合成用） */}
       <canvas ref={canvasRef} style={{ display: 'none' }} />
 

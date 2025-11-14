@@ -34,7 +34,9 @@
       "Bash(pnpm prisma studio:*)",
       "Bash(node check-schema.js:*)",
       "Bash(del check-schema.js)",
-      "Bash(psql:*)"
+      "Bash(psql:*)",
+      "Bash(pnpm build:*)",
+      "Bash(tee:*)"
     ],
     "deny": [],
     "ask": []
