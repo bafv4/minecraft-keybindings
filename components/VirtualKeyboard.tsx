@@ -522,6 +522,8 @@ export function VirtualKeyboard({
         'right.control': 'RCtrl',
         'left.alt': 'LAlt',
         'right.alt': 'RAlt',
+        'left.win': 'LWin',
+        'right.win': 'RWin',
         'space': 'Space',
         'caps.lock': 'Caps',
         'enter': 'Enter',
@@ -531,9 +533,51 @@ export function VirtualKeyboard({
         'nonconvert': '無変換',
         'convert': '変換',
         'kana': 'かな',
+        'menu': 'Menu',
         'world.1': 'World1',
         'world.2': 'World2',
         'section': '§',
+        // テンキー
+        'num.lock': 'NumLock',
+        'keypad.0': '0',
+        'keypad.1': '1',
+        'keypad.2': '2',
+        'keypad.3': '3',
+        'keypad.4': '4',
+        'keypad.5': '5',
+        'keypad.6': '6',
+        'keypad.7': '7',
+        'keypad.8': '8',
+        'keypad.9': '9',
+        'keypad.add': '+',
+        'keypad.subtract': '-',
+        'keypad.multiply': '*',
+        'keypad.divide': '/',
+        'keypad.decimal': '.',
+        'keypad.enter': 'Enter',
+        // 編集キー
+        'insert': 'Ins',
+        'delete': 'Del',
+        'home': 'Home',
+        'end': 'End',
+        'page.up': 'PgUp',
+        'page.down': 'PgDn',
+        'up': '↑',
+        'down': '↓',
+        'left': '←',
+        'right': '→',
+        // 記号
+        'grave.accent': '`',
+        'minus': '-',
+        'equal': '=',
+        'left.bracket': '[',
+        'right.bracket': ']',
+        'backslash': '\\',
+        'semicolon': ';',
+        'apostrophe': "'",
+        'comma': ',',
+        'period': '.',
+        'slash': '/',
         // 北欧語・ドイツ語キー
         'ae': 'æ',
         'oe': 'ø',
@@ -649,7 +693,7 @@ export function VirtualKeyboard({
       >
         {/* リマップ表示：左上にもともとのキー名（低コントラスト）とリマップ後のキー名（大きく） */}
         {hasRemap && remapTarget ? (
-          <div className="absolute top-0.5 left-1 text-xs flex flex-col gap-0 justify-start">
+          <div className="absolute top-0.5 left-1 text-xs flex flex-col gap-0 items-start">
             <span className="text-[8px] opacity-40 leading-tight">{keyDef.label}</span>
             <span className="text-[14px] font-bold leading-tight">{formatKeyLabel(remapTarget)}</span>
           </div>
@@ -756,7 +800,7 @@ export function VirtualKeyboard({
       >
         {/* リマップ表示：左上にもともとのキー名（低コントラスト）とリマップ後のキー名（大きく） */}
         {hasRemap && remapTarget ? (
-          <div className="absolute top-0.5 left-1 text-xs flex flex-col gap-0">
+          <div className="absolute top-0.5 left-1 text-xs flex flex-col gap-0 items-start">
             <span className="text-[8px] opacity-40 leading-tight">{btn.label}</span>
             <span className="text-[11px] font-bold leading-tight">{formatKeyLabel(remapTarget)}</span>
           </div>
