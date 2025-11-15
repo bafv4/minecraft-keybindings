@@ -583,6 +583,7 @@ export function VirtualKeyboard({
     // 1. 指の割り当てがある場合 → 指の色（複数の場合は切り替え）
     // 2. 指の割り当てがないが、何らかのマッピングがある場合 → Primaryカラー（黒系/白系）
     // 3. 何もない場合 → デフォルト色
+    const isDisabled = remapTarget === 'key.keyboard.disabled';
     const hasAnyMapping = hasBinding || hasRemap || hasExternalTool;
     const primaryColorClass = 'bg-gray-900/10 border-gray-900 dark:bg-gray-100/10 dark:border-gray-100';
     const defaultColorClass = 'bg-[rgb(var(--card))] border-[rgb(var(--border))]';
@@ -644,16 +645,16 @@ export function VirtualKeyboard({
         onMouseLeave={() => setHoveredKey(null)}
         disabled={mode === 'display'}
         title={mode === 'display' && (hasAnyMapping || assignedFingers.length > 0) ? tooltipContent() : undefined}
-        className={`${keyDef.width} ${heightClass} rounded border text-sm font-medium transition-all relative ${backgroundClass} ${mode === 'edit' ? 'hover:border-blue-500 cursor-pointer' : 'cursor-default'} ${isHovered && (hasAnyMapping || assignedFingers.length > 0) ? 'ring-2 ring-blue-500' : ''}`}
+        className={`${keyDef.width} ${heightClass} rounded border text-sm font-medium transition-all relative ${backgroundClass} ${mode === 'edit' ? 'hover:border-blue-500 cursor-pointer' : 'cursor-default'} ${isHovered && (hasAnyMapping || assignedFingers.length > 0) ? 'ring-2 ring-blue-500' : ''} ${isDisabled ? 'opacity-30' : ''}`}
       >
         {/* リマップ表示：左上にもともとのキー名（低コントラスト）とリマップ後のキー名（大きく） */}
         {hasRemap && remapTarget ? (
-          <div className="absolute top-1 left-1.5 text-xs flex items-baseline gap-1">
-            <span className="text-[10px] opacity-40">{keyDef.label}</span>
-            <span className="text-sm font-bold">{formatKeyLabel(remapTarget)}</span>
+          <div className="absolute top-0.5 left-1 text-xs flex flex-col gap-0 justify-start">
+            <span className="text-[8px] opacity-40 leading-tight">{keyDef.label}</span>
+            <span className="text-[14px] font-bold leading-tight">{formatKeyLabel(remapTarget)}</span>
           </div>
         ) : (
-          <div className="absolute top-1 left-1.5 text-xs">{keyDef.label}</div>
+            <div className="absolute top-1 left-1.5 text-[14px]">{keyDef.label}</div>
         )}
 
         <div className="absolute bottom-1 left-1 right-1 flex flex-col gap-0.5">
@@ -691,6 +692,7 @@ export function VirtualKeyboard({
     const assignedFingers = fingerAssignments[btn.key] || [];
 
     // 背景色のロジック：renderKeyと同じ
+    const isDisabled = remapTarget === 'key.keyboard.disabled';
     const hasAnyMapping = hasBinding || hasRemap || hasExternalTool;
     const primaryColorClass = 'bg-gray-900/10 border-gray-900 dark:bg-gray-100/10 dark:border-gray-100';
     const defaultColorClass = 'bg-[rgb(var(--card))] border-[rgb(var(--border))]';
@@ -750,13 +752,13 @@ export function VirtualKeyboard({
         }}
         disabled={mode === 'display' || btn.disabled}
         title={mode === 'display' && (hasAnyMapping || assignedFingers.length > 0) ? tooltipContent() : undefined}
-        className={`${sizeClass} rounded border text-sm font-medium transition-all relative ${backgroundClass} ${mode === 'edit' && !btn.disabled ? 'hover:border-blue-500 cursor-pointer' : 'cursor-default'}`}
+        className={`${sizeClass} rounded border text-sm font-medium transition-all relative ${backgroundClass} ${mode === 'edit' && !btn.disabled ? 'hover:border-blue-500 cursor-pointer' : 'cursor-default'} ${isDisabled ? 'opacity-30' : ''}`}
       >
         {/* リマップ表示：左上にもともとのキー名（低コントラスト）とリマップ後のキー名（大きく） */}
         {hasRemap && remapTarget ? (
-          <div className="absolute top-1 left-1.5 text-xs flex items-baseline gap-1">
-            <span className="text-[10px] opacity-40">{btn.label}</span>
-            <span className="text-sm font-bold">{formatKeyLabel(remapTarget)}</span>
+          <div className="absolute top-0.5 left-1 text-xs flex flex-col gap-0">
+            <span className="text-[8px] opacity-40 leading-tight">{btn.label}</span>
+            <span className="text-[11px] font-bold leading-tight">{formatKeyLabel(remapTarget)}</span>
           </div>
         ) : (
           <div className="absolute top-1 left-1.5 text-xs">{btn.label}</div>
@@ -816,8 +818,8 @@ export function VirtualKeyboard({
             </div>
           )}
         </div>
-        <div className="overflow-x-auto">
-          <div className="space-y-1">
+        <div className="overflow-x-auto -mx-4 px-4">
+          <div className="space-y-1 min-w-max">
             {KEYBOARD_LAYOUT.map((row, i) => (
               <div key={i} className="flex gap-1">
                 {row.map(renderKey)}
@@ -1214,7 +1216,7 @@ export function VirtualKeyboard({
 
 
       {/* 凡例 */}
-      <div className="text-xs text-[rgb(var(--muted-foreground))] space-y-1">
+      <div className="text-xs text-[rgb(var(--muted-foreground))] space-y-2">
         <div className="flex items-center gap-4 flex-wrap">
           <div className="flex items-center gap-1">
             <span className="px-1 py-0 text-[8px] font-medium bg-gray-300 dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded">
@@ -1229,6 +1231,56 @@ export function VirtualKeyboard({
             <span>外部ツール・Mod</span>
           </div>
         </div>
+
+        {/* 指の色分け凡例 */}
+        {showFingerColors && (
+          <div className="border-t border-[rgb(var(--border))] pt-2">
+            <div className="font-semibold mb-2 text-[rgb(var(--foreground))]">指の色分け</div>
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+              <div className="flex items-center gap-1.5">
+                <div className="w-4 h-4 rounded border bg-pink-200/70 border-pink-300 dark:bg-pink-300/40 dark:border-pink-400"></div>
+                <span>左手小指</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <div className="w-4 h-4 rounded border bg-purple-200/70 border-purple-300 dark:bg-purple-300/40 dark:border-purple-400"></div>
+                <span>左手薬指</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <div className="w-4 h-4 rounded border bg-blue-200/70 border-blue-300 dark:bg-blue-300/40 dark:border-blue-400"></div>
+                <span>左手中指</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <div className="w-4 h-4 rounded border bg-green-200/70 border-green-300 dark:bg-green-300/40 dark:border-green-400"></div>
+                <span>左手人差し指</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <div className="w-4 h-4 rounded border bg-yellow-200/70 border-yellow-300 dark:bg-yellow-300/40 dark:border-yellow-400"></div>
+                <span>左手親指</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <div className="w-4 h-4 rounded border bg-orange-200/70 border-orange-300 dark:bg-orange-300/40 dark:border-orange-400"></div>
+                <span>右手親指</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <div className="w-4 h-4 rounded border bg-red-200/70 border-red-300 dark:bg-red-300/40 dark:border-red-400"></div>
+                <span>右手人差し指</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <div className="w-4 h-4 rounded border bg-rose-200/70 border-rose-300 dark:bg-rose-300/40 dark:border-rose-400"></div>
+                <span>右手中指</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <div className="w-4 h-4 rounded border bg-indigo-200/70 border-indigo-300 dark:bg-indigo-300/40 dark:border-indigo-400"></div>
+                <span>右手薬指</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <div className="w-4 h-4 rounded border bg-cyan-200/70 border-cyan-300 dark:bg-cyan-300/40 dark:border-cyan-400"></div>
+                <span>右手小指</span>
+              </div>
+            </div>
+          </div>
+        )}
+
         {mode === 'edit' && (
           <p>キーをクリックして設定を編集</p>
         )}

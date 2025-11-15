@@ -1,6 +1,12 @@
 import { auth } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import { SetupMcidForm } from '@/components/SetupMcidForm';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'MCID設定 | MCSRer Hotkeys',
+  description: 'Minecraftユーザー名の設定',
+};
 
 export default async function SetupMcidPage() {
   const session = await auth();

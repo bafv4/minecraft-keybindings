@@ -394,12 +394,13 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
     }
 
     // リマップ設定
-    if (config.remap !== undefined) {
+    if ('remap' in config) {
       setRemappings(prev => {
         const updated = { ...prev };
-        if (config.remap) {
+        if (config.remap && config.remap.trim() !== '') {
           updated[keyCode] = config.remap;
         } else {
+          // undefinedまたは空文字列の場合は削除
           delete updated[keyCode];
         }
         return updated;
@@ -407,10 +408,10 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
     }
 
     // 外部ツール設定
-    if (config.externalTool !== undefined) {
+    if ('externalTool' in config) {
       setExternalTools(prev => {
         const updated = { ...prev };
-        if (config.externalTool) {
+        if (config.externalTool && config.externalTool.trim() !== '') {
           // アクション名を保存
           updated[keyCode] = config.externalTool;
         } else {
@@ -421,10 +422,10 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
     }
 
     // 指の割り当て設定
-    if (config.finger !== undefined) {
+    if ('finger' in config) {
       setFingerAssignments(prev => {
         const updated = { ...prev };
-        if (config.finger) {
+        if (config.finger && config.finger.length > 0) {
           updated[keyCode] = config.finger;
         } else {
           delete updated[keyCode];
