@@ -288,13 +288,14 @@ export function KeybindingModal({
       return input.trim();
     }
 
-    // REMAPPABLE_KEYSから完全一致または部分一致を検索
-    for (const keys of Object.values(REMAPPABLE_KEYS)) {
-      const found = keys.find(k =>
-        k.label.toLowerCase() === normalized ||
-        k.label.toLowerCase().includes(normalized)
-      );
-      if (found) return found.value;
+    // 単一文字（最優先 - 他のキーとの部分一致を避けるため）
+    if (/^[a-z]$/.test(normalized)) {
+      return `key.keyboard.${normalized}`;
+    }
+
+    // 数字（最優先）
+    if (/^[0-9]$/.test(normalized)) {
+      return `key.keyboard.${normalized}`;
     }
 
     // ファンクションキー: f1-f20
@@ -304,25 +305,36 @@ export function KeybindingModal({
       if (num >= 1 && num <= 20) return `key.keyboard.f${num}`;
     }
 
-    // 単一文字
-    if (/^[a-z]$/.test(normalized)) {
-      return `key.keyboard.${normalized}`;
-    }
-
-    // 数字
-    if (/^[0-9]$/.test(normalized)) {
-      return `key.keyboard.${normalized}`;
+    // REMAPPABLE_KEYSから完全一致を検索
+    for (const keys of Object.values(REMAPPABLE_KEYS)) {
+      const found = keys.find(k => k.label.toLowerCase() === normalized);
+      if (found) return found.value;
     }
 
     // テンキー
-    if (normalized.startsWith('numpad') || normalized.startsWith('keypad')) {
-      const numMatch = normalized.match(/(\d+)$/);
-      if (numMatch) return `key.keyboard.keypad.${numMatch[1]}`;
+    if (normalized.startsWith('numpad ') || normalized.startsWith('keypad ') || normalized.startsWith('テンキー ')) {
+      const parts = normalized.split(' ');
+      if (parts.length === 2) {
+        const num = parts[1];
+        if (/^\d+$/.test(num)) return `key.keyboard.keypad.${num}`;
+        // テンキー記号
+        const keypadSymbols: { [key: string]: string } = {
+          '+': 'add',
+          '-': 'subtract',
+          '*': 'multiply',
+          '/': 'divide',
+          '.': 'decimal',
+          'enter': 'enter',
+          '=': 'equal',
+        };
+        if (keypadSymbols[num]) return `key.keyboard.keypad.${keypadSymbols[num]}`;
+      }
     }
 
     // 特殊キーのエイリアス
     const aliases: { [key: string]: string } = {
       'space': 'key.keyboard.space',
+      'スペース': 'key.keyboard.space',
       'enter': 'key.keyboard.enter',
       'tab': 'key.keyboard.tab',
       'backspace': 'key.keyboard.backspace',
@@ -330,22 +342,37 @@ export function KeybindingModal({
       'escape': 'key.keyboard.escape',
       'caps': 'key.keyboard.caps.lock',
       'capslock': 'key.keyboard.caps.lock',
+      'caps lock': 'key.keyboard.caps.lock',
       'shift': 'key.keyboard.left.shift',
+      'left shift': 'key.keyboard.left.shift',
       'lshift': 'key.keyboard.left.shift',
+      'right shift': 'key.keyboard.right.shift',
       'rshift': 'key.keyboard.right.shift',
       'ctrl': 'key.keyboard.left.control',
       'control': 'key.keyboard.left.control',
+      'left ctrl': 'key.keyboard.left.control',
+      'left control': 'key.keyboard.left.control',
       'lctrl': 'key.keyboard.left.control',
+      'right ctrl': 'key.keyboard.right.control',
+      'right control': 'key.keyboard.right.control',
       'rctrl': 'key.keyboard.right.control',
       'alt': 'key.keyboard.left.alt',
+      'left alt': 'key.keyboard.left.alt',
       'lalt': 'key.keyboard.left.alt',
+      'right alt': 'key.keyboard.right.alt',
       'ralt': 'key.keyboard.right.alt',
       'win': 'key.keyboard.left.win',
       'windows': 'key.keyboard.left.win',
+      'left win': 'key.keyboard.left.win',
+      'right win': 'key.keyboard.right.win',
       'up': 'key.keyboard.up',
+      '↑': 'key.keyboard.up',
       'down': 'key.keyboard.down',
+      '↓': 'key.keyboard.down',
       'left': 'key.keyboard.left',
+      '←': 'key.keyboard.left',
       'right': 'key.keyboard.right',
+      '→': 'key.keyboard.right',
       '無変換': 'key.keyboard.nonconvert',
       '変換': 'key.keyboard.convert',
       'かな': 'key.keyboard.kana',
@@ -357,9 +384,45 @@ export function KeybindingModal({
       'home': 'key.keyboard.home',
       'end': 'key.keyboard.end',
       'pageup': 'key.keyboard.page.up',
+      'page up': 'key.keyboard.page.up',
       'pgup': 'key.keyboard.page.up',
       'pagedown': 'key.keyboard.page.down',
+      'page down': 'key.keyboard.page.down',
       'pgdn': 'key.keyboard.page.down',
+      // 記号キー
+      ',': 'key.keyboard.comma',
+      'comma': 'key.keyboard.comma',
+      'コンマ': 'key.keyboard.comma',
+      '.': 'key.keyboard.period',
+      'period': 'key.keyboard.period',
+      'ピリオド': 'key.keyboard.period',
+      '/': 'key.keyboard.slash',
+      'slash': 'key.keyboard.slash',
+      'スラッシュ': 'key.keyboard.slash',
+      ';': 'key.keyboard.semicolon',
+      'semicolon': 'key.keyboard.semicolon',
+      'セミコロン': 'key.keyboard.semicolon',
+      '\'': 'key.keyboard.apostrophe',
+      'apostrophe': 'key.keyboard.apostrophe',
+      'アポストロフィ': 'key.keyboard.apostrophe',
+      '[': 'key.keyboard.left.bracket',
+      'left bracket': 'key.keyboard.left.bracket',
+      '左角括弧': 'key.keyboard.left.bracket',
+      ']': 'key.keyboard.right.bracket',
+      'right bracket': 'key.keyboard.right.bracket',
+      '右角括弧': 'key.keyboard.right.bracket',
+      '-': 'key.keyboard.minus',
+      'minus': 'key.keyboard.minus',
+      'マイナス': 'key.keyboard.minus',
+      '=': 'key.keyboard.equal',
+      'equal': 'key.keyboard.equal',
+      'イコール': 'key.keyboard.equal',
+      '`': 'key.keyboard.grave.accent',
+      'grave': 'key.keyboard.grave.accent',
+      'グレイヴ': 'key.keyboard.grave.accent',
+      '\\': 'key.keyboard.backslash',
+      'backslash': 'key.keyboard.backslash',
+      'バックスラッシュ': 'key.keyboard.backslash',
     };
 
     if (aliases[normalized]) return aliases[normalized];

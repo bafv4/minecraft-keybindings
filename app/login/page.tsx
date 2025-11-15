@@ -1,4 +1,10 @@
 import { LoginOrRegisterForm } from '@/components/LoginOrRegisterForm';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'ログイン / 登録 | MCSRer Hotkeys',
+  description: 'MCSRer Hotkeysにログインまたは新規登録',
+};
 
 export default function LoginPage() {
   return (

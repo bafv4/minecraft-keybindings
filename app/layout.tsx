@@ -21,6 +21,18 @@ export const metadata: Metadata = {
       { url: '/icon.svg', type: 'image/svg+xml' },
     ],
   },
+  openGraph: {
+    type: 'website',
+    locale: 'ja_JP',
+    siteName: 'MCSRer Hotkeys',
+    title: 'MCSRer Hotkeys',
+    description: 'RTA勢の設定はこうなっている！',
+  },
+  twitter: {
+    card: 'summary',
+    title: 'MCSRer Hotkeys',
+    description: 'RTA勢の設定はこうなっている！',
+  },
 };
 
 export default function RootLayout({

@@ -1,6 +1,12 @@
 import Link from 'next/link';
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 import { RegisterForm } from '@/components/RegisterForm';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: '新規登録 | MCSRer Hotkeys',
+  description: 'MCSRer Hotkeysに新規登録',
+};
 
 export default function RegisterPage() {
   return (

@@ -1,6 +1,21 @@
 import { prisma } from '@/lib/db';
 import dynamic from 'next/dynamic';
 import type { User } from '@/types/player';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'プレイヤー一覧 | MCSRer Hotkeys',
+  description: 'RTA勢の設定はこうなっている！',
+  openGraph: {
+    title: 'プレイヤー一覧 | MCSRer Hotkeys',
+    description: 'RTA勢の設定はこうなっている！',
+  },
+  twitter: {
+    card: 'summary',
+    title: 'プレイヤー一覧 | MCSRer Hotkeys',
+    description: 'RTA勢の設定はこうなっている！',
+  },
+};
 
 const PlayerListView = dynamic(() => import('@/components/PlayerListView').then(mod => ({ default: mod.PlayerListView })), {
   ssr: true,

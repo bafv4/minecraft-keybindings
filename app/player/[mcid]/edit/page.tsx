@@ -3,6 +3,7 @@ import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import dynamic from 'next/dynamic';
 import type { PlayerSettings } from '@/types/player';
+import type { Metadata } from 'next';
 
 const KeybindingEditor = dynamic(() => import('@/components/KeybindingEditor').then(mod => ({ default: mod.KeybindingEditor })), {
   loading: () => <div className="flex items-center justify-center py-12"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div></div>
@@ -12,6 +13,53 @@ interface EditPageProps {
   params: Promise<{
     mcid: string;
   }>;
+}
+
+export async function generateMetadata({ params }: EditPageProps): Promise<Metadata> {
+  const { mcid } = await params;
+  const user = await prisma.user.findUnique({
+    where: { mcid },
+  });
+
+  if (!user) {
+    return {
+      title: '設定を編集 | MCSRer Hotkeys',
+    };
+  }
+
+  const displayName = user.displayName && user.displayName.trim() !== '' ? user.displayName : user.mcid;
+  const avatarUrl = `https://crafatar.com/avatars/${user.uuid}?size=128&overlay`;
+
+  return {
+    title: `${displayName} の設定を編集 | MCSRer Hotkeys`,
+    description: `${displayName} (${user.mcid}) のキーボード・マウス設定を編集`,
+    icons: {
+      icon: [
+        { url: avatarUrl, type: 'image/png' },
+      ],
+      apple: [
+        { url: avatarUrl, type: 'image/png' },
+      ],
+    },
+    openGraph: {
+      title: `${displayName} の設定を編集 | MCSRer Hotkeys`,
+      description: `${displayName} (${user.mcid}) のキーボード・マウス設定を編集`,
+      images: [
+        {
+          url: avatarUrl,
+          width: 128,
+          height: 128,
+          alt: `${displayName} のアバター`,
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary',
+      title: `${displayName} の設定を編集 | MCSRer Hotkeys`,
+      description: `${displayName} (${user.mcid}) のキーボード・マウス設定を編集`,
+      images: [avatarUrl],
+    },
+  };
 }
 
 export default async function EditPage({ params }: EditPageProps) {

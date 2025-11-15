@@ -3,6 +3,7 @@ import { prisma } from '@/lib/db';
 import { MinecraftAvatar } from '@/components/MinecraftAvatar';
 import dynamic from 'next/dynamic';
 import type { PlayerSettings } from '@/types/player';
+import type { Metadata } from 'next';
 
 const KeybindingDisplay = dynamic(() => import('@/components/KeybindingDisplay').then(mod => ({ default: mod.KeybindingDisplay })), {
   loading: () => <div className="flex items-center justify-center py-12"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div></div>
@@ -12,6 +13,53 @@ interface PlayerPageProps {
   params: Promise<{
     mcid: string;
   }>;
+}
+
+export async function generateMetadata({ params }: PlayerPageProps): Promise<Metadata> {
+  const { mcid } = await params;
+  const user = await prisma.user.findUnique({
+    where: { mcid },
+  });
+
+  if (!user) {
+    return {
+      title: 'プレイヤーが見つかりません | MCSRer Hotkeys',
+    };
+  }
+
+  const displayName = user.displayName && user.displayName.trim() !== '' ? user.displayName : user.mcid;
+  const avatarUrl = `https://crafatar.com/avatars/${user.uuid}?size=128&overlay`;
+
+  return {
+    title: `${displayName} | MCSRer Hotkeys`,
+    description: `${displayName} (${user.mcid}) のキーボード・マウス設定`,
+    icons: {
+      icon: [
+        { url: avatarUrl, type: 'image/png' },
+      ],
+      apple: [
+        { url: avatarUrl, type: 'image/png' },
+      ],
+    },
+    openGraph: {
+      title: `${displayName} | MCSRer Hotkeys`,
+      description: `${displayName} (${user.mcid}) のキーボード・マウス設定`,
+      images: [
+        {
+          url: avatarUrl,
+          width: 128,
+          height: 128,
+          alt: `${displayName} のアバター`,
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary',
+      title: `${displayName} | MCSRer Hotkeys`,
+      description: `${displayName} (${user.mcid}) のキーボード・マウス設定`,
+      images: [avatarUrl],
+    },
+  };
 }
 
 export default async function PlayerPage({ params }: PlayerPageProps) {
