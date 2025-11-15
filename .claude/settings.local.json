@@ -36,7 +36,10 @@
       "Bash(del check-schema.js)",
       "Bash(psql:*)",
       "Bash(pnpm build:*)",
-      "Bash(tee:*)"
+      "Bash(tee:*)",
+      "Bash(pnpm prisma format:*)",
+      "Bash(node check-keys.js:*)",
+      "Bash(del:*)"
     ],
     "deny": [],
     "ask": []

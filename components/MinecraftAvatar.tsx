@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, memo } from 'react';
 
 interface MinecraftAvatarProps {
   uuid: string;
@@ -12,7 +12,7 @@ interface MinecraftAvatarProps {
 // 画像キャッシュ（メモリ内）
 const imageCache = new Map<string, string>();
 
-export function MinecraftAvatar({ uuid, mcid, size = 64, className = '' }: MinecraftAvatarProps) {
+const MinecraftAvatarComponent = ({ uuid, mcid, size = 64, className = '' }: MinecraftAvatarProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [imageData, setImageData] = useState<string | null>(null);
@@ -211,4 +211,6 @@ export function MinecraftAvatar({ uuid, mcid, size = 64, className = '' }: Minec
       )}
     </div>
   );
-}
+};
+
+export const MinecraftAvatar = memo(MinecraftAvatarComponent);

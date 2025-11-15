@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, memo } from 'react';
 import { KeybindingModal } from './KeybindingModal';
 import { EllipsisVerticalIcon, PlusIcon } from '@heroicons/react/24/outline';
 import type { Finger, FingerAssignments, CustomKey } from '@/types/player';
@@ -29,6 +29,7 @@ interface VirtualKeyboardProps {
   onAddCustomKey?: (section: 'keyboard' | 'edit' | 'numpad' | 'mouse', label: string) => void;
   onUpdateCustomKey?: (keyCode: string, label: string) => void;
   onDeleteCustomKey?: (keyCode: string) => void;
+  stats?: boolean;
 }
 
 // JISキーボードレイアウト定義
@@ -314,7 +315,7 @@ const getFingerColor = (finger: Finger): string => {
   return colorMap[finger];
 };
 
-export function VirtualKeyboard({
+const VirtualKeyboardComponent = ({
   bindings,
   onKeyClick,
   mode = 'display',
@@ -330,7 +331,8 @@ export function VirtualKeyboard({
   onAddCustomKey,
   onUpdateCustomKey,
   onDeleteCustomKey,
-}: VirtualKeyboardProps) {
+  stats,
+}: VirtualKeyboardProps) => {
   const [hoveredKey, setHoveredKey] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
@@ -480,6 +482,12 @@ export function VirtualKeyboard({
     setModalOpen(true);
   };
 
+  // モーダルを閉じる処理
+  const handleCloseModal = () => {
+    setModalOpen(false);
+    setSelectedKey(null);
+  };
+
   // モーダルから保存された設定を処理
   const handleModalSave = (config: {
     action?: string;
@@ -487,15 +495,11 @@ export function VirtualKeyboard({
     externalTool?: string;
     finger?: Finger[];
   }) => {
-    console.log('VirtualKeyboard handleModalSave called:', { selectedKey, config, onUpdateConfig: !!onUpdateConfig });
     if (!selectedKey) {
-      console.log('VirtualKeyboard: selectedKey is null, returning');
       return;
     }
     if (onUpdateConfig) {
       onUpdateConfig(selectedKey, config);
-    } else {
-      console.log('VirtualKeyboard: onUpdateConfig is not defined!');
     }
   };
 
@@ -617,10 +621,13 @@ export function VirtualKeyboard({
     const assignedFingers = fingerAssignments[keyDef.key] || [];
 
     const handleClick = () => {
-      if (mode !== 'edit') return;
-
-      // 編集モードの場合はモーダルを開く
-      handleOpenModal(keyDef.key);
+      if (mode === 'edit') {
+        // 編集モードの場合はモーダルを開く
+        handleOpenModal(keyDef.key);
+      } else if (mode === 'display' && onKeyClick) {
+        // 表示モードでonKeyClickが指定されている場合は呼び出す
+        onKeyClick(keyDef.key);
+      }
     };
 
     // 背景色のロジック：
@@ -687,9 +694,9 @@ export function VirtualKeyboard({
         onClick={handleClick}
         onMouseEnter={() => setHoveredKey(keyDef.key)}
         onMouseLeave={() => setHoveredKey(null)}
-        disabled={mode === 'display'}
+        disabled={mode === 'display' && !onKeyClick}
         title={mode === 'display' && (hasAnyMapping || assignedFingers.length > 0) ? tooltipContent() : undefined}
-        className={`${keyDef.width} ${heightClass} rounded border text-sm font-medium transition-all relative ${backgroundClass} ${mode === 'edit' ? 'hover:border-blue-500 cursor-pointer' : 'cursor-default'} ${isHovered && (hasAnyMapping || assignedFingers.length > 0) ? 'ring-2 ring-blue-500' : ''} ${isDisabled ? 'opacity-30' : ''}`}
+        className={`${keyDef.width} ${heightClass} rounded border text-sm font-medium transition-all relative ${backgroundClass} ${(mode === 'edit' || (mode === 'display' && onKeyClick)) ? 'hover:border-blue-500 cursor-pointer' : 'cursor-default'} ${isHovered && (hasAnyMapping || assignedFingers.length > 0) ? 'ring-2 ring-blue-500' : ''} ${isDisabled ? 'opacity-30' : ''}`}
       >
         {/* リマップ表示：左上にもともとのキー名（低コントラスト）とリマップ後のキー名（大きく） */}
         {hasRemap && remapTarget ? (
@@ -791,12 +798,16 @@ export function VirtualKeyboard({
         key={btn.key}
         type="button"
         onClick={() => {
-          if (mode !== 'edit' || btn.disabled) return;
-          handleOpenModal(btn.key);
+          if (btn.disabled) return;
+          if (mode === 'edit') {
+            handleOpenModal(btn.key);
+          } else if (mode === 'display' && onKeyClick) {
+            onKeyClick(btn.key);
+          }
         }}
-        disabled={mode === 'display' || btn.disabled}
+        disabled={(mode === 'display' && !onKeyClick) || btn.disabled}
         title={mode === 'display' && (hasAnyMapping || assignedFingers.length > 0) ? tooltipContent() : undefined}
-        className={`${sizeClass} rounded border text-sm font-medium transition-all relative ${backgroundClass} ${mode === 'edit' && !btn.disabled ? 'hover:border-blue-500 cursor-pointer' : 'cursor-default'} ${isDisabled ? 'opacity-30' : ''}`}
+        className={`${sizeClass} rounded border text-sm font-medium transition-all relative ${backgroundClass} ${((mode === 'edit' || (mode === 'display' && onKeyClick)) && !btn.disabled) ? 'hover:border-blue-500 cursor-pointer' : 'cursor-default'} ${isDisabled ? 'opacity-30' : ''}`}
       >
         {/* リマップ表示：左上にもともとのキー名（低コントラスト）とリマップ後のキー名（大きく） */}
         {hasRemap && remapTarget ? (
@@ -1260,75 +1271,77 @@ export function VirtualKeyboard({
 
 
       {/* 凡例 */}
-      <div className="text-xs text-[rgb(var(--muted-foreground))] space-y-2">
-        <div className="flex items-center gap-4 flex-wrap">
-          <div className="flex items-center gap-1">
-            <span className="px-1 py-0 text-[8px] font-medium bg-gray-300 dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded">
-              例
-            </span>
-            <span>マイクラ操作</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <span className="px-1 py-0 text-[8px] font-medium bg-gray-400/30 dark:bg-gray-600/30 text-gray-800 dark:text-gray-200 rounded-sm border border-gray-500/40 dark:border-gray-500/40">
-              例
-            </span>
-            <span>外部ツール・Mod</span>
-          </div>
-        </div>
-
-        {/* 指の色分け凡例 */}
-        {showFingerColors && (
-          <div className="border-t border-[rgb(var(--border))] pt-2">
-            <div className="font-semibold mb-2 text-[rgb(var(--foreground))]">指の色分け</div>
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
-              <div className="flex items-center gap-1.5">
-                <div className="w-4 h-4 rounded border bg-pink-200/70 border-pink-300 dark:bg-pink-300/40 dark:border-pink-400"></div>
-                <span>左手小指</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <div className="w-4 h-4 rounded border bg-purple-200/70 border-purple-300 dark:bg-purple-300/40 dark:border-purple-400"></div>
-                <span>左手薬指</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <div className="w-4 h-4 rounded border bg-blue-200/70 border-blue-300 dark:bg-blue-300/40 dark:border-blue-400"></div>
-                <span>左手中指</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <div className="w-4 h-4 rounded border bg-green-200/70 border-green-300 dark:bg-green-300/40 dark:border-green-400"></div>
-                <span>左手人差し指</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <div className="w-4 h-4 rounded border bg-yellow-200/70 border-yellow-300 dark:bg-yellow-300/40 dark:border-yellow-400"></div>
-                <span>左手親指</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <div className="w-4 h-4 rounded border bg-orange-200/70 border-orange-300 dark:bg-orange-300/40 dark:border-orange-400"></div>
-                <span>右手親指</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <div className="w-4 h-4 rounded border bg-red-200/70 border-red-300 dark:bg-red-300/40 dark:border-red-400"></div>
-                <span>右手人差し指</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <div className="w-4 h-4 rounded border bg-rose-200/70 border-rose-300 dark:bg-rose-300/40 dark:border-rose-400"></div>
-                <span>右手中指</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <div className="w-4 h-4 rounded border bg-indigo-200/70 border-indigo-300 dark:bg-indigo-300/40 dark:border-indigo-400"></div>
-                <span>右手薬指</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <div className="w-4 h-4 rounded border bg-cyan-200/70 border-cyan-300 dark:bg-cyan-300/40 dark:border-cyan-400"></div>
-                <span>右手小指</span>
-              </div>
+      { !stats && (
+        <div className="text-xs text-[rgb(var(--muted-foreground))] space-y-2">
+          <div className="flex items-center gap-4 flex-wrap">
+            <div className="flex items-center gap-1">
+              <span className="px-1 py-0 text-[8px] font-medium bg-gray-300 dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded">
+                例
+              </span>
+              <span>マイクラ操作</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <span className="px-1 py-0 text-[8px] font-medium bg-gray-400/30 dark:bg-gray-600/30 text-gray-800 dark:text-gray-200 rounded-sm border border-gray-500/40 dark:border-gray-500/40">
+                例
+              </span>
+              <span>外部ツール・Mod</span>
             </div>
           </div>
-        )}
 
-        {mode === 'edit' && (
-          <p>キーをクリックして設定を編集</p>
-        )}
-      </div>
+          {/* 指の色分け凡例 */}
+          {showFingerColors && (
+            <div className="border-t border-[rgb(var(--border))] pt-2">
+              <div className="font-semibold mb-2 text-[rgb(var(--foreground))]">指の色分け</div>
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+                <div className="flex items-center gap-1.5">
+                  <div className="w-4 h-4 rounded border bg-pink-200/70 border-pink-300 dark:bg-pink-300/40 dark:border-pink-400"></div>
+                  <span>左手小指</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <div className="w-4 h-4 rounded border bg-purple-200/70 border-purple-300 dark:bg-purple-300/40 dark:border-purple-400"></div>
+                  <span>左手薬指</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <div className="w-4 h-4 rounded border bg-blue-200/70 border-blue-300 dark:bg-blue-300/40 dark:border-blue-400"></div>
+                  <span>左手中指</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <div className="w-4 h-4 rounded border bg-green-200/70 border-green-300 dark:bg-green-300/40 dark:border-green-400"></div>
+                  <span>左手人差し指</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <div className="w-4 h-4 rounded border bg-yellow-200/70 border-yellow-300 dark:bg-yellow-300/40 dark:border-yellow-400"></div>
+                  <span>左手親指</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <div className="w-4 h-4 rounded border bg-orange-200/70 border-orange-300 dark:bg-orange-300/40 dark:border-orange-400"></div>
+                  <span>右手親指</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <div className="w-4 h-4 rounded border bg-red-200/70 border-red-300 dark:bg-red-300/40 dark:border-red-400"></div>
+                  <span>右手人差し指</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <div className="w-4 h-4 rounded border bg-rose-200/70 border-rose-300 dark:bg-rose-300/40 dark:border-rose-400"></div>
+                  <span>右手中指</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <div className="w-4 h-4 rounded border bg-indigo-200/70 border-indigo-300 dark:bg-indigo-300/40 dark:border-indigo-400"></div>
+                  <span>右手薬指</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <div className="w-4 h-4 rounded border bg-cyan-200/70 border-cyan-300 dark:bg-cyan-300/40 dark:border-cyan-400"></div>
+                  <span>右手小指</span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {mode === 'edit' && (
+            <p>キーをクリックして設定を編集</p>
+          )}
+        </div>
+      )}
 
       {/* モーダル */}
       {selectedKey && (() => {
@@ -1338,7 +1351,7 @@ export function VirtualKeyboard({
         return (
           <KeybindingModal
             isOpen={modalOpen}
-            onClose={() => setModalOpen(false)}
+            onClose={handleCloseModal}
             selectedKey={selectedKey}
             currentAction={
               Object.entries(bindings).find(([_, key]) => key === selectedKey)?.[0] || null
@@ -1354,11 +1367,13 @@ export function VirtualKeyboard({
             } : undefined}
             onDeleteCustomKey={isCustom && onDeleteCustomKey ? () => {
               onDeleteCustomKey(selectedKey);
-              setModalOpen(false);
+              handleCloseModal();
             } : undefined}
           />
         );
       })()}
     </div>
   );
-}
+};
+
+export const VirtualKeyboard = memo(VirtualKeyboardComponent);

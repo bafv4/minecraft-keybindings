@@ -21,6 +21,12 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   // React最適化
   reactStrictMode: true,
+  // コンパイラ最適化
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production' ? {
+      exclude: ['error', 'warn'],
+    } : false,
+  },
 };
 
 export default nextConfig;

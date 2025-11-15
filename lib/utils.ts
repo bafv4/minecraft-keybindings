@@ -93,6 +93,39 @@ export function calculateCm360(
 }
 
 /**
+ * 操作名を日本語ラベルに変換
+ */
+export const ACTION_LABELS: Record<string, string> = {
+  forward: '前進',
+  back: '後退',
+  left: '左移動',
+  right: '右移動',
+  jump: 'ジャンプ',
+  sneak: 'スニーク',
+  sprint: 'スプリント',
+  drop: 'ドロップ',
+  attack: '攻撃',
+  use: '使用',
+  pickBlock: 'ピックブロック',
+  swapHands: 'オフハンド交換',
+  inventory: 'インベントリ',
+  chat: 'チャット',
+  command: 'コマンド',
+  togglePerspective: '視点変更',
+  fullscreen: 'フルスクリーン',
+  toggleHud: 'HUD表示切替',
+  hotbar1: 'ホットバー1',
+  hotbar2: 'ホットバー2',
+  hotbar3: 'ホットバー3',
+  hotbar4: 'ホットバー4',
+  hotbar5: 'ホットバー5',
+  hotbar6: 'ホットバー6',
+  hotbar7: 'ホットバー7',
+  hotbar8: 'ホットバー8',
+  hotbar9: 'ホットバー9',
+};
+
+/**
  * キー名を人間が読みやすい形式に変換
  * @param key Minecraftのキー名（例: "key.keyboard.w"）
  * @returns 表示用のキー名（例: "W"）
@@ -100,28 +133,84 @@ export function calculateCm360(
 export function formatKeyName(key: string): string {
   if (!key) return "";
 
+  // マウスボタンかキーボードかを判定
+  const isMouse = key.startsWith("key.mouse.");
+  const isKeyboard = key.startsWith("key.keyboard.");
+
   // "key.keyboard." または "key.mouse." を削除
   const cleanKey = key
     .replace("key.keyboard.", "")
     .replace("key.mouse.", "");
 
+  // マウスボタンの特別処理（数字のボタン）
+  if (isMouse && cleanKey.match(/^\d+$/)) {
+    return `Mouse ${cleanKey}`;
+  }
+
   // 特殊キーの変換
   const keyMap: Record<string, string> = {
-    "space": "Space",
+    // マウス（left, rightはキーボードとマウスで異なる）
+    "left": isMouse ? "Mouse Left" : "Left",
+    "right": isMouse ? "Mouse Right" : "Right",
+    "middle": "Mouse Middle",
+    // 修飾キー（left.shift など、ドット付きは常にキーボード）
     "left.shift": "L-Shift",
     "right.shift": "R-Shift",
     "left.control": "L-Ctrl",
     "right.control": "R-Ctrl",
     "left.alt": "L-Alt",
     "right.alt": "R-Alt",
-    "caps.lock": "Caps Lock",
-    "tab": "Tab",
-    "escape": "Esc",
+    "left.win": "L-Win",
+    "right.win": "R-Win",
+    // スペースバー
+    "space": "Space",
+    // エンターキー
     "enter": "Enter",
-    "backspace": "Backspace",
-    "left": "Mouse Left",
-    "right": "Mouse Right",
-    "middle": "Mouse Middle",
+    // テンキー
+    "num.lock": "NumLock",
+    "keypad.0": "Num0",
+    "keypad.1": "Num1",
+    "keypad.2": "Num2",
+    "keypad.3": "Num3",
+    "keypad.4": "Num4",
+    "keypad.5": "Num5",
+    "keypad.6": "Num6",
+    "keypad.7": "Num7",
+    "keypad.8": "Num8",
+    "keypad.9": "Num9",
+    "keypad.add": "Num+",
+    "keypad.subtract": "Num-",
+    "keypad.multiply": "Num*",
+    "keypad.divide": "Num/",
+    "keypad.decimal": "Num.",
+    "keypad.enter": "NumEnter",
+    // 編集キー
+    "insert": "Ins",
+    "delete": "Del",
+    "home": "Home",
+    "end": "End",
+    "page.up": "PgUp",
+    "page.down": "PgDn",
+    // 記号
+    "grave.accent": "`",
+    "minus": "-",
+    "equal": "=",
+    "left.bracket": "[",
+    "right.bracket": "]",
+    "backslash": "\\",
+    "semicolon": ";",
+    "apostrophe": "'",
+    "comma": ",",
+    "period": ".",
+    "slash": "/",
+    "caps.lock": "Caps",
+    "tab": "Tab",
+    "backspace": "Back",
+    "escape": "Esc",
+    "disabled": "✕",
+    // 日本語キーボード固有
+    "convert": "変換",
+    "nonconvert": "無変換",
   };
 
   return keyMap[cleanKey] || cleanKey.toUpperCase();

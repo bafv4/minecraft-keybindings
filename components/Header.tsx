@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { auth, signOut } from '@/lib/auth';
-import { PencilSquareIcon, ArrowRightOnRectangleIcon, UserCircleIcon } from '@heroicons/react/24/outline';
+import { PencilSquareIcon, ArrowRightOnRectangleIcon, UserCircleIcon, ChartBarIcon } from '@heroicons/react/24/outline';
 
 export async function Header() {
   const session = await auth();
@@ -29,6 +29,15 @@ export async function Header() {
           </Link>
 
           <nav className="flex items-center gap-3">
+            <Link
+              href="/stats"
+              className="flex items-center gap-2 px-4 py-2 text-sm text-[rgb(var(--muted-foreground))] hover:text-[rgb(var(--foreground))] hover:bg-[rgb(var(--muted))] rounded-lg transition-colors"
+              title="統計"
+            >
+              <ChartBarIcon className="w-4 h-4" />
+              <span className="hidden sm:inline">統計</span>
+            </Link>
+
             {session?.user ? (
               <>
                 <div className="hidden md:flex items-center gap-2 px-3 py-2 bg-[rgb(var(--muted))] rounded-lg">
