@@ -1,6 +1,8 @@
 import { notFound } from 'next/navigation';
 import { prisma } from '@/lib/db';
 import { MinecraftAvatar } from '@/components/MinecraftAvatar';
+import { HotbarDisplay } from '@/components/HotbarDisplay';
+import { getSegmentInfo } from '@/lib/segments';
 import dynamic from 'next/dynamic';
 import type { PlayerSettings } from '@/types/player';
 import type { Metadata } from 'next';
@@ -67,7 +69,12 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
 
   const user = await prisma.user.findUnique({
     where: { mcid },
-    include: { settings: true },
+    include: {
+      settings: true,
+      itemLayouts: {
+        orderBy: { segment: 'asc' },
+      },
+    },
   });
 
   if (!user) {
@@ -89,7 +96,50 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
       </div>
 
       {user.settings ? (
-        <KeybindingDisplay settings={user.settings as PlayerSettings} />
+        <>
+          <KeybindingDisplay settings={user.settings as PlayerSettings} />
+
+          {/* アイテム配置表示 */}
+          {user.itemLayouts && user.itemLayouts.length > 0 && (
+            <div className="mt-12">
+              <h2 className="text-2xl font-bold mb-6">アイテム配置</h2>
+              <div className="space-y-8">
+                {user.itemLayouts.map((layout) => {
+                  const segmentInfo = getSegmentInfo(layout.segment);
+                  return (
+                    <div key={layout.segment} className="bg-[rgb(var(--muted))] rounded-lg p-6">
+                      <h3 className="text-xl font-semibold mb-4">
+                        {segmentInfo?.label || layout.segment}
+                        {segmentInfo?.description && (
+                          <span className="text-sm text-[rgb(var(--muted-foreground))] ml-2">
+                            {segmentInfo.description}
+                          </span>
+                        )}
+                      </h3>
+                      <HotbarDisplay
+                        slot1={layout.slot1}
+                        slot2={layout.slot2}
+                        slot3={layout.slot3}
+                        slot4={layout.slot4}
+                        slot5={layout.slot5}
+                        slot6={layout.slot6}
+                        slot7={layout.slot7}
+                        slot8={layout.slot8}
+                        slot9={layout.slot9}
+                        offhand={layout.offhand}
+                      />
+                      {layout.notes && (
+                        <div className="mt-4 p-3 bg-gray-800/50 rounded border border-gray-700">
+                          <p className="text-sm text-gray-300">{layout.notes}</p>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </>
       ) : (
         <div className="text-center py-12 bg-[rgb(var(--muted))] rounded-lg">
           <p className="text-[rgb(var(--muted-foreground))]">

@@ -9,6 +9,10 @@ const KeybindingEditor = dynamic(() => import('@/components/KeybindingEditor').t
   loading: () => <div className="flex items-center justify-center py-12"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div></div>
 });
 
+const ItemLayoutEditor = dynamic(() => import('@/components/ItemLayoutEditor').then(mod => ({ default: mod.ItemLayoutEditor })), {
+  loading: () => <div className="flex items-center justify-center py-12"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div></div>
+});
+
 interface EditPageProps {
   params: Promise<{
     mcid: string;
@@ -93,12 +97,24 @@ export default async function EditPage({ params }: EditPageProps) {
         </p>
       </div>
 
-      <KeybindingEditor
-        initialSettings={(user.settings as PlayerSettings) || undefined}
-        uuid={user.uuid}
-        mcid={user.mcid}
-        displayName={user.displayName || ''}
-      />
+      {/* キーバインド設定 */}
+      <div className="mb-12">
+        <h2 className="text-2xl font-bold mb-6">キーバインド設定</h2>
+        <KeybindingEditor
+          initialSettings={(user.settings as PlayerSettings) || undefined}
+          uuid={user.uuid}
+          mcid={user.mcid}
+          displayName={user.displayName || ''}
+        />
+      </div>
+
+      {/* アイテム配置設定 */}
+      <div className="border-t border-gray-700 pt-12">
+        <h2 className="text-2xl font-bold mb-6">アイテム配置設定</h2>
+        <div className="bg-[rgb(var(--muted))] rounded-lg p-6">
+          <ItemLayoutEditor uuid={user.uuid} />
+        </div>
+      </div>
     </div>
   );
 }

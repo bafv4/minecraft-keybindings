@@ -39,7 +39,9 @@
       "Bash(tee:*)",
       "Bash(pnpm prisma format:*)",
       "Bash(node check-keys.js:*)",
-      "Bash(del:*)"
+      "Bash(del:*)",
+      "Bash(pnpm fetch-devices:*)",
+      "Bash(find:*)"
     ],
     "deny": [],
     "ask": []
