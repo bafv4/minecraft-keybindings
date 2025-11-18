@@ -21,7 +21,6 @@ export async function GET(request: NextRequest) {
     const cleanUuid = uuid.replace(/-/g, '');
 
     // 1. Mojang Session Server APIでプロファイル情報を取得
-    console.log('[Avatar API] Fetching profile from Mojang:', cleanUuid);
     const profileUrl = `https://sessionserver.mojang.com/session/minecraft/profile/${cleanUuid}`;
 
     const profileResponse = await fetch(profileUrl, {
@@ -29,14 +28,12 @@ export async function GET(request: NextRequest) {
     });
 
     if (!profileResponse.ok) {
-      console.log('[Avatar API] Mojang API failed, trying mc-heads.net fallback');
       // フォールバック: mc-heads.net
       const mcHeadsUrl = `https://mc-heads.net/avatar/${uuid}/${size}`;
       const mcHeadsResponse = await fetch(mcHeadsUrl, { cache: 'force-cache' });
 
       if (mcHeadsResponse.ok) {
         const imageBuffer = await mcHeadsResponse.arrayBuffer();
-        console.log('[Avatar API] Success with mc-heads.net fallback');
         return new NextResponse(imageBuffer, {
           headers: {
             'Content-Type': 'image/png',
@@ -57,7 +54,6 @@ export async function GET(request: NextRequest) {
     const textureProperty = profileData.properties?.find((prop: { name: string }) => prop.name === 'textures');
 
     if (!textureProperty) {
-      console.error('[Avatar API] No textures property found');
       return NextResponse.json(
         { error: 'No textures found' },
         { status: 404 }
@@ -69,14 +65,11 @@ export async function GET(request: NextRequest) {
     const skinUrl = textureData.textures?.SKIN?.url;
 
     if (!skinUrl) {
-      console.error('[Avatar API] No skin URL found');
       return NextResponse.json(
         { error: 'No skin URL found' },
         { status: 404 }
       );
     }
-
-    console.log('[Avatar API] Fetching skin texture from:', skinUrl);
 
     // 4. スキンテクスチャを取得
     const skinResponse = await fetch(skinUrl, {
@@ -84,7 +77,6 @@ export async function GET(request: NextRequest) {
     });
 
     if (!skinResponse.ok) {
-      console.error('[Avatar API] Failed to fetch skin texture');
       return NextResponse.json(
         { error: 'Failed to fetch skin texture' },
         { status: 500 }
@@ -98,8 +90,6 @@ export async function GET(request: NextRequest) {
     // オーバーレイは同じ位置の32ピクセル右側
     const avatar = await extractAvatarFromSkin(skinBuffer, parseInt(size));
 
-    console.log('[Avatar API] Successfully created avatar from Mojang textures');
-
     return new NextResponse(new Uint8Array(avatar), {
       headers: {
         'Content-Type': 'image/png',
@@ -107,8 +97,6 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('[Avatar API] Error:', error);
-
     // 最終フォールバック: mc-heads.net
     try {
       const mcHeadsUrl = `https://mc-heads.net/avatar/${uuid}/${size}`;
@@ -116,7 +104,6 @@ export async function GET(request: NextRequest) {
 
       if (mcHeadsResponse.ok) {
         const imageBuffer = await mcHeadsResponse.arrayBuffer();
-        console.log('[Avatar API] Success with emergency fallback');
         return new NextResponse(imageBuffer, {
           headers: {
             'Content-Type': 'image/png',
@@ -124,8 +111,8 @@ export async function GET(request: NextRequest) {
           },
         });
       }
-    } catch (fallbackError) {
-      console.error('[Avatar API] Fallback also failed:', fallbackError);
+    } catch {
+      // フォールバックも失敗
     }
 
     return NextResponse.json(
@@ -157,17 +144,10 @@ async function extractAvatarFromSkin(skinBuffer: ArrayBuffer, targetSize: number
   // スキンが64x64か64x32かを確認
   const hasOverlay = metadata.width >= 64 && metadata.height >= 64;
 
-  console.log('[Avatar API] Skin dimensions:', metadata.width, 'x', metadata.height, 'hasOverlay:', hasOverlay);
-
-  // デバッグ: 実際の画像サイズを確認
-  console.log('[Avatar API] Metadata:', JSON.stringify(metadata, null, 2));
-
   // 8x8のベース頭部を切り出し (座標は0始まり)
   const baseHead = await skinImage
     .extract({ left: 8, top: 8, width: 8, height: 8 })
     .toBuffer();
-
-  console.log('[Avatar API] Base head extracted, buffer size:', baseHead.length);
 
   // 合成用の最終バッファ
   let finalHead = baseHead;
@@ -176,8 +156,6 @@ async function extractAvatarFromSkin(skinBuffer: ArrayBuffer, targetSize: number
   if (hasOverlay) {
     try {
       // Minecraft 1.8+ スキンフォーマット: オーバーレイは (40, 8) の位置
-      console.log('[Avatar API] Attempting to extract overlay from position (40, 8)');
-
       // 重要: 元のスキン画像から新しいsharpインスタンスを作成
       // （skinImageは既にextract操作されているため、新しいインスタンスが必要）
       const freshSkinImage = sharp(Buffer.from(skinBuffer));
@@ -187,15 +165,11 @@ async function extractAvatarFromSkin(skinBuffer: ArrayBuffer, targetSize: number
         .extract({ left: 40, top: 8, width: 8, height: 8 })
         .toBuffer();
 
-      console.log('[Avatar API] Overlay extracted successfully, buffer size:', overlayHead.length);
-
       // オーバーレイが透明でない場合のみ合成
       const overlayData = await sharp(overlayHead)
         .ensureAlpha()
         .raw()
         .toBuffer({ resolveWithObject: true });
-
-      console.log('[Avatar API] Overlay data processed, width:', overlayData.info.width, 'height:', overlayData.info.height, 'channels:', overlayData.info.channels);
 
       let hasVisibleOverlay = false;
 
@@ -208,11 +182,7 @@ async function extractAvatarFromSkin(skinBuffer: ArrayBuffer, targetSize: number
         }
       }
 
-      console.log('[Avatar API] Has visible overlay:', hasVisibleOverlay);
-
       if (hasVisibleOverlay) {
-        console.log('[Avatar API] Compositing overlay with base');
-
         // ベースを少し小さめにリサイズ（オーバーレイより小さく）
         const baseSize = Math.round(targetSize * 0.925);
         const resizedBase = await sharp(baseHead)
@@ -252,8 +222,6 @@ async function extractAvatarFromSkin(skinBuffer: ArrayBuffer, targetSize: number
           ])
           .png()
           .toBuffer();
-
-        console.log('[Avatar API] Successfully composited overlay (base:', baseSize, 'x', baseSize, 'at offset', baseOffset, ', overlay:', targetSize, 'x', targetSize, ')');
       } else {
         // オーバーレイがない場合はベースのみをリサイズ
         finalHead = await sharp(baseHead)
@@ -261,9 +229,7 @@ async function extractAvatarFromSkin(skinBuffer: ArrayBuffer, targetSize: number
           .png()
           .toBuffer();
       }
-    } catch (overlayError) {
-      console.error('[Avatar API] Failed to extract overlay, using base only. Error:', overlayError);
-      console.error('[Avatar API] Error details:', overlayError instanceof Error ? overlayError.message : String(overlayError));
+    } catch {
       // オーバーレイ抽出に失敗した場合はベースのみ使用
       finalHead = await sharp(baseHead)
         .resize(targetSize, targetSize, { kernel: 'nearest' })
@@ -271,7 +237,6 @@ async function extractAvatarFromSkin(skinBuffer: ArrayBuffer, targetSize: number
         .toBuffer();
     }
   } else {
-    console.log('[Avatar API] Old skin format (no overlay layer)');
     // 旧フォーマットの場合もベースをリサイズ
     finalHead = await sharp(baseHead)
       .resize(targetSize, targetSize, { kernel: 'nearest' })

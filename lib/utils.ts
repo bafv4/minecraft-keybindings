@@ -1,5 +1,6 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { formatKeyCode, minecraftToWeb } from '@/lib/keyConversion';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -127,93 +128,24 @@ export const ACTION_LABELS: Record<string, string> = {
 
 /**
  * キー名を人間が読みやすい形式に変換
- * @param key Minecraftのキー名（例: "key.keyboard.w"）
- * @returns 表示用のキー名（例: "W"）
+ *
+ * 新システムに対応: Web標準形式とMinecraft形式の両方をサポート
+ *
+ * @param key Web標準キーコード（例: "KeyW", "Mouse0"）またはMinecraft形式（例: "key.keyboard.w"）
+ * @returns 表示用のキー名（例: "W", "マウス左"）
  */
 export function formatKeyName(key: string): string {
   if (!key) return "";
 
-  // マウスボタンかキーボードかを判定
-  const isMouse = key.startsWith("key.mouse.");
-  const isKeyboard = key.startsWith("key.keyboard.");
-
-  // "key.keyboard." または "key.mouse." を削除
-  const cleanKey = key
-    .replace("key.keyboard.", "")
-    .replace("key.mouse.", "");
-
-  // マウスボタンの特別処理（数字のボタン）
-  if (isMouse && cleanKey.match(/^\d+$/)) {
-    return `Mouse ${cleanKey}`;
+  // 新システム: Web標準形式の場合
+  if (!key.startsWith("key.")) {
+    return formatKeyCode(key);
   }
 
-  // 特殊キーの変換
-  const keyMap: Record<string, string> = {
-    // マウス（left, rightはキーボードとマウスで異なる）
-    "left": isMouse ? "Mouse Left" : "Left",
-    "right": isMouse ? "Mouse Right" : "Right",
-    "middle": "Mouse Middle",
-    // 修飾キー（left.shift など、ドット付きは常にキーボード）
-    "left.shift": "L-Shift",
-    "right.shift": "R-Shift",
-    "left.control": "L-Ctrl",
-    "right.control": "R-Ctrl",
-    "left.alt": "L-Alt",
-    "right.alt": "R-Alt",
-    "left.win": "L-Win",
-    "right.win": "R-Win",
-    // スペースバー
-    "space": "Space",
-    // エンターキー
-    "enter": "Enter",
-    // テンキー
-    "num.lock": "NumLock",
-    "keypad.0": "Num0",
-    "keypad.1": "Num1",
-    "keypad.2": "Num2",
-    "keypad.3": "Num3",
-    "keypad.4": "Num4",
-    "keypad.5": "Num5",
-    "keypad.6": "Num6",
-    "keypad.7": "Num7",
-    "keypad.8": "Num8",
-    "keypad.9": "Num9",
-    "keypad.add": "Num+",
-    "keypad.subtract": "Num-",
-    "keypad.multiply": "Num*",
-    "keypad.divide": "Num/",
-    "keypad.decimal": "Num.",
-    "keypad.enter": "NumEnter",
-    // 編集キー
-    "insert": "Ins",
-    "delete": "Del",
-    "home": "Home",
-    "end": "End",
-    "page.up": "PgUp",
-    "page.down": "PgDn",
-    // 記号
-    "grave.accent": "`",
-    "minus": "-",
-    "equal": "=",
-    "left.bracket": "[",
-    "right.bracket": "]",
-    "backslash": "\\",
-    "semicolon": ";",
-    "apostrophe": "'",
-    "comma": ",",
-    "period": ".",
-    "slash": "/",
-    "caps.lock": "Caps",
-    "tab": "Tab",
-    "backspace": "Back",
-    "escape": "Esc",
-    "disabled": "✕",
-    // 日本語キーボード固有
-    "convert": "変換",
-    "nonconvert": "無変換",
-  };
-
-  return keyMap[cleanKey] || cleanKey.toUpperCase();
+  // 旧システム: Minecraft形式の場合（後方互換性）
+  // 新形式に変換してからフォーマット
+  const webKey = minecraftToWeb(key);
+  return formatKeyCode(webKey);
 }
 
 /**

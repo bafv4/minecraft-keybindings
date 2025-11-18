@@ -41,7 +41,8 @@
       "Bash(node check-keys.js:*)",
       "Bash(del:*)",
       "Bash(pnpm fetch-devices:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(copy:*)"
     ],
     "deny": [],
     "ask": []

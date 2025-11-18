@@ -1,7 +1,101 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/db';
+import type { UpdateKeybindingsRequest, PlayerData } from '@/types/keybinding';
 
+/**
+ * GET /api/keybindings
+ * プレイヤーの全設定を取得
+ */
+export async function GET(request: Request) {
+  try {
+    const session = await auth();
+
+    if (!session?.user?.uuid) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    const uuid = session.user.uuid;
+
+    // 並列で全データ取得
+    const [user, settings, keybindings, keyRemaps, externalTools] = await Promise.all([
+      prisma.user.findUnique({ where: { uuid } }),
+      prisma.playerSettings.findUnique({ where: { uuid } }),
+      prisma.keybinding.findMany({
+        where: { uuid },
+        orderBy: [
+          { category: 'asc' },
+          { action: 'asc' }
+        ]
+      }),
+      prisma.keyRemap.findMany({ where: { uuid } }),
+      prisma.externalTool.findMany({ where: { uuid } }),
+    ]);
+
+    if (!user) {
+      return NextResponse.json(
+        { error: 'User not found' },
+        { status: 404 }
+      );
+    }
+
+    const response: PlayerData = {
+      uuid: user.uuid,
+      mcid: user.mcid,
+      displayName: user.displayName || undefined,
+      settings: settings ? {
+        keyboardLayout: settings.keyboardLayout,
+        mouseDpi: settings.mouseDpi ?? undefined,
+        gameSensitivity: settings.gameSensitivity ?? undefined,
+        windowsSpeed: settings.windowsSpeed ?? undefined,
+        mouseAcceleration: settings.mouseAcceleration,
+        rawInput: settings.rawInput,
+        cm360: settings.cm360 ?? undefined,
+        gameLanguage: settings.gameLanguage ?? undefined,
+        mouseModel: settings.mouseModel ?? undefined,
+        keyboardModel: settings.keyboardModel ?? undefined,
+        notes: settings.notes ?? undefined,
+      } : {
+        keyboardLayout: 'JIS',
+        mouseAcceleration: false,
+        rawInput: true,
+      },
+      keybindings: keybindings.map(kb => ({
+        action: kb.action,
+        keyCode: kb.keyCode,
+        category: kb.category as any,
+        isCustom: kb.isCustom,
+        fingers: kb.fingers as any[],
+      })),
+      keyRemaps: keyRemaps.map(remap => ({
+        sourceKey: remap.sourceKey,
+        targetKey: remap.targetKey,
+      })),
+      externalTools: externalTools.map(tool => ({
+        triggerKey: tool.triggerKey,
+        toolName: tool.toolName,
+        actionName: tool.actionName,
+        description: tool.description || undefined,
+      })),
+    };
+
+    return NextResponse.json(response);
+  } catch (error) {
+    console.error('Failed to fetch keybindings:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch settings' },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * POST /api/keybindings
+ * プレイヤーの全設定を更新
+ */
 export async function POST(request: Request) {
   try {
     const session = await auth();
@@ -13,154 +107,100 @@ export async function POST(request: Request) {
       );
     }
 
-    const data = await request.json();
+    const uuid = session.user.uuid;
+    const data: UpdateKeybindingsRequest = await request.json();
 
-    // セッションのUUIDと送信されたUUIDが一致するか確認
-    if (session.user.uuid !== data.uuid) {
-      return NextResponse.json(
-        { error: 'Forbidden' },
-        { status: 403 }
-      );
-    }
+    // トランザクションで全更新
+    await prisma.$transaction(async (tx) => {
+      // 1. 表示名更新（送信されている場合）
+      if (data.settings && 'displayName' in data.settings) {
+        await tx.user.update({
+          where: { uuid },
+          data: { displayName: (data.settings as any).displayName || null },
+        });
+      }
 
-    // 表示名を更新（送信されている場合、空文字列の場合は削除）
-    if (data.displayName !== undefined) {
-      await prisma.user.update({
-        where: { uuid: data.uuid },
-        data: { displayName: data.displayName || null },
-      });
-    }
+      // 2. PlayerSettings更新
+      if (data.settings) {
+        await tx.playerSettings.upsert({
+          where: { uuid },
+          update: {
+            keyboardLayout: data.settings.keyboardLayout,
+            mouseDpi: data.settings.mouseDpi,
+            gameSensitivity: data.settings.gameSensitivity,
+            windowsSpeed: data.settings.windowsSpeed,
+            mouseAcceleration: data.settings.mouseAcceleration,
+            rawInput: data.settings.rawInput,
+            cm360: data.settings.cm360,
+            gameLanguage: data.settings.gameLanguage,
+            mouseModel: data.settings.mouseModel,
+            keyboardModel: data.settings.keyboardModel,
+            notes: data.settings.notes,
+          },
+          create: {
+            uuid,
+            keyboardLayout: data.settings.keyboardLayout || 'JIS',
+            mouseDpi: data.settings.mouseDpi,
+            gameSensitivity: data.settings.gameSensitivity,
+            windowsSpeed: data.settings.windowsSpeed,
+            mouseAcceleration: data.settings.mouseAcceleration ?? false,
+            rawInput: data.settings.rawInput ?? true,
+            cm360: data.settings.cm360,
+            gameLanguage: data.settings.gameLanguage,
+            mouseModel: data.settings.mouseModel,
+            keyboardModel: data.settings.keyboardModel,
+            notes: data.settings.notes,
+          },
+        });
+      }
 
-    // 設定を保存または更新（UUIDを主キーとして使用）
-    const settings = await prisma.playerSettings.upsert({
-      where: { uuid: data.uuid },
-      update: {
-        // キーボード配置
-        keyboardLayout: data.keyboardLayout || 'JIS',
+      // 3. Keybinding更新（全削除 → 再作成）
+      if (data.keybindings && data.keybindings.length > 0) {
+        await tx.keybinding.deleteMany({ where: { uuid } });
+        await tx.keybinding.createMany({
+          data: data.keybindings.map(kb => ({
+            uuid,
+            action: kb.action,
+            keyCode: kb.keyCode,
+            category: kb.category,
+            isCustom: kb.isCustom,
+            fingers: kb.fingers || [],
+          })),
+        });
+      }
 
-        // マウス設定
-        mouseDpi: data.mouseDpi,
-        gameSensitivity: data.gameSensitivity,
-        windowsSpeed: data.windowsSpeed,
-        mouseAcceleration: data.mouseAcceleration,
-        rawInput: data.rawInput,
-        cm360: data.cm360,
+      // 4. KeyRemap更新（全削除 → 再作成）
+      if (data.keyRemaps !== undefined) {
+        await tx.keyRemap.deleteMany({ where: { uuid } });
+        if (data.keyRemaps.length > 0) {
+          await tx.keyRemap.createMany({
+            data: data.keyRemaps.map(remap => ({
+              uuid,
+              sourceKey: remap.sourceKey,
+              targetKey: remap.targetKey,
+            })),
+          });
+        }
+      }
 
-        // 移動
-        forward: data.forward,
-        back: data.back,
-        left: data.left,
-        right: data.right,
-        jump: data.jump,
-        sneak: data.sneak,
-        sprint: data.sprint,
-
-        // アクション
-        attack: data.attack,
-        use: data.use,
-        pickBlock: data.pickBlock,
-        drop: data.drop,
-
-        // インベントリ
-        inventory: data.inventory,
-        swapHands: data.swapHands,
-        hotbar1: data.hotbar1,
-        hotbar2: data.hotbar2,
-        hotbar3: data.hotbar3,
-        hotbar4: data.hotbar4,
-        hotbar5: data.hotbar5,
-        hotbar6: data.hotbar6,
-        hotbar7: data.hotbar7,
-        hotbar8: data.hotbar8,
-        hotbar9: data.hotbar9,
-
-        // ビュー・UI操作
-        togglePerspective: data.togglePerspective,
-        fullscreen: data.fullscreen,
-        chat: data.chat,
-        command: data.command,
-        toggleHud: data.toggleHud,
-
-        // リマップと外部ツール
-        remappings: data.remappings,
-        externalTools: data.externalTools,
-        fingerAssignments: data.fingerAssignments,
-
-        // 追加設定
-        additionalSettings: data.additionalSettings,
-
-        // プレイヤー環境設定
-        gameLanguage: data.gameLanguage || null,
-        mouseModel: data.mouseModel || null,
-        keyboardModel: data.keyboardModel || null,
-        notes: data.notes || null,
-      },
-      create: {
-        uuid: data.uuid,
-
-        // キーボード配置
-        keyboardLayout: data.keyboardLayout || 'JIS',
-
-        // マウス設定
-        mouseDpi: data.mouseDpi,
-        gameSensitivity: data.gameSensitivity,
-        windowsSpeed: data.windowsSpeed,
-        mouseAcceleration: data.mouseAcceleration,
-        rawInput: data.rawInput,
-        cm360: data.cm360,
-
-        // 移動
-        forward: data.forward,
-        back: data.back,
-        left: data.left,
-        right: data.right,
-        jump: data.jump,
-        sneak: data.sneak,
-        sprint: data.sprint,
-
-        // アクション
-        attack: data.attack,
-        use: data.use,
-        pickBlock: data.pickBlock,
-        drop: data.drop,
-
-        // インベントリ
-        inventory: data.inventory,
-        swapHands: data.swapHands,
-        hotbar1: data.hotbar1,
-        hotbar2: data.hotbar2,
-        hotbar3: data.hotbar3,
-        hotbar4: data.hotbar4,
-        hotbar5: data.hotbar5,
-        hotbar6: data.hotbar6,
-        hotbar7: data.hotbar7,
-        hotbar8: data.hotbar8,
-        hotbar9: data.hotbar9,
-
-        // ビュー・UI操作
-        togglePerspective: data.togglePerspective,
-        fullscreen: data.fullscreen,
-        chat: data.chat,
-        command: data.command,
-        toggleHud: data.toggleHud,
-
-        // リマップと外部ツール
-        remappings: data.remappings,
-        externalTools: data.externalTools,
-        fingerAssignments: data.fingerAssignments,
-
-        // 追加設定
-        additionalSettings: data.additionalSettings,
-
-        // プレイヤー環境設定
-        gameLanguage: data.gameLanguage || null,
-        mouseModel: data.mouseModel || null,
-        keyboardModel: data.keyboardModel || null,
-        notes: data.notes || null,
-      },
+      // 5. ExternalTool更新（全削除 → 再作成）
+      if (data.externalTools !== undefined) {
+        await tx.externalTool.deleteMany({ where: { uuid } });
+        if (data.externalTools.length > 0) {
+          await tx.externalTool.createMany({
+            data: data.externalTools.map(tool => ({
+              uuid,
+              triggerKey: tool.triggerKey,
+              toolName: tool.toolName,
+              actionName: tool.actionName,
+              description: tool.description,
+            })),
+          });
+        }
+      }
     });
 
-    return NextResponse.json(settings);
+    return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Failed to save keybindings:', error);
     return NextResponse.json(
@@ -170,6 +210,10 @@ export async function POST(request: Request) {
   }
 }
 
+/**
+ * DELETE /api/keybindings
+ * プレイヤーの全設定を削除
+ */
 export async function DELETE(request: Request) {
   try {
     const session = await auth();
@@ -181,28 +225,19 @@ export async function DELETE(request: Request) {
       );
     }
 
-    const { searchParams } = new URL(request.url);
-    const uuid = searchParams.get('uuid');
+    const uuid = session.user.uuid;
 
-    if (!uuid) {
-      return NextResponse.json(
-        { error: 'UUID is required' },
-        { status: 400 }
-      );
-    }
-
-    // セッションのUUIDと削除対象のUUIDが一致するか確認
-    if (session.user.uuid !== uuid) {
-      return NextResponse.json(
-        { error: 'Forbidden' },
-        { status: 403 }
-      );
-    }
-
-    // 設定を削除
+    // カスケード削除により、関連データも自動削除される
     await prisma.playerSettings.delete({
       where: { uuid },
     });
+
+    // 念のため明示的に削除
+    await Promise.all([
+      prisma.keybinding.deleteMany({ where: { uuid } }),
+      prisma.keyRemap.deleteMany({ where: { uuid } }),
+      prisma.externalTool.deleteMany({ where: { uuid } }),
+    ]);
 
     return NextResponse.json({ success: true });
   } catch (error) {
