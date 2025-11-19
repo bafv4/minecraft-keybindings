@@ -61,46 +61,10 @@ function getLanguageName(languageCode: string): string {
   return languageNames[languageCode.toLowerCase()] || languageCode;
 }
 
-// キー表示用のヘルパー関数
+// キー表示用のヘルパー関数（Web標準形式とMinecraft形式の両方に対応）
 function formatKey(keyCode: string | undefined): string {
-  // undefinedチェック
   if (!keyCode) return '-';
-
-  // key.keyboard.w -> W
-  // key.mouse.left -> M1
-  // key.keyboard.left.shift -> LShift
-  if (keyCode.startsWith('key.mouse.')) {
-    const button = keyCode.replace('key.mouse.', '');
-    if (button === 'left') return 'M1';
-    if (button === 'right') return 'M2';
-    if (button === 'middle') return 'M3';
-    return button.toUpperCase();
-  }
-
-  if (keyCode.startsWith('key.keyboard.')) {
-    const key = keyCode.replace('key.keyboard.', '');
-
-    // 特殊キーの短縮表示
-    const specialKeys: { [key: string]: string } = {
-      'left.shift': 'LShift',
-      'right.shift': 'RShift',
-      'left.control': 'LCtrl',
-      'right.control': 'RCtrl',
-      'left.alt': 'LAlt',
-      'right.alt': 'RAlt',
-      'space': 'Space',
-      'caps.lock': 'Caps',
-    };
-
-    if (specialKeys[key]) {
-      return specialKeys[key];
-    }
-
-    // 通常のキーは大文字に
-    return key.toUpperCase();
-  }
-
-  return keyCode;
+  return formatKeyName(keyCode);
 }
 
 export function KeybindingDisplay({

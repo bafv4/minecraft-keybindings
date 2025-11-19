@@ -4,6 +4,7 @@ import { useState, useEffect, memo } from 'react';
 import { KeybindingModal } from './KeybindingModal';
 import { EllipsisVerticalIcon, PlusIcon } from '@heroicons/react/24/outline';
 import type { Finger, FingerAssignments, CustomKey } from '@/types/player';
+import { minecraftToWeb } from '@/lib/keyConversion';
 
 interface VirtualKeyboardProps {
   bindings: {
@@ -437,8 +438,15 @@ const VirtualKeyboardComponent = ({
 
   // キーに割り当てられたアクションを取得
   const getActionsForKey = (keyCode: string): string[] => {
+    // keyCodeがMinecraft形式の場合、Web標準形式に変換してから比較
+    const webKeyCode = minecraftToWeb(keyCode);
+
     return Object.entries(bindings)
-      .filter(([_, key]) => key === keyCode)
+      .filter(([_, key]) => {
+        // bindingsの値をWeb標準形式に変換して比較
+        const bindingWebKey = minecraftToWeb(key);
+        return bindingWebKey === webKeyCode;
+      })
       .map(([action, _]) => {
         // アクション名を日本語に変換
         const actionNames: { [key: string]: string } = {
