@@ -458,9 +458,13 @@ const VirtualKeyboardComponent = ({
 
     return Object.entries(bindings)
       .filter(([_, key]) => {
+        // 空文字列や空配列をスキップ
+        if (!key || (Array.isArray(key) && key.length === 0)) {
+          return false;
+        }
         // bindingsの値が配列の場合と文字列の場合の両方に対応
         if (Array.isArray(key)) {
-          return key.some(k => minecraftToWeb(k) === webKeyCode);
+          return key.some(k => k && minecraftToWeb(k) === webKeyCode);
         }
         // bindingsの値をWeb標準形式に変換して比較
         const bindingWebKey = minecraftToWeb(key);
@@ -1403,8 +1407,12 @@ const VirtualKeyboardComponent = ({
               // Find all actions bound to this key
               const boundActions = Object.entries(bindings)
                 .filter(([_, keyBinding]) => {
+                  // 空文字列や空配列をスキップ
+                  if (!keyBinding || (Array.isArray(keyBinding) && keyBinding.length === 0)) {
+                    return false;
+                  }
                   if (Array.isArray(keyBinding)) {
-                    return keyBinding.includes(selectedKey);
+                    return keyBinding.some(k => k && k === selectedKey);
                   }
                   return keyBinding === selectedKey;
                 })

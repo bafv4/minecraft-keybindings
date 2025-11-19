@@ -393,15 +393,15 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
     };
 
     // Helper function to remove a key from an action's binding
-    const removeKeyFromAction = (currentValue: string | string[], keyToRemove: string): string | string[] => {
+    const removeKeyFromAction = (currentValue: string | string[], keyToRemove: string, defaultValue: string): string | string[] => {
       if (Array.isArray(currentValue)) {
         const filtered = currentValue.filter(k => k !== keyToRemove);
-        // Return single string if only one left, empty string if none, array otherwise
-        if (filtered.length === 0) return '';
+        // Return single string if only one left, default value if none, array otherwise
+        if (filtered.length === 0) return defaultValue;
         if (filtered.length === 1) return filtered[0];
         return filtered;
       } else if (currentValue === keyToRemove) {
-        return '';
+        return defaultValue;
       }
       return currentValue;
     };
@@ -427,6 +427,20 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
         inventory, swapHands,
         hotbar1, hotbar2, hotbar3, hotbar4, hotbar5, hotbar6, hotbar7, hotbar8, hotbar9,
         togglePerspective, fullscreen, chat, command, toggleHud, playerList, reset,
+      };
+
+      // デフォルト値のマップ
+      const defaults: { [key: string]: string } = {
+        forward: 'key.keyboard.w', back: 'key.keyboard.s', left: 'key.keyboard.a', right: 'key.keyboard.d',
+        jump: 'key.keyboard.space', sneak: 'key.keyboard.left.shift', sprint: 'key.keyboard.left.control',
+        attack: 'key.mouse.left', use: 'key.mouse.right', pickBlock: 'key.mouse.middle', drop: 'key.keyboard.q',
+        inventory: 'key.keyboard.e', swapHands: 'key.keyboard.f',
+        hotbar1: 'key.keyboard.1', hotbar2: 'key.keyboard.2', hotbar3: 'key.keyboard.3',
+        hotbar4: 'key.keyboard.4', hotbar5: 'key.keyboard.5', hotbar6: 'key.keyboard.6',
+        hotbar7: 'key.keyboard.7', hotbar8: 'key.keyboard.8', hotbar9: 'key.keyboard.9',
+        togglePerspective: 'key.keyboard.f5', fullscreen: 'key.keyboard.f11',
+        chat: 'key.keyboard.t', command: 'key.keyboard.slash', toggleHud: 'key.keyboard.f1',
+        playerList: 'key.keyboard.tab', reset: 'key.keyboard.f6',
       };
 
       // Find which actions are currently bound to this key
@@ -460,8 +474,9 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
       for (const action of actionsToRemove) {
         const setter = setters[action];
         const currentValue = getters[action];
+        const defaultValue = defaults[action] || 'key.keyboard.unknown';
         if (setter) {
-          setter(removeKeyFromAction(currentValue, keyCode));
+          setter(removeKeyFromAction(currentValue, keyCode, defaultValue));
         }
       }
     }
