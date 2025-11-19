@@ -32,17 +32,19 @@ export async function generateMetadata({ params }: EditPageProps): Promise<Metad
   }
 
   const displayName = user.displayName && user.displayName.trim() !== '' ? user.displayName : user.mcid;
-  const avatarUrl = `https://crafatar.com/avatars/${user.uuid}?size=128&overlay`;
+  const avatarUrl = `/api/avatar?uuid=${user.uuid}&size=128`;
+  const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
+  const fullAvatarUrl = `${baseUrl}${avatarUrl}`;
 
   return {
     title: `${displayName} の設定を編集 | MCSRer Hotkeys`,
     description: `${displayName} (${user.mcid}) のキーボード・マウス設定を編集`,
     icons: {
       icon: [
-        { url: avatarUrl, type: 'image/png' },
+        { url: fullAvatarUrl, type: 'image/png' },
       ],
       apple: [
-        { url: avatarUrl, type: 'image/png' },
+        { url: fullAvatarUrl, type: 'image/png' },
       ],
     },
     openGraph: {
@@ -50,7 +52,7 @@ export async function generateMetadata({ params }: EditPageProps): Promise<Metad
       description: `${displayName} (${user.mcid}) のキーボード・マウス設定を編集`,
       images: [
         {
-          url: avatarUrl,
+          url: fullAvatarUrl,
           width: 128,
           height: 128,
           alt: `${displayName} のアバター`,
@@ -61,7 +63,7 @@ export async function generateMetadata({ params }: EditPageProps): Promise<Metad
       card: 'summary',
       title: `${displayName} の設定を編集 | MCSRer Hotkeys`,
       description: `${displayName} (${user.mcid}) のキーボード・マウス設定を編集`,
-      images: [avatarUrl],
+      images: [fullAvatarUrl],
     },
   };
 }

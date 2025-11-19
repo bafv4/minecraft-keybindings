@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { formatKeyName, calculateCursorSpeed } from '@/lib/utils';
+import { formatKeyName, formatKeyNameShort, calculateCursorSpeed } from '@/lib/utils';
 import type { PlayerSettings, FingerAssignments, CustomKey } from '@/types/player';
 import { VirtualKeyboard } from './VirtualKeyboard';
 
@@ -62,8 +62,11 @@ function getLanguageName(languageCode: string): string {
 }
 
 // キー表示用のヘルパー関数（Web標準形式とMinecraft形式の両方に対応）
-function formatKey(keyCode: string | undefined): string {
+function formatKey(keyCode: string | string[] | undefined): string {
   if (!keyCode) return '-';
+  if (Array.isArray(keyCode)) {
+    return keyCode.map(k => formatKeyName(k)).join(', ');
+  }
   return formatKeyName(keyCode);
 }
 
@@ -475,19 +478,19 @@ export function KeybindingDisplay({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {Object.entries(remappingsData).map(([from, to]) => (
               <div key={from} className="flex items-center gap-3 p-3 bg-[rgb(var(--muted))]/50 rounded-lg border border-[rgb(var(--border))]">
-                <div className="flex-1">
+                <div className="flex-1 min-w-0">
                   <div className="text-xs text-[rgb(var(--muted-foreground))] mb-1">物理キー</div>
-                  <code className="px-2 py-1 bg-[rgb(var(--background))] border border-[rgb(var(--border))] rounded font-mono text-sm">
-                    {formatKeyName(from)}
+                  <code className="px-2 py-1 bg-[rgb(var(--background))] border border-[rgb(var(--border))] rounded font-mono text-sm break-all">
+                    {formatKeyNameShort(from)}
                   </code>
                 </div>
-                <svg className="w-5 h-5 text-[rgb(var(--muted-foreground))]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-5 h-5 flex-shrink-0 text-[rgb(var(--muted-foreground))]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                 </svg>
-                <div className="flex-1">
+                <div className="flex-1 min-w-0">
                   <div className="text-xs text-[rgb(var(--muted-foreground))] mb-1">リマップ先</div>
-                  <code className="px-2 py-1 bg-blue-500/10 border border-blue-500 rounded font-mono text-sm font-semibold">
-                    {formatKeyName(to)}
+                  <code className="px-2 py-1 bg-blue-500/10 border border-blue-500 rounded font-mono text-sm font-semibold break-all">
+                    {formatKeyNameShort(to)}
                   </code>
                 </div>
               </div>

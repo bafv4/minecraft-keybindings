@@ -149,6 +149,60 @@ export function formatKeyName(key: string): string {
 }
 
 /**
+ * キー名を短縮形式で表示（リマップ表示など、スペースが限られている場合に使用）
+ *
+ * @param key Web標準キーコード（例: "Backspace", "ControlLeft"）またはMinecraft形式
+ * @returns 短縮表示用のキー名（例: "BS", "LCtrl"）
+ */
+export function formatKeyNameShort(key: string): string {
+  if (!key) return "";
+
+  // Minecraft形式の場合はWeb標準形式に変換
+  const webKey = key.startsWith("key.") ? minecraftToWeb(key) : key;
+
+  // 短縮名マッピング
+  const shortNames: Record<string, string> = {
+    // 特殊キー
+    Backspace: "BS",
+    CapsLock: "Caps",
+    PageUp: "PgUp",
+    PageDown: "PgDn",
+    ControlLeft: "LCtrl",
+    ControlRight: "RCtrl",
+    ShiftLeft: "LShift",
+    ShiftRight: "RShift",
+    AltLeft: "LAlt",
+    AltRight: "RAlt",
+    MetaLeft: "LWin",
+    MetaRight: "RWin",
+    ContextMenu: "Menu",
+
+    // マウスボタン
+    Mouse0: "M1",
+    Mouse1: "M2",
+    Mouse2: "M3",
+    Mouse3: "M4",
+    Mouse4: "M5",
+
+    // テンキー（短縮）
+    NumpadEnter: "NumEnt",
+    NumpadAdd: "Num+",
+    NumpadSubtract: "Num-",
+    NumpadMultiply: "Num*",
+    NumpadDivide: "Num/",
+    NumpadDecimal: "Num.",
+  };
+
+  // 短縮名がある場合はそれを返す
+  if (shortNames[webKey]) {
+    return shortNames[webKey];
+  }
+
+  // 短縮名がない場合は通常のformatKeyNameを使用
+  return formatKeyCode(webKey);
+}
+
+/**
  * Minecraft UUIDにハイフンを追加
  * @param uuid ハイフンなしのUUID
  * @returns ハイフン付きUUID

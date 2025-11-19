@@ -8,7 +8,7 @@ import { minecraftToWeb } from '@/lib/keyConversion';
 
 interface VirtualKeyboardProps {
   bindings: {
-    [action: string]: string;
+    [action: string]: string | string[];
   };
   onKeyClick?: (key: string) => void;
   mode?: 'display' | 'edit';
@@ -19,7 +19,7 @@ interface VirtualKeyboardProps {
   externalTools?: { [key: string]: string }; // keyCode -> action名
   fingerAssignments?: FingerAssignments;
   onUpdateConfig?: (key: string, config: {
-    action?: string;
+    actions?: string[];
     remap?: string;
     externalTool?: string; // アクション名
     finger?: Finger[];
@@ -458,6 +458,10 @@ const VirtualKeyboardComponent = ({
 
     return Object.entries(bindings)
       .filter(([_, key]) => {
+        // bindingsの値が配列の場合と文字列の場合の両方に対応
+        if (Array.isArray(key)) {
+          return key.some(k => minecraftToWeb(k) === webKeyCode);
+        }
         // bindingsの値をWeb標準形式に変換して比較
         const bindingWebKey = minecraftToWeb(key);
         return bindingWebKey === webKeyCode;
@@ -513,7 +517,7 @@ const VirtualKeyboardComponent = ({
 
   // モーダルから保存された設定を処理
   const handleModalSave = (config: {
-    action?: string;
+    actions?: string[];
     remap?: string;
     externalTool?: string;
     finger?: Finger[];
@@ -1395,9 +1399,22 @@ const VirtualKeyboardComponent = ({
             isOpen={modalOpen}
             onClose={handleCloseModal}
             selectedKey={selectedKey}
-            currentAction={
-              Object.entries(bindings).find(([_, key]) => key === selectedKey)?.[0] || null
-            }
+            currentAction={(() => {
+              // Find all actions bound to this key
+              const boundActions = Object.entries(bindings)
+                .filter(([_, keyBinding]) => {
+                  if (Array.isArray(keyBinding)) {
+                    return keyBinding.includes(selectedKey);
+                  }
+                  return keyBinding === selectedKey;
+                })
+                .map(([action]) => action);
+
+              // Return array if multiple, single string if one, null if none
+              if (boundActions.length === 0) return null;
+              if (boundActions.length === 1) return boundActions[0];
+              return boundActions;
+            })()}
             currentRemap={remappings[webSelectedKey]}
             currentExternalTool={externalTools[webSelectedKey]}
             currentFinger={fingerAssignments[webSelectedKey]}

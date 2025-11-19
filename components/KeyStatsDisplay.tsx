@@ -42,12 +42,7 @@ export function KeyStatsDisplay({ allSettings }: KeyStatsDisplayProps) {
 
       // Find which action is assigned to this key (without considering remaps)
       Object.entries(setting.keybindings).forEach(([action, assignedKey]) => {
-        // Skip custom keys
-        if (assignedKey && assignedKey.startsWith('custom.')) {
-          return;
-        }
-
-        // Direct comparison without remap consideration
+        // Direct comparison - only count standard keybindings
         if (assignedKey === key) {
           const users = actionUsersMap.get(action) || [];
           users.push(userInfo);

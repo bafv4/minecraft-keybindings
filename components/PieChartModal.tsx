@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, Fragment } from 'react';
+import { Dialog, DialogPanel, DialogTitle, Transition, TransitionChild, Switch } from '@headlessui/react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { UserListModal } from './UserListModal';
 
@@ -37,26 +38,6 @@ export function PieChartModal({
   const [userListOpen, setUserListOpen] = useState(false);
   const [selectedUsers, setSelectedUsers] = useState<Array<{ mcid: string; uuid: string }>>([]);
   const [userListTitle, setUserListTitle] = useState('');
-
-  useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        onClose();
-      }
-    };
-
-    if (isOpen) {
-      document.addEventListener('keydown', handleEscape);
-      document.body.style.overflow = 'hidden';
-    }
-
-    return () => {
-      document.removeEventListener('keydown', handleEscape);
-      document.body.style.overflow = 'unset';
-    };
-  }, [isOpen, onClose]);
-
-  if (!isOpen) return null;
 
   // データの順序を保持（渡された順序を尊重）
   // トップ10と残りを分ける
@@ -123,52 +104,70 @@ export function PieChartModal({
 
   return (
     <>
-      <div
-        className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
-        onClick={onClose}
-      >
-        <div
-          className="bg-[rgb(var(--card))] rounded-lg border border-[rgb(var(--border))] max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col"
-          onClick={(e) => e.stopPropagation()}
-        >
-          {/* Header */}
-          <div className="p-6 border-b border-[rgb(var(--border))] flex-shrink-0">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-2xl font-bold">{title}</h2>
-                <p className="text-sm text-[rgb(var(--muted-foreground))] mt-1">
-                  {totalLabel}: {totalCount}人
-                </p>
-              </div>
-              <button
-                onClick={onClose}
-                className="p-2 hover:bg-[rgb(var(--muted))] rounded-lg transition-colors"
-              >
-                <XMarkIcon className="w-6 h-6" />
-              </button>
-            </div>
+      <Transition show={isOpen} as={Fragment}>
+        <Dialog onClose={onClose} className="relative z-50">
+          {/* Backdrop */}
+          <TransitionChild
+            as={Fragment}
+            enter="ease-out duration-300"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="ease-in duration-200"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+          >
+            <div className="fixed inset-0 bg-black/50" aria-hidden="true" />
+          </TransitionChild>
 
-            {/* Log Scale Toggle */}
-            {showLogScaleToggle && onLogScaleToggle && (
-              <div className="mt-4 flex items-center gap-3">
-                <span className="text-sm text-[rgb(var(--muted-foreground))]">対数スケール</span>
-                <button
-                  onClick={() => onLogScaleToggle(!isLogScale)}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
-                    isLogScale ? 'bg-blue-500' : 'bg-[rgb(var(--muted))]'
-                  }`}
-                  role="switch"
-                  aria-checked={isLogScale}
-                >
-                  <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                      isLogScale ? 'translate-x-6' : 'translate-x-1'
-                    }`}
-                  />
-                </button>
-              </div>
-            )}
-          </div>
+          {/* Full-screen container to center the panel */}
+          <div className="fixed inset-0 flex items-center justify-center p-4">
+            <TransitionChild
+              as={Fragment}
+              enter="ease-out duration-300"
+              enterFrom="opacity-0 scale-95"
+              enterTo="opacity-100 scale-100"
+              leave="ease-in duration-200"
+              leaveFrom="opacity-100 scale-100"
+              leaveTo="opacity-0 scale-95"
+            >
+              <DialogPanel className="bg-[rgb(var(--card))] rounded-lg border border-[rgb(var(--border))] max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+                {/* Header */}
+                <div className="p-6 border-b border-[rgb(var(--border))] flex-shrink-0">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <DialogTitle className="text-2xl font-bold">{title}</DialogTitle>
+                      <p className="text-sm text-[rgb(var(--muted-foreground))] mt-1">
+                        {totalLabel}: {totalCount}人
+                      </p>
+                    </div>
+                    <button
+                      onClick={onClose}
+                      className="p-2 hover:bg-[rgb(var(--muted))] rounded-lg transition-colors"
+                    >
+                      <XMarkIcon className="w-6 h-6" />
+                    </button>
+                  </div>
+
+                  {/* Log Scale Toggle */}
+                  {showLogScaleToggle && onLogScaleToggle && (
+                    <div className="mt-4 flex items-center gap-3">
+                      <span className="text-sm text-[rgb(var(--muted-foreground))]">対数スケール</span>
+                      <Switch
+                        checked={isLogScale}
+                        onChange={onLogScaleToggle}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                          isLogScale ? 'bg-blue-500' : 'bg-[rgb(var(--muted))]'
+                        }`}
+                      >
+                        <span
+                          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                            isLogScale ? 'translate-x-6' : 'translate-x-1'
+                          }`}
+                        />
+                      </Switch>
+                    </div>
+                  )}
+                </div>
 
           {/* Content */}
           <div className="flex-1 overflow-y-auto p-6">
@@ -243,9 +242,12 @@ export function PieChartModal({
                 データがありません
               </div>
             )}
+                </div>
+              </DialogPanel>
+            </TransitionChild>
           </div>
-        </div>
-      </div>
+        </Dialog>
+      </Transition>
 
       <UserListModal
         isOpen={userListOpen}

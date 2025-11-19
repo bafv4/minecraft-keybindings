@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import { Input, Button } from '@/components/ui';
 
 export function LoginOrRegisterForm() {
   const router = useRouter();
@@ -83,58 +84,39 @@ export function LoginOrRegisterForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
-        <label htmlFor="mcid" className="block text-sm font-medium mb-1.5">
-          Minecraft Java版 ユーザー名（MCID）
-        </label>
-        <input
-          id="mcid"
-          type="text"
-          value={mcid}
-          onChange={(e) => setMcid(e.target.value)}
-          required
-          placeholder="例: Steve"
-          className="w-full px-3 py-2 rounded border border-[rgb(var(--border))] bg-[rgb(var(--background))] focus:outline-none focus:ring-1 focus:ring-[rgb(var(--ring))]"
-        />
-        <p className="text-xs text-[rgb(var(--muted-foreground))] mt-1">
-          ※ 登録済みの場合はログイン、未登録の場合は新規登録されます
-        </p>
-      </div>
+      <Input
+        id="mcid"
+        type="text"
+        label="Minecraft Java版 ユーザー名（MCID）"
+        value={mcid}
+        onChange={(e) => setMcid(e.target.value)}
+        required
+        placeholder="例: Steve"
+        description="※ 登録済みの場合はログイン、未登録の場合は新規登録されます"
+      />
 
-      <div>
-        <label htmlFor="passphrase" className="block text-sm font-medium mb-1.5">
-          パスフレーズ <span className="text-xs text-[rgb(var(--muted-foreground))]">(任意)</span>
-        </label>
-        <input
-          id="passphrase"
-          type="password"
-          value={passphrase}
-          onChange={(e) => setPassphrase(e.target.value)}
-          placeholder="未設定の場合は空欄"
-          className="w-full px-3 py-2 rounded border border-[rgb(var(--border))] bg-[rgb(var(--background))] focus:outline-none focus:ring-1 focus:ring-[rgb(var(--ring))]"
-        />
-        <p className="text-xs text-[rgb(var(--muted-foreground))] mt-1">
-          ※ MCID変更時の認証に使用します
-        </p>
-      </div>
+      <Input
+        id="passphrase"
+        type="password"
+        label={<>パスフレーズ <span className="text-xs text-[rgb(var(--muted-foreground))]">(任意)</span></>}
+        value={passphrase}
+        onChange={(e) => setPassphrase(e.target.value)}
+        placeholder="未設定の場合は空欄"
+        description="※ MCID変更時の認証に使用します"
+      />
 
       {showDisplayName && (
         <div className="animate-in fade-in slide-in-from-top-2 duration-300">
-          <label htmlFor="displayName" className="block text-sm font-medium mb-1.5">
-            表示名 <span className="text-red-500">*</span>
-          </label>
-          <input
+          <Input
             id="displayName"
             type="text"
+            label={<>表示名 <span className="text-red-500">*</span></>}
             value={displayName}
             onChange={(e) => setDisplayName(e.target.value)}
             required={showDisplayName}
             placeholder="例: スティーブ"
-            className="w-full px-3 py-2 rounded border border-[rgb(var(--border))] bg-[rgb(var(--background))] focus:outline-none focus:ring-1 focus:ring-[rgb(var(--ring))]"
+            description="※ プレイヤー一覧に表示される名前です"
           />
-          <p className="text-xs text-[rgb(var(--muted-foreground))] mt-1">
-            ※ プレイヤー一覧に表示される名前です
-          </p>
         </div>
       )}
 
@@ -146,13 +128,9 @@ export function LoginOrRegisterForm() {
         <p className="text-sm text-green-600 dark:text-green-400">{message}</p>
       )}
 
-      <button
-        type="submit"
-        disabled={loading}
-        className="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed font-semibold"
-      >
+      <Button type="submit" disabled={loading} className="w-full">
         {loading ? '処理中...' : '登録 / 編集'}
-      </button>
+      </Button>
     </form>
   );
 }

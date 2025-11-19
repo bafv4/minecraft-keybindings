@@ -28,23 +28,9 @@ export async function GET(request: NextRequest) {
     });
 
     if (!profileResponse.ok) {
-      // フォールバック: mc-heads.net
-      const mcHeadsUrl = `https://mc-heads.net/avatar/${uuid}/${size}`;
-      const mcHeadsResponse = await fetch(mcHeadsUrl, { cache: 'force-cache' });
-
-      if (mcHeadsResponse.ok) {
-        const imageBuffer = await mcHeadsResponse.arrayBuffer();
-        return new NextResponse(imageBuffer, {
-          headers: {
-            'Content-Type': 'image/png',
-            'Cache-Control': 'public, max-age=86400, s-maxage=86400, stale-while-revalidate=604800',
-          },
-        });
-      }
-
       return NextResponse.json(
-        { error: 'Failed to fetch player profile' },
-        { status: 500 }
+        { error: 'Failed to fetch player profile from Mojang API' },
+        { status: profileResponse.status }
       );
     }
 
@@ -97,26 +83,9 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    // 最終フォールバック: mc-heads.net
-    try {
-      const mcHeadsUrl = `https://mc-heads.net/avatar/${uuid}/${size}`;
-      const mcHeadsResponse = await fetch(mcHeadsUrl, { cache: 'force-cache' });
-
-      if (mcHeadsResponse.ok) {
-        const imageBuffer = await mcHeadsResponse.arrayBuffer();
-        return new NextResponse(imageBuffer, {
-          headers: {
-            'Content-Type': 'image/png',
-            'Cache-Control': 'public, max-age=86400, s-maxage=86400, stale-while-revalidate=604800',
-          },
-        });
-      }
-    } catch {
-      // フォールバックも失敗
-    }
-
+    console.error('[Avatar API] Error:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch avatar', details: error instanceof Error ? error.message : 'Unknown error' },
+      { error: 'Failed to fetch avatar from Mojang API', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
   }

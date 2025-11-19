@@ -1,16 +1,17 @@
 'use client';
 
-import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { XMarkIcon } from '@heroicons/react/24/outline';
+import React, { useState, useEffect, useMemo, useRef, Fragment } from 'react';
+import { Dialog, DialogPanel, DialogTitle, Transition, TransitionChild, Tab, TabGroup, TabList, TabPanels, TabPanel } from '@headlessui/react';
+import { XMarkIcon, CheckIcon } from '@heroicons/react/24/outline';
 import type { Finger } from '@/types/player';
 
 interface KeybindingModalProps {
   isOpen: boolean;
   onClose: () => void;
   selectedKey: string;
-  currentAction: string | null;
+  currentAction: string | string[] | null;
   onSave: (config: {
-    action?: string;
+    actions?: string[]; // 複数のアクションを配列で受け取る
     remap?: string;
     externalTool?: string; // アクション名（例: "Jingle:ThinBT" or カスタム文字列）
     finger?: Finger[];
@@ -242,7 +243,11 @@ export function KeybindingModal({
 }: KeybindingModalProps) {
   const [activeTab, setActiveTab] = useState<TabType>('action');
   const [editedLabel, setEditedLabel] = useState(customKeyLabel);
-  const [selectedAction, setSelectedAction] = useState<string | null>(currentAction);
+  // 複数のアクションを選択できるように配列で管理
+  const [selectedActions, setSelectedActions] = useState<string[]>(() => {
+    if (!currentAction) return [];
+    return Array.isArray(currentAction) ? currentAction : [currentAction];
+  });
   const [remapInput, setRemapInput] = useState<string>(''); // ユーザー入力値（表示用）
   const [showRemapDropdown, setShowRemapDropdown] = useState(false);
   const [externalToolAction, setExternalToolAction] = useState<string>(currentExternalTool || '');
@@ -434,7 +439,10 @@ export function KeybindingModal({
   // モーダルが開くたびに現在の設定で状態をリセット
   useEffect(() => {
     if (isOpen) {
-      setSelectedAction(currentAction);
+      setSelectedActions(() => {
+        if (!currentAction) return [];
+        return Array.isArray(currentAction) ? currentAction : [currentAction];
+      });
       // 既存のリマップをラベル形式で表示
       setRemapInput(currentRemap ? getKeyLabel(currentRemap) : '');
       setExternalToolAction(currentExternalTool || '');
@@ -478,7 +486,7 @@ export function KeybindingModal({
     const finalRemapKey = remapInput.trim() ? parseInputToKeyCode(remapInput) : undefined;
 
     const config = {
-      action: selectedAction || undefined,
+      actions: selectedActions.length > 0 ? selectedActions : undefined,
       remap: finalRemapKey,
       // 外部ツールアクション（空文字列でない場合のみ保存）
       externalTool: externalToolAction.trim() || undefined,
@@ -487,6 +495,19 @@ export function KeybindingModal({
     console.log('KeybindingModal saving:', { selectedKey, config, parsedRemap: finalRemapKey });
     onSave(config);
     onClose();
+  };
+
+  // アクションの選択/解除を切り替える
+  const toggleAction = (actionId: string) => {
+    setSelectedActions(prev => {
+      if (prev.includes(actionId)) {
+        // 既に選択されている場合は削除
+        return prev.filter(id => id !== actionId);
+      } else {
+        // 選択されていない場合は追加
+        return [...prev, actionId];
+      }
+    });
   };
 
   // キーラベルを表示用にフォーマット
@@ -619,106 +640,150 @@ export function KeybindingModal({
     })),
   ];
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="bg-[rgb(var(--card))] border border-[rgb(var(--border))] rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col">
-        {/* ヘッダー */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[rgb(var(--border))] flex-shrink-0">
-          <h2 className="text-xl font-semibold">
-            キー設定: {formatKeyLabel(selectedKey)}
-          </h2>
-          <button
-            type="button"
-            onClick={onClose}
-            className="text-[rgb(var(--muted-foreground))] hover:text-[rgb(var(--foreground))] transition-colors"
-          >
-            <XMarkIcon className="w-6 h-6" />
-          </button>
-        </div>
+  // Map activeTab to tab index
+  const tabMapping: TabType[] = ['action', 'finger', 'remap', 'external'];
+  if (isCustomKey) tabMapping.push('custom');
+  const currentTabIndex = tabMapping.indexOf(activeTab);
 
-        {/* タブ */}
-        <div className="flex border-b border-[rgb(var(--border))] flex-shrink-0">
-          <button
-            type="button"
-            onClick={() => setActiveTab('action')}
-            className={`flex-1 px-4 py-3 font-medium transition-colors text-sm ${
-              activeTab === 'action'
-                ? 'border-b-2 border-blue-500 text-blue-600'
-                : 'text-[rgb(var(--muted-foreground))] hover:text-[rgb(var(--foreground))]'
-            }`}
+  return (
+    <Transition show={isOpen} as={Fragment}>
+      <Dialog onClose={onClose} className="relative z-50">
+        {/* Backdrop */}
+        <TransitionChild
+          as={Fragment}
+          enter="ease-out duration-300"
+          enterFrom="opacity-0"
+          enterTo="opacity-100"
+          leave="ease-in duration-200"
+          leaveFrom="opacity-100"
+          leaveTo="opacity-0"
+        >
+          <div className="fixed inset-0 bg-black/50" aria-hidden="true" />
+        </TransitionChild>
+
+        {/* Full-screen container to center the panel */}
+        <div className="fixed inset-0 flex items-center justify-center">
+          <TransitionChild
+            as={Fragment}
+            enter="ease-out duration-300"
+            enterFrom="opacity-0 scale-95"
+            enterTo="opacity-100 scale-100"
+            leave="ease-in duration-200"
+            leaveFrom="opacity-100 scale-100"
+            leaveTo="opacity-0 scale-95"
           >
-            操作割り当て
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab('finger')}
-            className={`flex-1 px-4 py-3 font-medium transition-colors text-sm ${
-              activeTab === 'finger'
-                ? 'border-b-2 border-blue-500 text-blue-600'
-                : 'text-[rgb(var(--muted-foreground))] hover:text-[rgb(var(--foreground))]'
-            }`}
-          >
-            指の割り当て
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab('remap')}
-            className={`flex-1 px-4 py-3 font-medium transition-colors text-sm ${
-              activeTab === 'remap'
-                ? 'border-b-2 border-blue-500 text-blue-600'
-                : 'text-[rgb(var(--muted-foreground))] hover:text-[rgb(var(--foreground))]'
-            }`}
-          >
-            リマップ
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab('external')}
-            className={`flex-1 px-4 py-3 font-medium transition-colors text-sm ${
-              activeTab === 'external'
-                ? 'border-b-2 border-blue-500 text-blue-600'
-                : 'text-[rgb(var(--muted-foreground))] hover:text-[rgb(var(--foreground))]'
-            }`}
-          >
-            外部ツール・Mod
-          </button>
-          {isCustomKey && (
-            <button
-              type="button"
-              onClick={() => setActiveTab('custom')}
-              className={`flex-1 px-4 py-3 font-medium transition-colors text-sm ${
-                activeTab === 'custom'
-                  ? 'border-b-2 border-blue-500 text-blue-600'
-                  : 'text-[rgb(var(--muted-foreground))] hover:text-[rgb(var(--foreground))]'
-              }`}
-            >
-              カスタムキー
-            </button>
-          )}
-        </div>
+            <DialogPanel className="bg-[rgb(var(--card))] border border-[rgb(var(--border))] rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col">
+              {/* ヘッダー */}
+              <div className="flex items-center justify-between px-6 py-4 border-b border-[rgb(var(--border))] flex-shrink-0">
+                <DialogTitle className="text-xl font-semibold">
+                  キー設定: {formatKeyLabel(selectedKey)}
+                </DialogTitle>
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="text-[rgb(var(--muted-foreground))] hover:text-[rgb(var(--foreground))] transition-colors"
+                >
+                  <XMarkIcon className="w-6 h-6" />
+                </button>
+              </div>
+
+              {/* タブ */}
+              <TabGroup selectedIndex={currentTabIndex} onChange={(index) => setActiveTab(tabMapping[index])}>
+                <TabList className="flex border-b border-[rgb(var(--border))] flex-shrink-0">
+                  <Tab
+                    className={({ selected }) =>
+                      `flex-1 px-4 py-3 font-medium transition-colors text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset ${
+                        selected
+                          ? 'border-b-2 border-blue-500 text-blue-600'
+                          : 'text-[rgb(var(--muted-foreground))] hover:text-[rgb(var(--foreground))]'
+                      }`
+                    }
+                  >
+                    操作割り当て
+                  </Tab>
+                  <Tab
+                    className={({ selected }) =>
+                      `flex-1 px-4 py-3 font-medium transition-colors text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset ${
+                        selected
+                          ? 'border-b-2 border-blue-500 text-blue-600'
+                          : 'text-[rgb(var(--muted-foreground))] hover:text-[rgb(var(--foreground))]'
+                      }`
+                    }
+                  >
+                    指の割り当て
+                  </Tab>
+                  <Tab
+                    className={({ selected }) =>
+                      `flex-1 px-4 py-3 font-medium transition-colors text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset ${
+                        selected
+                          ? 'border-b-2 border-blue-500 text-blue-600'
+                          : 'text-[rgb(var(--muted-foreground))] hover:text-[rgb(var(--foreground))]'
+                      }`
+                    }
+                  >
+                    リマップ
+                  </Tab>
+                  <Tab
+                    className={({ selected }) =>
+                      `flex-1 px-4 py-3 font-medium transition-colors text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset ${
+                        selected
+                          ? 'border-b-2 border-blue-500 text-blue-600'
+                          : 'text-[rgb(var(--muted-foreground))] hover:text-[rgb(var(--foreground))]'
+                      }`
+                    }
+                  >
+                    外部ツール・Mod
+                  </Tab>
+                  {isCustomKey && (
+                    <Tab
+                      className={({ selected }) =>
+                        `flex-1 px-4 py-3 font-medium transition-colors text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset ${
+                          selected
+                            ? 'border-b-2 border-blue-500 text-blue-600'
+                            : 'text-[rgb(var(--muted-foreground))] hover:text-[rgb(var(--foreground))]'
+                        }`
+                      }
+                    >
+                      カスタムキー
+                    </Tab>
+                  )}
+                </TabList>
 
         {/* コンテンツ */}
         <div className="px-6 py-4 min-h-[300px] overflow-y-auto flex-1">
           {activeTab === 'action' && (
             <div className="space-y-3">
               <p className="text-sm text-[rgb(var(--muted-foreground))] mb-4">
-                このキーに割り当てる操作を選択してください
+                このキーに割り当てる操作を選択してください（複数選択可、重複なし）
               </p>
               <div className="grid grid-cols-2 gap-2">
-                {actions.map((action) => (
-                  <button
-                    key={action.id}
-                    onClick={() => setSelectedAction(action.id)}
-                    className={`px-4 py-2 rounded-lg border transition-colors text-left ${
-                      selectedAction === action.id
-                        ? 'border-blue-500 bg-blue-500/10 text-blue-600'
-                        : 'border-[rgb(var(--border))] hover:bg-[rgb(var(--accent))]'
-                    }`}
-                  >
-                    {action.label}
-                  </button>
-                ))}
+                {actions.map((action) => {
+                  const isSelected = selectedActions.includes(action.id);
+                  return (
+                    <button
+                      key={action.id}
+                      onClick={() => toggleAction(action.id)}
+                      className={`px-4 py-2 rounded-lg border transition-colors text-left flex items-center gap-2 ${
+                        isSelected
+                          ? 'border-blue-500 bg-blue-500/10 text-blue-600 font-semibold'
+                          : 'border-[rgb(var(--border))] hover:bg-[rgb(var(--accent))]'
+                      }`}
+                    >
+                      {isSelected && (
+                        <CheckIcon className="w-5 h-5 flex-shrink-0" />
+                      )}
+                      <span className={isSelected ? '' : 'ml-7'}>{action.label}</span>
+                    </button>
+                  );
+                })}
               </div>
+              {selectedActions.length > 0 && (
+                <div className="mt-4 p-3 bg-blue-500/10 rounded-lg border border-blue-500/20">
+                  <p className="text-sm">
+                    <strong>選択中:</strong> {selectedActions.length}個のアクション
+                  </p>
+                </div>
+              )}
             </div>
           )}
 
@@ -964,9 +1029,9 @@ export function KeybindingModal({
         <div className="flex items-center justify-between px-6 py-4 border-t border-[rgb(var(--border))] flex-shrink-0">
           {/* 左側: 各タブのクリアボタン */}
           <div>
-            {activeTab === 'action' && selectedAction && (
+            {activeTab === 'action' && selectedActions.length > 0 && (
               <button
-                onClick={() => setSelectedAction(null)}
+                onClick={() => setSelectedActions([])}
                 className="px-4 py-2 text-sm text-red-600 hover:text-red-700 border border-red-500 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
               >
                 割り当てをクリア
@@ -1013,8 +1078,12 @@ export function KeybindingModal({
               保存
             </button>
           </div>
+                </div>
+              </TabGroup>
+            </DialogPanel>
+          </TransitionChild>
         </div>
-      </div>
-    </div>
+      </Dialog>
+    </Transition>
   );
 }

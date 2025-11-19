@@ -42,7 +42,10 @@
       "Bash(del:*)",
       "Bash(pnpm fetch-devices:*)",
       "Bash(find:*)",
-      "Bash(copy:*)"
+      "Bash(copy:*)",
+      "Bash(git commit:*)",
+      "Bash(git push)",
+      "Bash(git restore:*)"
     ],
     "deny": [],
     "ask": []

@@ -2,9 +2,11 @@
 
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { Switch } from '@headlessui/react';
 import { calculateCm360, calculateCursorSpeed } from '@/lib/utils';
 import type { PlayerSettings, Finger, FingerAssignments, CustomKey } from '@/types/player';
 import { VirtualKeyboard } from './VirtualKeyboard';
+import { Input, Textarea, Button } from '@/components/ui';
 
 // Minecraft言語リスト（全言語）
 const MINECRAFT_LANGUAGES = [
@@ -179,46 +181,46 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
   const [notes, setNotes] = useState(initialSettings?.notes || '');
 
   // キーバインド（移動）
-  const [forward, setForward] = useState(initialSettings?.forward || 'key.keyboard.w');
-  const [back, setBack] = useState(initialSettings?.back || 'key.keyboard.s');
-  const [left, setLeft] = useState(initialSettings?.left || 'key.keyboard.a');
-  const [right, setRight] = useState(initialSettings?.right || 'key.keyboard.d');
-  const [jump, setJump] = useState(initialSettings?.jump || 'key.keyboard.space');
-  const [sneak, setSneak] = useState(initialSettings?.sneak || 'key.keyboard.left.shift');
-  const [sprint, setSprint] = useState(initialSettings?.sprint || 'key.keyboard.left.control');
+  const [forward, setForward] = useState<string | string[]>(initialSettings?.forward || 'key.keyboard.w');
+  const [back, setBack] = useState<string | string[]>(initialSettings?.back || 'key.keyboard.s');
+  const [left, setLeft] = useState<string | string[]>(initialSettings?.left || 'key.keyboard.a');
+  const [right, setRight] = useState<string | string[]>(initialSettings?.right || 'key.keyboard.d');
+  const [jump, setJump] = useState<string | string[]>(initialSettings?.jump || 'key.keyboard.space');
+  const [sneak, setSneak] = useState<string | string[]>(initialSettings?.sneak || 'key.keyboard.left.shift');
+  const [sprint, setSprint] = useState<string | string[]>(initialSettings?.sprint || 'key.keyboard.left.control');
 
   // キーバインド（アクション）
-  const [attack, setAttack] = useState(initialSettings?.attack || 'key.mouse.left');
-  const [use, setUse] = useState(initialSettings?.use || 'key.mouse.right');
-  const [pickBlock, setPickBlock] = useState(initialSettings?.pickBlock || 'key.mouse.middle');
-  const [drop, setDrop] = useState(initialSettings?.drop || 'key.keyboard.q');
+  const [attack, setAttack] = useState<string | string[]>(initialSettings?.attack || 'key.mouse.left');
+  const [use, setUse] = useState<string | string[]>(initialSettings?.use || 'key.mouse.right');
+  const [pickBlock, setPickBlock] = useState<string | string[]>(initialSettings?.pickBlock || 'key.mouse.middle');
+  const [drop, setDrop] = useState<string | string[]>(initialSettings?.drop || 'key.keyboard.q');
 
   // キーバインド（インベントリ）
-  const [inventory, setInventory] = useState(initialSettings?.inventory || 'key.keyboard.e');
-  const [swapHands, setSwapHands] = useState(initialSettings?.swapHands || 'key.keyboard.f');
-  const [hotbar1, setHotbar1] = useState(initialSettings?.hotbar1 || 'key.keyboard.1');
-  const [hotbar2, setHotbar2] = useState(initialSettings?.hotbar2 || 'key.keyboard.2');
-  const [hotbar3, setHotbar3] = useState(initialSettings?.hotbar3 || 'key.keyboard.3');
-  const [hotbar4, setHotbar4] = useState(initialSettings?.hotbar4 || 'key.keyboard.4');
-  const [hotbar5, setHotbar5] = useState(initialSettings?.hotbar5 || 'key.keyboard.5');
-  const [hotbar6, setHotbar6] = useState(initialSettings?.hotbar6 || 'key.keyboard.6');
-  const [hotbar7, setHotbar7] = useState(initialSettings?.hotbar7 || 'key.keyboard.7');
-  const [hotbar8, setHotbar8] = useState(initialSettings?.hotbar8 || 'key.keyboard.8');
-  const [hotbar9, setHotbar9] = useState(initialSettings?.hotbar9 || 'key.keyboard.9');
+  const [inventory, setInventory] = useState<string | string[]>(initialSettings?.inventory || 'key.keyboard.e');
+  const [swapHands, setSwapHands] = useState<string | string[]>(initialSettings?.swapHands || 'key.keyboard.f');
+  const [hotbar1, setHotbar1] = useState<string | string[]>(initialSettings?.hotbar1 || 'key.keyboard.1');
+  const [hotbar2, setHotbar2] = useState<string | string[]>(initialSettings?.hotbar2 || 'key.keyboard.2');
+  const [hotbar3, setHotbar3] = useState<string | string[]>(initialSettings?.hotbar3 || 'key.keyboard.3');
+  const [hotbar4, setHotbar4] = useState<string | string[]>(initialSettings?.hotbar4 || 'key.keyboard.4');
+  const [hotbar5, setHotbar5] = useState<string | string[]>(initialSettings?.hotbar5 || 'key.keyboard.5');
+  const [hotbar6, setHotbar6] = useState<string | string[]>(initialSettings?.hotbar6 || 'key.keyboard.6');
+  const [hotbar7, setHotbar7] = useState<string | string[]>(initialSettings?.hotbar7 || 'key.keyboard.7');
+  const [hotbar8, setHotbar8] = useState<string | string[]>(initialSettings?.hotbar8 || 'key.keyboard.8');
+  const [hotbar9, setHotbar9] = useState<string | string[]>(initialSettings?.hotbar9 || 'key.keyboard.9');
 
   // キーバインド（ビュー・UI操作）
-  const [togglePerspective, setTogglePerspective] = useState(initialSettings?.togglePerspective || 'key.keyboard.f5');
-  const [fullscreen, setFullscreen] = useState(initialSettings?.fullscreen || 'key.keyboard.f11');
-  const [chat, setChat] = useState(initialSettings?.chat || 'key.keyboard.t');
-  const [command, setCommand] = useState(initialSettings?.command || 'key.keyboard.slash');
-  const [toggleHud, setToggleHud] = useState(initialSettings?.toggleHud || 'key.keyboard.f1');
+  const [togglePerspective, setTogglePerspective] = useState<string | string[]>(initialSettings?.togglePerspective || 'key.keyboard.f5');
+  const [fullscreen, setFullscreen] = useState<string | string[]>(initialSettings?.fullscreen || 'key.keyboard.f11');
+  const [chat, setChat] = useState<string | string[]>(initialSettings?.chat || 'key.keyboard.t');
+  const [command, setCommand] = useState<string | string[]>(initialSettings?.command || 'key.keyboard.slash');
+  const [toggleHud, setToggleHud] = useState<string | string[]>(initialSettings?.toggleHud || 'key.keyboard.f1');
 
   // 追加設定（additionalSettings JSONフィールドから読み込み）
-  const [reset, setReset] = useState(
-    (initialSettings?.additionalSettings as { reset?: string })?.reset || 'key.keyboard.f6'
+  const [reset, setReset] = useState<string | string[]>(
+    (initialSettings?.additionalSettings as { reset?: string | string[] })?.reset || 'key.keyboard.f6'
   );
-  const [playerList, setPlayerList] = useState(
-    (initialSettings?.additionalSettings as { playerList?: string })?.playerList || 'key.keyboard.tab'
+  const [playerList, setPlayerList] = useState<string | string[]>(
+    (initialSettings?.additionalSettings as { playerList?: string | string[] })?.playerList || 'key.keyboard.tab'
   );
 
   // リマップとツール設定（オブジェクトとして管理）
@@ -369,16 +371,44 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
 
   // モーダルからの設定更新を処理
   const handleUpdateConfig = (keyCode: string, config: {
-    action?: string;
+    actions?: string[];
     remap?: string;
     externalTool?: string;
     finger?: Finger[];
   }) => {
     console.log('handleUpdateConfig called:', { keyCode, config });
 
-    // アクション割り当て
-    if (config.action) {
-      const setters: { [key: string]: (value: string) => void } = {
+    // Helper function to add a key to an action's binding
+    const addKeyToAction = (currentValue: string | string[], keyToAdd: string): string | string[] => {
+      if (Array.isArray(currentValue)) {
+        // Already an array - add if not present
+        return currentValue.includes(keyToAdd) ? currentValue : [...currentValue, keyToAdd];
+      } else if (currentValue) {
+        // Single value - convert to array if different from current
+        return currentValue === keyToAdd ? currentValue : [currentValue, keyToAdd];
+      } else {
+        // Empty - just set the key
+        return keyToAdd;
+      }
+    };
+
+    // Helper function to remove a key from an action's binding
+    const removeKeyFromAction = (currentValue: string | string[], keyToRemove: string): string | string[] => {
+      if (Array.isArray(currentValue)) {
+        const filtered = currentValue.filter(k => k !== keyToRemove);
+        // Return single string if only one left, empty string if none, array otherwise
+        if (filtered.length === 0) return '';
+        if (filtered.length === 1) return filtered[0];
+        return filtered;
+      } else if (currentValue === keyToRemove) {
+        return '';
+      }
+      return currentValue;
+    };
+
+    // アクション割り当て処理
+    if ('actions' in config) {
+      const setters: { [key: string]: (value: string | string[]) => void } = {
         forward: setForward, back: setBack, left: setLeft, right: setRight,
         jump: setJump, sneak: setSneak, sprint: setSprint,
         attack: setAttack, use: setUse, pickBlock: setPickBlock, drop: setDrop,
@@ -390,7 +420,50 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
         chat: setChat, command: setCommand, toggleHud: setToggleHud,
         playerList: setPlayerList, reset: setReset,
       };
-      setters[config.action]?.(keyCode);
+
+      const getters: { [key: string]: string | string[] } = {
+        forward, back, left, right, jump, sneak, sprint,
+        attack, use, pickBlock, drop,
+        inventory, swapHands,
+        hotbar1, hotbar2, hotbar3, hotbar4, hotbar5, hotbar6, hotbar7, hotbar8, hotbar9,
+        togglePerspective, fullscreen, chat, command, toggleHud, playerList, reset,
+      };
+
+      // Find which actions are currently bound to this key
+      const currentActionsForKey = Object.entries(getters)
+        .filter(([_, keyBinding]) => {
+          if (Array.isArray(keyBinding)) {
+            return keyBinding.includes(keyCode);
+          }
+          return keyBinding === keyCode;
+        })
+        .map(([action]) => action);
+
+      const newActions = config.actions || [];
+
+      // Find actions to add (in newActions but not in currentActionsForKey)
+      const actionsToAdd = newActions.filter(action => !currentActionsForKey.includes(action));
+
+      // Find actions to remove (in currentActionsForKey but not in newActions)
+      const actionsToRemove = currentActionsForKey.filter(action => !newActions.includes(action));
+
+      // Add key to new actions
+      for (const action of actionsToAdd) {
+        const setter = setters[action];
+        const currentValue = getters[action];
+        if (setter) {
+          setter(addKeyToAction(currentValue, keyCode));
+        }
+      }
+
+      // Remove key from removed actions
+      for (const action of actionsToRemove) {
+        const setter = setters[action];
+        const currentValue = getters[action];
+        if (setter) {
+          setter(removeKeyFromAction(currentValue, keyCode));
+        }
+      }
     }
 
     // リマップ設定
@@ -560,11 +633,11 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
       <section className="bg-[rgb(var(--card))] p-6 rounded-lg border border-[rgb(var(--border))]">
         <h2 className="text-xl font-bold mb-4">ユーザー情報</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <InputField
+          <Input
             label="表示名"
             type="text"
             value={displayName}
-            onChange={setDisplayName}
+            onChange={(e) => setDisplayName(e.target.value)}
             placeholder="表示名を入力"
           />
           <div className="flex flex-col gap-1">
@@ -576,15 +649,15 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
                 readOnly
                 className="flex-1 min-w-0 px-3 py-2 border rounded bg-[rgb(var(--muted))] text-[rgb(var(--muted-foreground))] cursor-not-allowed"
               />
-              <button
-                type="button"
+              <Button
                 onClick={handleSyncMcid}
                 disabled={syncingMcid}
-                className="px-2 sm:px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-medium rounded transition-colors whitespace-nowrap flex-shrink-0"
+                size="sm"
+                className="whitespace-nowrap flex-shrink-0"
                 title="Mojang APIから最新のMCIDを取得"
               >
                 {syncingMcid ? '同期中...' : '同期'}
-              </button>
+              </Button>
             </div>
             <p className="text-xs text-[rgb(var(--muted-foreground))] mt-1">
               MinecraftでIDを変更した場合は同期ボタンで更新できます
@@ -648,19 +721,19 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
           <h2 className="text-xl font-bold">キー配置設定</h2>
           <div className="flex items-center gap-2">
             <label className="text-sm font-medium">指の色分け表示</label>
-            <button
-              type="button"
-              role="switch"
-              aria-checked={showFingerColors}
-              onClick={() => setShowFingerColors(!showFingerColors)}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${showFingerColors ? 'bg-blue-600' : 'bg-[rgb(var(--border))]'
-                }`}
+            <Switch
+              checked={showFingerColors}
+              onChange={setShowFingerColors}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                showFingerColors ? 'bg-blue-600' : 'bg-[rgb(var(--border))]'
+              }`}
             >
               <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${showFingerColors ? 'translate-x-6' : 'translate-x-1'
-                  }`}
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  showFingerColors ? 'translate-x-6' : 'translate-x-1'
+                }`}
               />
-            </button>
+            </Switch>
           </div>
         </div>
         <p className="text-sm text-[rgb(var(--muted-foreground))] mb-4">
@@ -790,12 +863,10 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
                 オフの場合、DPIにWindows速度の係数をかけます
               </p>
             </div>
-            <button
-              type="button"
-              role="switch"
-              aria-checked={rawInput}
-              onClick={() => setRawInput(!rawInput)}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+            <Switch
+              checked={rawInput}
+              onChange={setRawInput}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
                 rawInput ? 'bg-blue-600' : 'bg-[rgb(var(--border))]'
               }`}
             >
@@ -804,7 +875,7 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
                   rawInput ? 'translate-x-6' : 'translate-x-1'
                 }`}
               />
-            </button>
+            </Switch>
           </div>
 
           {/* Windows速度 */}
@@ -839,13 +910,11 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
 
           {/* マウス加速 */}
           <div className="flex items-center justify-between p-4 bg-[rgb(var(--muted))] rounded-lg">
-            <label htmlFor="mouseAccel" className="font-semibold">マウス加速</label>
-            <button
-              type="button"
-              role="switch"
-              aria-checked={mouseAcceleration}
-              onClick={() => setMouseAcceleration(!mouseAcceleration)}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+            <label className="font-semibold">マウス加速</label>
+            <Switch
+              checked={mouseAcceleration}
+              onChange={setMouseAcceleration}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
                 mouseAcceleration ? 'bg-blue-600' : 'bg-[rgb(var(--border))]'
               }`}
             >
@@ -854,7 +923,7 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
                   mouseAcceleration ? 'translate-x-6' : 'translate-x-1'
                 }`}
               />
-            </button>
+            </Switch>
           </div>
         </div>
 
@@ -995,44 +1064,42 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
           </div>
 
           {/* 自由使用欄 */}
-          <div>
-            <label htmlFor="notes" className="font-semibold text-base mb-2 block">コメント</label>
-            <textarea
-              id="notes"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="その他のメモや補足情報など"
-              rows={4}
-              className="w-full px-3 py-2 text-base border border-[rgb(var(--border))] rounded bg-[rgb(var(--background))] resize-y"
-            />
-          </div>
+          <Textarea
+            id="notes"
+            label="コメント"
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            placeholder="その他のメモや補足情報など"
+            rows={4}
+            className="resize-y"
+          />
         </div>
       </section>
 
       {/* リマップと外部ツールは仮想キーボードのモーダルから設定可能 */}
 
       <div className="flex gap-4 justify-between">
-        <button
-          type="button"
+        <Button
           onClick={() => setShowDeleteConfirm(true)}
           disabled={deleting}
-          className="px-6 py-3 border border-red-500 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          variant="danger"
+          size="lg"
         >
           設定を削除
-        </button>
+        </Button>
         <div className="flex gap-4">
-          <button
-            type="button"
+          <Button
             onClick={() => router.back()}
-            className="px-6 py-3 border border-[rgb(var(--border))] rounded-lg hover:bg-[rgb(var(--muted))] transition-colors"
+            variant="secondary"
+            size="lg"
           >
             キャンセル
-          </button>
-          <button
-            type="button"
+          </Button>
+          <Button
             onClick={handleSubmit}
             disabled={saving}
-            className="bg-blue-600 text-white hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed font-semibold py-3 px-6 rounded-lg transition-colors flex items-center gap-2"
+            size="lg"
+            className="flex items-center gap-2"
           >
             {saving && (
               <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -1041,7 +1108,7 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
               </svg>
             )}
             {saving ? '保存中...' : '保存'}
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -1054,19 +1121,20 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
               この操作は取り消せません。すべてのキーバインド設定が削除されます。
             </p>
             <div className="flex gap-4 justify-end">
-              <button
-                type="button"
+              <Button
                 onClick={() => setShowDeleteConfirm(false)}
                 disabled={deleting}
-                className="px-6 py-3 border border-[rgb(var(--border))] rounded-lg hover:bg-[rgb(var(--muted))] transition-colors disabled:opacity-50"
+                variant="secondary"
+                size="lg"
               >
                 キャンセル
-              </button>
-              <button
-                type="button"
+              </Button>
+              <Button
                 onClick={handleDelete}
                 disabled={deleting}
-                className="bg-red-600 text-white hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed font-semibold py-3 px-6 rounded-lg transition-colors flex items-center gap-2"
+                variant="danger"
+                size="lg"
+                className="flex items-center gap-2"
               >
                 {deleting && (
                   <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -1075,7 +1143,7 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
                   </svg>
                 )}
                 {deleting ? '削除中...' : '削除する'}
-              </button>
+              </Button>
             </div>
           </div>
         </div>

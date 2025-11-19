@@ -1,4 +1,4 @@
-import { prisma } from '@/lib/db';
+import { getKeyboardStatsData } from '@/lib/playerData';
 import { KeyStatsDisplay } from '@/components/KeyStatsDisplay';
 import type { Metadata } from 'next';
 
@@ -17,64 +17,19 @@ export const metadata: Metadata = {
 };
 
 export default async function KeyStatsPage() {
-  // Fetch all users with their keybindings
-  const users = await prisma.user.findMany({
-    select: {
-      mcid: true,
-      uuid: true,
-      keybindings: {
-        select: {
-          action: true,
-          keyCode: true,
-        },
-      },
-    },
-  });
+  // Fetch all users with their keybindings using centralized utility
+  const users = await getKeyboardStatsData();
 
   // Transform the data for client component
-  const allSettings = users.map((user) => {
-    // Convert keybindings array to object map
-    const keybindingsMap: Record<string, string> = {};
-    for (const kb of user.keybindings) {
-      keybindingsMap[kb.action] = kb.keyCode;
-    }
-
-    return {
+  const allSettings = users
+    .filter(user => user.settings) // Only include users with settings
+    .map((user) => ({
       user: {
         mcid: user.mcid,
         uuid: user.uuid,
       },
-      keybindings: {
-        forward: keybindingsMap.forward || 'KeyW',
-        back: keybindingsMap.back || 'KeyS',
-        left: keybindingsMap.left || 'KeyA',
-        right: keybindingsMap.right || 'KeyD',
-        jump: keybindingsMap.jump || 'Space',
-        sneak: keybindingsMap.sneak || 'ShiftLeft',
-        sprint: keybindingsMap.sprint || 'ControlLeft',
-        drop: keybindingsMap.drop || 'KeyQ',
-        attack: keybindingsMap.attack || 'Mouse0',
-        use: keybindingsMap.use || 'Mouse1',
-        pickBlock: keybindingsMap.pickBlock || 'Mouse2',
-        swapHands: keybindingsMap.swapHands || 'KeyF',
-        inventory: keybindingsMap.inventory || 'KeyE',
-        chat: keybindingsMap.chat || 'KeyT',
-        command: keybindingsMap.command || 'Slash',
-        togglePerspective: keybindingsMap.togglePerspective || 'F5',
-        fullscreen: keybindingsMap.fullscreen || 'F11',
-        toggleHud: keybindingsMap.toggleHud || 'F1',
-        hotbar1: keybindingsMap.hotbar1 || 'Digit1',
-        hotbar2: keybindingsMap.hotbar2 || 'Digit2',
-        hotbar3: keybindingsMap.hotbar3 || 'Digit3',
-        hotbar4: keybindingsMap.hotbar4 || 'Digit4',
-        hotbar5: keybindingsMap.hotbar5 || 'Digit5',
-        hotbar6: keybindingsMap.hotbar6 || 'Digit6',
-        hotbar7: keybindingsMap.hotbar7 || 'Digit7',
-        hotbar8: keybindingsMap.hotbar8 || 'Digit8',
-        hotbar9: keybindingsMap.hotbar9 || 'Digit9',
-      },
-    };
-  });
+      keybindings: user.settings as unknown as Record<string, string>,
+    }));
 
   return (
     <div className="pb-6">

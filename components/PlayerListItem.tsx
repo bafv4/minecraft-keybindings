@@ -169,8 +169,10 @@ export function PlayerListItem({ user }: PlayerListItemProps) {
   );
 }
 
-function KeyBadge({ keyName, size = 'sm' }: { keyName: string; size?: 'xs' | 'sm' }) {
-  const formattedKey = formatKeyName(keyName);
+function KeyBadge({ keyName, size = 'sm' }: { keyName: string | string[]; size?: 'xs' | 'sm' }) {
+  const formattedKey = Array.isArray(keyName)
+    ? keyName.map(k => formatKeyName(k)).join(', ')
+    : formatKeyName(keyName);
 
   return (
     <kbd

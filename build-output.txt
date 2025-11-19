@@ -1,2 +1,31 @@
-components/PieChartModal.tsx(198,27): error TS2322: Type 'string | null' is not assignable to type 'string | undefined'.
-  Type 'null' is not assignable to type 'string | undefined'.
+
+> minecraft-keybindings@1.0.0 build C:\Users\yuanq\dev\minecraft-keybindings
+> next build
+
+   ▲ Next.js 16.0.1 (Turbopack)
+   - Environments: .env.local, .env
+   - Experiments (use with caution):
+     ✓ turbopackUseSystemTlsCerts
+
+   Creating an optimized production build ...
+(node:27792) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ Compiled successfully in 3.7s
+   Running TypeScript ...
+Failed to compile.
+
+./app/stats/keys/page.tsx:31:20
+Type error: Conversion of type '{ uuid: string; createdAt: Date; updatedAt: Date; notes: string | null; keyboardLayout: string; mouseDpi: number | null; gameSensitivity: number | null; windowsSpeed: number | null; ... 9 more ...; keyboardModel: string | null; } | null' to type 'Record<string, string>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Type '{ uuid: string; createdAt: Date; updatedAt: Date; notes: string | null; keyboardLayout: string; mouseDpi: number | null; gameSensitivity: number | null; windowsSpeed: number | null; ... 9 more ...; keyboardModel: string | null; }' is not comparable to type 'Record<string, string>'.
+    Property 'createdAt' is incompatible with index signature.
+      Type 'Date' is not comparable to type 'string'.
+
+[0m [90m 29 |[39m         uuid[33m:[39m user[33m.[39muuid[33m,[39m
+ [90m 30 |[39m       }[33m,[39m
+[31m[1m>[22m[39m[90m 31 |[39m       keybindings[33m:[39m user[33m.[39msettings [36mas[39m [33mRecord[39m[33m<[39m[33mstring[39m[33m,[39m string[33m>[39m[33m,[39m
+ [90m    |[39m                    [31m[1m^[22m[39m
+ [90m 32 |[39m     }))[33m;[39m
+ [90m 33 |[39m
+ [90m 34 |[39m   [36mreturn[39m ([0m
+Next.js build worker exited with code: 1 and signal: null
+ ELIFECYCLE  Command failed with exit code 1.

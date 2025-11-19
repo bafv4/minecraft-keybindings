@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { MinecraftItemIcon, formatItemName } from '@/lib/mcitems';
 import { getSegmentList } from '@/lib/segments';
 import { ItemSelectorModal } from './ItemSelectorModal';
+import { Button, Textarea } from '@/components/ui';
 import type { ItemLayout, SpeedrunSegment } from '@/types/itemLayout';
 
 interface ItemLayoutEditorProps {
@@ -148,8 +149,9 @@ export function ItemLayoutEditor({ uuid, onSave }: ItemLayoutEditorProps) {
 
       {/* アイテム追加ボタン */}
       <div>
-        <button
+        <Button
           onClick={() => setIsModalOpen(true)}
+          variant="ghost"
           className="w-full py-3 px-4 border-2 border-dashed border-[rgb(var(--border))] rounded-lg hover:border-blue-500 hover:bg-blue-900/10 transition-colors flex items-center justify-center gap-2 text-[rgb(var(--muted-foreground))] hover:text-blue-500"
         >
           <span className="text-2xl">+</span>
@@ -159,7 +161,7 @@ export function ItemLayoutEditor({ uuid, onSave }: ItemLayoutEditorProps) {
               (選択中: {selectedSlot === 'offhand' ? 'オフハンド' : `スロット ${selectedSlot.replace('slot', '')}`})
             </span>
           </span>
-        </button>
+        </Button>
       </div>
 
       {/* インベントリ風スロット編集（横一列） */}
@@ -212,31 +214,24 @@ export function ItemLayoutEditor({ uuid, onSave }: ItemLayoutEditorProps) {
       </div>
 
       {/* メモ欄 */}
-      <div>
-        <label className="block text-sm font-medium mb-2">メモ</label>
-        <textarea
-          value={currentLayout.notes || ''}
-          onChange={(e) =>
-            setLayouts({
-              ...layouts,
-              [selectedSegment]: {
-                ...currentLayout,
-                notes: e.target.value,
-              },
-            })
-          }
-          rows={3}
-          className="w-full px-3 py-2 border rounded-md bg-[rgb(var(--input))] border-[rgb(var(--border))] text-[rgb(var(--foreground))]"
-          placeholder="このセグメントについてのメモ..."
-        />
-      </div>
+      <Textarea
+        label="メモ"
+        value={currentLayout.notes || ''}
+        onChange={(e) =>
+          setLayouts({
+            ...layouts,
+            [selectedSegment]: {
+              ...currentLayout,
+              notes: e.target.value,
+            },
+          })
+        }
+        rows={3}
+        placeholder="このセグメントについてのメモ..."
+      />
 
       {/* 保存ボタン */}
-      <button
-        onClick={handleSave}
-        disabled={saving}
-        className="bg-blue-600 text-white hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed font-semibold py-3 px-6 rounded-lg transition-colors flex items-center gap-2"
-      >
+      <Button onClick={handleSave} disabled={saving} className="flex items-center gap-2">
         {saving && (
           <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -244,7 +239,7 @@ export function ItemLayoutEditor({ uuid, onSave }: ItemLayoutEditorProps) {
           </svg>
         )}
         {saving ? '保存中...' : '保存'}
-      </button>
+      </Button>
 
       {/* アイテム選択モーダル */}
       <ItemSelectorModal
