@@ -1,13 +1,23 @@
 'use client';
 
-import { useState, useMemo, useRef, useEffect } from 'react';
+import { useState, Fragment } from 'react';
 import { useRouter } from 'next/navigation';
-import { Switch } from '@headlessui/react';
+import { Switch, Dialog, DialogPanel, DialogTitle, Transition, TransitionChild } from '@headlessui/react';
 import { calculateCm360, calculateCursorSpeed } from '@/lib/utils';
 import type { PlayerSettings, Finger, FingerAssignments, CustomKey } from '@/types/player';
 import { VirtualKeyboard } from './VirtualKeyboard';
 import { Input, Textarea, Button } from '@/components/ui';
+import { Combobox } from '@/components/ui/Combobox';
+import { RadioGroup } from '@/components/ui/RadioGroup';
 import { minecraftToWeb } from '@/lib/keyConversion';
+
+// キーボードレイアウトオプション
+const KEYBOARD_LAYOUT_OPTIONS = [
+  { value: 'JIS', label: 'JIS', description: '日本語配列フルサイズ' },
+  { value: 'US', label: 'US', description: '英語配列フルサイズ' },
+  { value: 'JIS-TKL', label: 'JIS (TKL)', description: '日本語配列テンキーレス' },
+  { value: 'US-TKL', label: 'US (TKL)', description: '英語配列テンキーレス' },
+];
 
 // Minecraft言語リスト（全言語）
 const MINECRAFT_LANGUAGES = [
@@ -175,8 +185,6 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
 
   // プレイヤー環境設定
   const [gameLanguage, setGameLanguage] = useState(initialSettings?.gameLanguage || '');
-  const [languageSearch, setLanguageSearch] = useState('');
-  const [showLanguageDropdown, setShowLanguageDropdown] = useState(false);
   const [mouseModel, setMouseModel] = useState(initialSettings?.mouseModel || '');
   const [keyboardModel, setKeyboardModel] = useState(initialSettings?.keyboardModel || '');
   const [notes, setNotes] = useState(initialSettings?.notes || '');
@@ -291,38 +299,6 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
     ? calculateCm360(Number(mouseDpi), Number(sensitivityRaw), Number(windowsSpeed), rawInput, mouseAcceleration)
     : null;
 
-  // 言語検索の絞り込み
-  const filteredLanguages = useMemo(() => {
-    if (!languageSearch.trim()) return MINECRAFT_LANGUAGES;
-    const query = languageSearch.toLowerCase();
-    return MINECRAFT_LANGUAGES.filter((lang) =>
-      lang.label.toLowerCase().includes(query) || lang.value.toLowerCase().includes(query)
-    );
-  }, [languageSearch]);
-
-  // 選択された言語のラベル取得
-  const selectedLanguageLabel = useMemo(() => {
-    const found = MINECRAFT_LANGUAGES.find((lang) => lang.value === gameLanguage);
-    return found ? found.label : gameLanguage;
-  }, [gameLanguage]);
-
-  // ドロップダウン外クリック検知用のref
-  const languageDropdownRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (languageDropdownRef.current && !languageDropdownRef.current.contains(event.target as Node)) {
-        setShowLanguageDropdown(false);
-      }
-    };
-
-    if (showLanguageDropdown) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [showLanguageDropdown]);
 
   // 仮想キーボード用のバインディングマップ
   const bindings = {
@@ -725,55 +701,14 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
             </p>
           </div>
         </div>
-        <div className="mt-4">
-          <label className="font-semibold mb-2 block">キーボードレイアウト</label>
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              type="button"
-              onClick={() => setKeyboardLayout('JIS')}
-              className={`px-4 py-2 rounded-lg border transition-colors font-medium ${
-                keyboardLayout === 'JIS'
-                  ? 'border-blue-500 bg-blue-500/10 text-blue-600'
-                  : 'border-[rgb(var(--border))] hover:bg-[rgb(var(--accent))]'
-              }`}
-            >
-              JIS
-            </button>
-            <button
-              type="button"
-              onClick={() => setKeyboardLayout('US')}
-              className={`px-4 py-2 rounded-lg border transition-colors font-medium ${
-                keyboardLayout === 'US'
-                  ? 'border-blue-500 bg-blue-500/10 text-blue-600'
-                  : 'border-[rgb(var(--border))] hover:bg-[rgb(var(--accent))]'
-              }`}
-            >
-              US
-            </button>
-            <button
-              type="button"
-              onClick={() => setKeyboardLayout('JIS-TKL')}
-              className={`px-4 py-2 rounded-lg border transition-colors font-medium ${
-                keyboardLayout === 'JIS-TKL'
-                  ? 'border-blue-500 bg-blue-500/10 text-blue-600'
-                  : 'border-[rgb(var(--border))] hover:bg-[rgb(var(--accent))]'
-              }`}
-            >
-              JIS (TKL)
-            </button>
-            <button
-              type="button"
-              onClick={() => setKeyboardLayout('US-TKL')}
-              className={`px-4 py-2 rounded-lg border transition-colors font-medium ${
-                keyboardLayout === 'US-TKL'
-                  ? 'border-blue-500 bg-blue-500/10 text-blue-600'
-                  : 'border-[rgb(var(--border))] hover:bg-[rgb(var(--accent))]'
-              }`}
-            >
-              US (TKL)
-            </button>
-          </div>
-        </div>
+        <RadioGroup
+          label="キーボードレイアウト"
+          value={keyboardLayout}
+          onChange={(value) => setKeyboardLayout(value as 'JIS' | 'JIS-TKL' | 'US' | 'US-TKL')}
+          options={KEYBOARD_LAYOUT_OPTIONS}
+          orientation="horizontal"
+          className="mt-4"
+        />
       </section>
 
       {/* 仮想キーボード */}
@@ -1048,55 +983,15 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
 
         <div className="space-y-4">
           {/* ゲーム内の言語 */}
-          <div className="relative" ref={languageDropdownRef}>
-            <label className="font-semibold text-base mb-2 block">ゲーム内の言語</label>
-            <div className="relative">
-              <input
-                type="text"
-                value={showLanguageDropdown ? languageSearch : selectedLanguageLabel}
-                onChange={(e) => {
-                  setLanguageSearch(e.target.value);
-                  setGameLanguage(e.target.value);
-                  if (!showLanguageDropdown) setShowLanguageDropdown(true);
-                }}
-                onFocus={() => {
-                  setShowLanguageDropdown(true);
-                  setLanguageSearch('');
-                }}
-                placeholder="言語を選択または入力"
-                className="w-full px-3 py-2 text-base border border-[rgb(var(--border))] rounded bg-[rgb(var(--background))]"
-              />
-              {showLanguageDropdown && (
-                <div className="absolute z-10 w-full mt-1 max-h-64 overflow-y-auto bg-[rgb(var(--card))] border border-[rgb(var(--border))] rounded-lg shadow-lg">
-                  {filteredLanguages.length > 0 ? (
-                    filteredLanguages.map((lang) => (
-                      <button
-                        key={lang.value}
-                        type="button"
-                        onClick={() => {
-                          setGameLanguage(lang.value);
-                          setShowLanguageDropdown(false);
-                          setLanguageSearch('');
-                        }}
-                        className="w-full px-3 py-2 text-left text-sm hover:bg-[rgb(var(--muted))] focus:bg-[rgb(var(--muted))] focus:outline-none"
-                      >
-                        {lang.label}
-                      </button>
-                    ))
-                  ) : (
-                    <div className="px-3 py-2 text-sm text-[rgb(var(--muted-foreground))]">
-                      検索結果なし
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-            {gameLanguage && (
-              <p className="text-xs text-[rgb(var(--muted-foreground))] mt-1">
-                現在の選択: {selectedLanguageLabel}
-              </p>
-            )}
-          </div>
+          <Combobox
+            label="ゲーム内の言語"
+            value={gameLanguage}
+            onChange={setGameLanguage}
+            options={MINECRAFT_LANGUAGES}
+            placeholder="言語を選択または入力"
+            allowCustomValue={true}
+            helpText={gameLanguage ? `現在の選択: ${MINECRAFT_LANGUAGES.find(l => l.value === gameLanguage)?.label || gameLanguage}` : undefined}
+          />
 
           {/* マウス */}
           <div>
@@ -1174,41 +1069,67 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
       </div>
 
       {/* 削除確認ダイアログ */}
-      {showDeleteConfirm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setShowDeleteConfirm(false)}>
-          <div className="bg-[rgb(var(--card))] p-6 rounded-lg border border-[rgb(var(--border))] max-w-md w-full mx-4" onClick={(e) => e.stopPropagation()}>
-            <h3 className="text-xl font-bold mb-4">設定を削除しますか？</h3>
-            <p className="text-[rgb(var(--muted-foreground))] mb-6">
-              この操作は取り消せません。すべてのキーバインド設定が削除されます。
-            </p>
-            <div className="flex gap-4 justify-end">
-              <Button
-                onClick={() => setShowDeleteConfirm(false)}
-                disabled={deleting}
-                variant="secondary"
-                size="lg"
-              >
-                キャンセル
-              </Button>
-              <Button
-                onClick={handleDelete}
-                disabled={deleting}
-                variant="danger"
-                size="lg"
-                className="flex items-center gap-2"
-              >
-                {deleting && (
-                  <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                )}
-                {deleting ? '削除中...' : '削除する'}
-              </Button>
-            </div>
+      <Transition show={showDeleteConfirm} as={Fragment}>
+        <Dialog onClose={() => setShowDeleteConfirm(false)} className="relative z-50">
+          {/* Backdrop */}
+          <TransitionChild
+            as={Fragment}
+            enter="ease-out duration-300"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="ease-in duration-200"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+          >
+            <div className="fixed inset-0 bg-black/50" aria-hidden="true" />
+          </TransitionChild>
+
+          {/* Full-screen container to center the panel */}
+          <div className="fixed inset-0 flex items-center justify-center p-4">
+            <TransitionChild
+              as={Fragment}
+              enter="ease-out duration-300"
+              enterFrom="opacity-0 scale-95"
+              enterTo="opacity-100 scale-100"
+              leave="ease-in duration-200"
+              leaveFrom="opacity-100 scale-100"
+              leaveTo="opacity-0 scale-95"
+            >
+              <DialogPanel className="glass-card p-6 rounded-lg border border-[rgb(var(--border))]/50 max-w-md w-full shadow-xl">
+                <DialogTitle className="text-xl font-bold mb-4">設定を削除しますか？</DialogTitle>
+                <p className="text-[rgb(var(--muted-foreground))] mb-6">
+                  この操作は取り消せません。すべてのキーバインド設定が削除されます。
+                </p>
+                <div className="flex gap-4 justify-end">
+                  <Button
+                    onClick={() => setShowDeleteConfirm(false)}
+                    disabled={deleting}
+                    variant="secondary"
+                    size="lg"
+                  >
+                    キャンセル
+                  </Button>
+                  <Button
+                    onClick={handleDelete}
+                    disabled={deleting}
+                    variant="danger"
+                    size="lg"
+                    className="flex items-center gap-2"
+                  >
+                    {deleting && (
+                      <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                    )}
+                    {deleting ? '削除中...' : '削除する'}
+                  </Button>
+                </div>
+              </DialogPanel>
+            </TransitionChild>
           </div>
-        </div>
-      )}
+        </Dialog>
+      </Transition>
     </div>
   );
 }

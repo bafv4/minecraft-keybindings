@@ -66,7 +66,7 @@ export function ItemSelectorModal({ isOpen, onClose, onSelect, selectedSlot }: I
             leaveFrom="opacity-100 scale-100"
             leaveTo="opacity-0 scale-95"
           >
-            <DialogPanel className="bg-[rgb(var(--card))] rounded-lg border-2 border-[rgb(var(--border))] max-w-4xl w-full max-h-[80vh] flex flex-col">
+            <DialogPanel className="glass-card rounded-lg border-2 border-[rgb(var(--border))]/50 max-w-4xl w-full max-h-[80vh] flex flex-col shadow-xl">
               {/* ヘッダー */}
               <div className="p-4 border-b border-[rgb(var(--border))]">
                 <div className="flex justify-between items-center mb-4">
