@@ -1,5 +1,8 @@
+// @ts-nocheck - This script is deprecated as migration has been completed
 /**
  * データ移行の検証スクリプト
+ *
+ * ⚠️ このスクリプトは既に実行済みです。PlayerSettings テーブルは削除されました。
  *
  * PlayerSettings（旧）→ 新スキーマへの移行が正しく行われたか確認します：
  * - PlayerConfig: マウス・環境設定

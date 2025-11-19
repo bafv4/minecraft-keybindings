@@ -82,7 +82,6 @@ export default async function EditPage({ params }: EditPageProps) {
   const user = await prisma.user.findUnique({
     where: { mcid },
     include: {
-      settingsLegacy: true,
       config: true,
       keybindings: true,
     },
@@ -92,8 +91,8 @@ export default async function EditPage({ params }: EditPageProps) {
     redirect('/');
   }
 
-  // 新スキーマ優先で settings を構築
-  const settings = user.config || user.settingsLegacy;
+  // settings を構築
+  const settings = user.config;
 
   return (
     <div className="pb-6">

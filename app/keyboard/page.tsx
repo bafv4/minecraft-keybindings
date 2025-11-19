@@ -23,24 +23,20 @@ const KeyboardListView = dynamic(() => import('@/components/KeyboardListView').t
 });
 
 export default async function KeyboardPage() {
-  // 設定があるユーザーのみを取得（旧または新スキーマ）
+  // 設定があるユーザーのみを取得
   const users = await prisma.user.findMany({
     where: {
-      OR: [
-        { settingsLegacy: { isNot: null } },
-        { config: { isNot: null } },
-      ],
+      config: { isNot: null },
     },
     include: {
-      settingsLegacy: true,
       config: true,
     },
   });
 
-  // 新スキーマ優先で settings を構築
+  // settings を構築
   const usersWithSettings = users.map(user => ({
     ...user,
-    settings: user.config || user.settingsLegacy,
+    settings: user.config,
   }));
 
   return <KeyboardListView users={usersWithSettings as User[]} />;

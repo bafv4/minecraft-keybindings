@@ -1,5 +1,8 @@
+// @ts-nocheck - This script is deprecated as migration has been completed
 /**
  * 旧スキーマ → 新スキーマへのデータ移行スクリプト（同一DB内）
+ *
+ * ⚠️ このスクリプトは既に実行済みです。PlayerSettings テーブルは削除されました。
  *
  * PlayerSettings（旧）のデータを以下に振り分けます：
  * - PlayerConfig（新）: マウス・環境設定

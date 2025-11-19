@@ -268,7 +268,7 @@ export async function DELETE(request: Request) {
     const uuid = session.user.uuid;
 
     // カスケード削除により、関連データも自動削除される
-    await prisma.playerSettings.delete({
+    await prisma.playerConfig.delete({
       where: { uuid },
     });
 
