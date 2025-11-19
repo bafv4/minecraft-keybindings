@@ -7,6 +7,7 @@ import { VirtualKeyboard } from './VirtualKeyboard';
 
 interface KeybindingDisplayProps {
   settings: PlayerSettings;
+  keybindings?: Array<{ action: string; keyCode: string; category: string; fingers?: string[] }>;
 }
 
 // 言語コードを言語名に変換する関数
@@ -99,7 +100,15 @@ function formatKey(keyCode: string | undefined): string {
   return keyCode;
 }
 
-export function KeybindingDisplay({ settings }: KeybindingDisplayProps) {
+export function KeybindingDisplay({ settings, keybindings = [] }: KeybindingDisplayProps) {
+  // keybindings配列をオブジェクトに変換してsettingsにマージ
+  const keybindingsMap = keybindings.reduce((acc, kb) => {
+    acc[kb.action] = kb.keyCode;
+    return acc;
+  }, {} as Record<string, string>);
+
+  const mergedSettings = { ...settings, ...keybindingsMap } as PlayerSettings & Record<string, any>;
+
   // 指の割り当て設定を正規化（後方互換性のため、古い形式を配列に変換）
   const normalizedFingerAssignments: FingerAssignments = (() => {
     if (!settings.fingerAssignments) {
@@ -137,35 +146,35 @@ export function KeybindingDisplay({ settings }: KeybindingDisplayProps) {
 
   // 仮想キーボード用のバインディングマップ
   const bindings = {
-    forward: settings.forward,
-    back: settings.back,
-    left: settings.left,
-    right: settings.right,
-    jump: settings.jump,
-    sneak: settings.sneak,
-    sprint: settings.sprint,
-    attack: settings.attack,
-    use: settings.use,
-    pickBlock: settings.pickBlock,
-    drop: settings.drop,
-    inventory: settings.inventory,
-    swapHands: settings.swapHands,
-    hotbar1: settings.hotbar1,
-    hotbar2: settings.hotbar2,
-    hotbar3: settings.hotbar3,
-    hotbar4: settings.hotbar4,
-    hotbar5: settings.hotbar5,
-    hotbar6: settings.hotbar6,
-    hotbar7: settings.hotbar7,
-    hotbar8: settings.hotbar8,
-    hotbar9: settings.hotbar9,
-    togglePerspective: settings.togglePerspective || 'key.keyboard.f5',
-    fullscreen: settings.fullscreen || 'key.keyboard.f11',
-    chat: settings.chat || 'key.keyboard.t',
-    command: settings.command || 'key.keyboard.slash',
-    toggleHud: settings.toggleHud || 'key.keyboard.f1',
-    reset: (settings.additionalSettings as { reset?: string })?.reset || 'key.keyboard.f6',
-    playerList: (settings.additionalSettings as { playerList?: string })?.playerList || 'key.keyboard.tab',
+    forward: mergedSettings.forward,
+    back: mergedSettings.back,
+    left: mergedSettings.left,
+    right: mergedSettings.right,
+    jump: mergedSettings.jump,
+    sneak: mergedSettings.sneak,
+    sprint: mergedSettings.sprint,
+    attack: mergedSettings.attack,
+    use: mergedSettings.use,
+    pickBlock: mergedSettings.pickBlock,
+    drop: mergedSettings.drop,
+    inventory: mergedSettings.inventory,
+    swapHands: mergedSettings.swapHands,
+    hotbar1: mergedSettings.hotbar1,
+    hotbar2: mergedSettings.hotbar2,
+    hotbar3: mergedSettings.hotbar3,
+    hotbar4: mergedSettings.hotbar4,
+    hotbar5: mergedSettings.hotbar5,
+    hotbar6: mergedSettings.hotbar6,
+    hotbar7: mergedSettings.hotbar7,
+    hotbar8: mergedSettings.hotbar8,
+    hotbar9: mergedSettings.hotbar9,
+    togglePerspective: mergedSettings.togglePerspective || 'key.keyboard.f5',
+    fullscreen: mergedSettings.fullscreen || 'key.keyboard.f11',
+    chat: mergedSettings.chat || 'key.keyboard.t',
+    command: mergedSettings.command || 'key.keyboard.slash',
+    toggleHud: mergedSettings.toggleHud || 'key.keyboard.f1',
+    reset: mergedSettings.reset || 'key.keyboard.f6',
+    playerList: mergedSettings.playerList || 'key.keyboard.tab',
   };
 
   // 外部ツール設定（既に平坦化されている）

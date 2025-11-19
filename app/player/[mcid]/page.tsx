@@ -101,7 +101,7 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
 
       {settings ? (
         <>
-          <KeybindingDisplay settings={settings as PlayerSettings} />
+          <KeybindingDisplay settings={settings as PlayerSettings} keybindings={user.keybindings} />
 
           {/* アイテム配置表示 */}
           {user.itemLayouts && user.itemLayouts.length > 0 && (
