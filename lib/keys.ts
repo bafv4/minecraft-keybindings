@@ -103,14 +103,14 @@ export const KEYS: Record<string, KeyDefinition> = {
   F20: { code: 'F20', name: 'F20', category: 'function', minecraft: 'key.keyboard.f20' },
 
   // ========== 修飾キー ==========
-  ShiftLeft: { code: 'ShiftLeft', name: '左Shift', category: 'modifier', position: { row: 3, col: 0 }, size: { width: 2 }, minecraft: 'key.keyboard.left.shift' },
-  ShiftRight: { code: 'ShiftRight', name: '右Shift', category: 'modifier', position: { row: 3, col: 12 }, size: { width: 2 }, minecraft: 'key.keyboard.right.shift' },
-  ControlLeft: { code: 'ControlLeft', name: '左Ctrl', category: 'modifier', position: { row: 4, col: 0 }, minecraft: 'key.keyboard.left.control' },
-  ControlRight: { code: 'ControlRight', name: '右Ctrl', category: 'modifier', position: { row: 4, col: 12 }, minecraft: 'key.keyboard.right.control' },
-  AltLeft: { code: 'AltLeft', name: '左Alt', category: 'modifier', position: { row: 4, col: 2 }, minecraft: 'key.keyboard.left.alt' },
-  AltRight: { code: 'AltRight', name: '右Alt', category: 'modifier', position: { row: 4, col: 10 }, minecraft: 'key.keyboard.right.alt' },
-  MetaLeft: { code: 'MetaLeft', name: '左Win', category: 'modifier', position: { row: 4, col: 1 }, minecraft: 'key.keyboard.left.win' },
-  MetaRight: { code: 'MetaRight', name: '右Win', category: 'modifier', position: { row: 4, col: 11 }, minecraft: 'key.keyboard.right.win' },
+  ShiftLeft: { code: 'ShiftLeft', name: 'LShift', category: 'modifier', position: { row: 3, col: 0 }, size: { width: 2 }, minecraft: 'key.keyboard.left.shift' },
+  ShiftRight: { code: 'ShiftRight', name: 'RShift', category: 'modifier', position: { row: 3, col: 12 }, size: { width: 2 }, minecraft: 'key.keyboard.right.shift' },
+  ControlLeft: { code: 'ControlLeft', name: 'LCtrl', category: 'modifier', position: { row: 4, col: 0 }, minecraft: 'key.keyboard.left.control' },
+  ControlRight: { code: 'ControlRight', name: 'RCtrl', category: 'modifier', position: { row: 4, col: 12 }, minecraft: 'key.keyboard.right.control' },
+  AltLeft: { code: 'AltLeft', name: 'LAlt', category: 'modifier', position: { row: 4, col: 2 }, minecraft: 'key.keyboard.left.alt' },
+  AltRight: { code: 'AltRight', name: 'RAlt', category: 'modifier', position: { row: 4, col: 10 }, minecraft: 'key.keyboard.right.alt' },
+  MetaLeft: { code: 'MetaLeft', name: 'LWin', category: 'modifier', position: { row: 4, col: 1 }, minecraft: 'key.keyboard.left.win' },
+  MetaRight: { code: 'MetaRight', name: 'RWin', category: 'modifier', position: { row: 4, col: 11 }, minecraft: 'key.keyboard.right.win' },
 
   // ========== ナビゲーションキー ==========
   ArrowUp: { code: 'ArrowUp', name: '↑', category: 'navigation', minecraft: 'key.keyboard.up' },
@@ -178,14 +178,14 @@ export const KEYS: Record<string, KeyDefinition> = {
   KanaMode: { code: 'KanaMode', name: 'カナ', category: 'jis-specific', minecraft: 'key.keyboard.kana' },
 
   // ========== マウスボタン ==========
-  Mouse0: { code: 'Mouse0', name: 'マウス左', category: 'mouse', minecraft: 'key.mouse.left' },
-  Mouse1: { code: 'Mouse1', name: 'マウス右', category: 'mouse', minecraft: 'key.mouse.right' },
-  Mouse2: { code: 'Mouse2', name: 'マウス中', category: 'mouse', minecraft: 'key.mouse.middle' },
-  Mouse3: { code: 'Mouse3', name: 'マウス4', category: 'mouse', minecraft: 'key.mouse.4' },
-  Mouse4: { code: 'Mouse4', name: 'マウス5', category: 'mouse', minecraft: 'key.mouse.5' },
-  Mouse5: { code: 'Mouse5', name: 'マウス6', category: 'mouse', minecraft: 'key.mouse.6' },
-  Mouse6: { code: 'Mouse6', name: 'マウス7', category: 'mouse', minecraft: 'key.mouse.7' },
-  Mouse7: { code: 'Mouse7', name: 'マウス8', category: 'mouse', minecraft: 'key.mouse.8' },
+  Mouse0: { code: 'Mouse0', name: 'L', category: 'mouse', minecraft: 'key.mouse.left' },
+  Mouse1: { code: 'Mouse1', name: 'R', category: 'mouse', minecraft: 'key.mouse.right' },
+  Mouse2: { code: 'Mouse2', name: 'MButton', category: 'mouse', minecraft: 'key.mouse.middle' },
+  Mouse3: { code: 'Mouse3', name: 'MB4', category: 'mouse', minecraft: 'key.mouse.4' },
+  Mouse4: { code: 'Mouse4', name: 'MB5', category: 'mouse', minecraft: 'key.mouse.5' },
+  Mouse5: { code: 'Mouse5', name: 'MB6', category: 'mouse', minecraft: 'key.mouse.6' },
+  Mouse6: { code: 'Mouse6', name: 'MB7', category: 'mouse', minecraft: 'key.mouse.7' },
+  Mouse7: { code: 'Mouse7', name: 'MB8', category: 'mouse', minecraft: 'key.mouse.8' },
 
   // ========== 特殊値 ==========
   Disabled: { code: 'Disabled', name: '✕', category: 'special', minecraft: 'key.keyboard.disabled' },

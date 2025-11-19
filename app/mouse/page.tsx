@@ -1,7 +1,7 @@
-import { prisma } from '@/lib/db';
 import dynamic from 'next/dynamic';
 import type { User } from '@/types/player';
 import type { Metadata } from 'next';
+import { getMousePageData } from '@/lib/playerData';
 
 export const metadata: Metadata = {
   title: 'マウス設定一覧 | MCSRer Hotkeys',
@@ -23,21 +23,7 @@ const MouseListView = dynamic(() => import('@/components/MouseListView').then(mo
 });
 
 export default async function MousePage() {
-  // 設定があるユーザーのみを取得
-  const users = await prisma.user.findMany({
-    where: {
-      config: { isNot: null },
-    },
-    include: {
-      config: true,
-    },
-  });
+  const users = await getMousePageData();
 
-  // settings を構築
-  const usersWithSettings = users.map(user => ({
-    ...user,
-    settings: user.config,
-  }));
-
-  return <MouseListView users={usersWithSettings as User[]} />;
+  return <MouseListView users={users as User[]} />;
 }

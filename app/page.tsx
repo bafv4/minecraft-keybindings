@@ -1,7 +1,7 @@
-import { prisma } from '@/lib/db';
 import dynamic from 'next/dynamic';
 import type { User } from '@/types/player';
 import type { Metadata } from 'next';
+import { getPlayersList } from '@/lib/playerData';
 
 export const metadata: Metadata = {
   title: 'プレイヤー一覧 | MCSRer Hotkeys',
@@ -23,22 +23,7 @@ const PlayerListView = dynamic(() => import('@/components/PlayerListView').then(
 });
 
 export default async function HomePage() {
-  // 設定があるユーザーのみを取得
-  const users = await prisma.user.findMany({
-    where: {
-      config: { isNot: null },
-    },
-    include: {
-      config: true,
-      keybindings: true,
-    },
-  });
+  const users = await getPlayersList();
 
-  // settings を構築
-  const usersWithSettings = users.map(user => ({
-    ...user,
-    settings: user.config,
-  }));
-
-  return <PlayerListView users={usersWithSettings as User[]} />;
+  return <PlayerListView users={users as User[]} />;
 }

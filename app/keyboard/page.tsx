@@ -1,7 +1,7 @@
-import { prisma } from '@/lib/db';
 import dynamic from 'next/dynamic';
 import type { User } from '@/types/player';
 import type { Metadata } from 'next';
+import { getKeyboardStatsData } from '@/lib/playerData';
 
 export const metadata: Metadata = {
   title: 'キーボード設定一覧 | MCSRer Hotkeys',
@@ -23,21 +23,7 @@ const KeyboardListView = dynamic(() => import('@/components/KeyboardListView').t
 });
 
 export default async function KeyboardPage() {
-  // 設定があるユーザーのみを取得
-  const users = await prisma.user.findMany({
-    where: {
-      config: { isNot: null },
-    },
-    include: {
-      config: true,
-    },
-  });
+  const users = await getKeyboardStatsData();
 
-  // settings を構築
-  const usersWithSettings = users.map(user => ({
-    ...user,
-    settings: user.config,
-  }));
-
-  return <KeyboardListView users={usersWithSettings as User[]} />;
+  return <KeyboardListView users={users as User[]} />;
 }

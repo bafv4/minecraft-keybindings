@@ -3,8 +3,8 @@ import { prisma } from '@/lib/db';
 import { MinecraftAvatar } from '@/components/MinecraftAvatar';
 import { HotbarDisplay } from '@/components/HotbarDisplay';
 import { getSegmentInfo } from '@/lib/segments';
+import { getPlayerData } from '@/lib/playerData';
 import dynamic from 'next/dynamic';
-import type { PlayerSettings } from '@/types/player';
 import type { Metadata } from 'next';
 
 const KeybindingDisplay = dynamic(() => import('@/components/KeybindingDisplay').then(mod => ({ default: mod.KeybindingDisplay })), {
@@ -67,26 +67,13 @@ export async function generateMetadata({ params }: PlayerPageProps): Promise<Met
 export default async function PlayerPage({ params }: PlayerPageProps) {
   const { mcid } = await params;
 
-  const user = await prisma.user.findUnique({
-    where: { mcid },
-    include: {
-      config: true,
-      keybindings: true,
-      customKeys: true,
-      keyRemaps: true,
-      externalTools: true,
-      itemLayouts: {
-        orderBy: { segment: 'asc' },
-      },
-    },
-  });
+  const playerData = await getPlayerData(mcid);
 
-  if (!user) {
+  if (!playerData) {
     notFound();
   }
 
-  // settings を構築
-  const settings = user.config;
+  const { user, settings, rawKeybindings, rawCustomKeys, rawKeyRemaps, rawExternalTools, itemLayouts } = playerData;
 
   const showDisplayName = user.displayName && user.displayName.trim() !== '';
 
@@ -105,19 +92,19 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
       {settings ? (
         <>
           <KeybindingDisplay
-            settings={settings as PlayerSettings}
-            keybindings={user.keybindings}
-            customKeys={user.customKeys}
-            keyRemaps={user.keyRemaps}
-            externalTools={user.externalTools}
+            settings={settings}
+            keybindings={rawKeybindings}
+            customKeys={rawCustomKeys}
+            keyRemaps={rawKeyRemaps}
+            externalTools={rawExternalTools}
           />
 
           {/* アイテム配置表示 */}
-          {user.itemLayouts && user.itemLayouts.length > 0 && (
+          {itemLayouts && itemLayouts.length > 0 && (
             <div className="mt-12">
               <h2 className="text-2xl font-bold mb-6">アイテム配置</h2>
               <div className="space-y-8">
-                {user.itemLayouts.map((layout) => {
+                {itemLayouts.map((layout) => {
                   const segmentInfo = getSegmentInfo(layout.segment);
                   return (
                     <div key={layout.segment} className="bg-[rgb(var(--muted))] rounded-lg p-6">
