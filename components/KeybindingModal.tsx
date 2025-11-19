@@ -713,7 +713,7 @@ export function KeybindingModal({
                   • Caps Lock → Ctrlに変更（修飾キー化）<br />
                   • 無変換 → F13に変更（ファンクションキー化）<br />
                   • マウスサイドボタン → Ctrlに変更<br />
-                  • 無効化: 特殊 > 無効化を選択
+                  • 無効化: 特殊 &gt; 無効化を選択
                 </p>
               </div>
             </div>

@@ -50,6 +50,11 @@ model PlayerConfig {
   rawInput          Boolean  @default(true) // RawInput使用の有無
   cm360             Float?   // 振り向き（cm/180度）- 自動計算
 
+  // ゲーム設定
+  toggleSprint Boolean? @default(false) // スプリント切り替え
+  toggleSneak  Boolean? @default(false) // スニーク切り替え
+  autoJump     Boolean? @default(false) // オートジャンプ
+
   // 指割り当て設定
   fingerAssignments Json? // キーコード → 指の配列のマッピング
 
