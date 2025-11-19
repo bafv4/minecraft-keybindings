@@ -81,20 +81,79 @@ export default async function EditPage({ params }: EditPageProps) {
     redirect(`/player/${mcid}`);
   }
 
-  const user = await prisma.user.findUnique({
-    where: { mcid },
-    include: {
-      config: true,
-      keybindings: true,
-    },
-  });
+  // 全データを並列取得
+  const [user, keybindings, keyRemaps, externalTools, customKeys] = await Promise.all([
+    prisma.user.findUnique({
+      where: { mcid },
+      include: {
+        config: true,
+      },
+    }),
+    prisma.keybinding.findMany({
+      where: { user: { mcid } },
+    }),
+    prisma.keyRemap.findMany({
+      where: { user: { mcid } },
+    }),
+    prisma.externalTool.findMany({
+      where: { user: { mcid } },
+    }),
+    prisma.customKey.findMany({
+      where: { user: { mcid } },
+    }),
+  ]);
 
   if (!user) {
     redirect('/');
   }
 
-  // settings を構築
-  const settings = user.config;
+  // Keybindingテーブルのデータを PlayerSettings 形式に変換
+  const keybindingMap: { [action: string]: string | string[] } = {};
+
+  if (keybindings && keybindings.length > 0) {
+    // アクションごとにキーコードをグループ化
+    const grouped = keybindings.reduce((acc, kb) => {
+      if (!acc[kb.action]) {
+        acc[kb.action] = [];
+      }
+      acc[kb.action].push(kb.keyCode);
+      return acc;
+    }, {} as { [action: string]: string[] });
+
+    // 配列が1つの要素の場合は文字列に、複数の場合は配列のまま
+    Object.entries(grouped).forEach(([action, keyCodes]) => {
+      keybindingMap[action] = keyCodes.length === 1 ? keyCodes[0] : keyCodes;
+    });
+  }
+
+  // KeyRemapを旧形式のオブジェクトに変換
+  const remappings: { [key: string]: string } = {};
+  keyRemaps.forEach(remap => {
+    if (remap.targetKey) {
+      remappings[remap.sourceKey] = remap.targetKey;
+    }
+  });
+
+  // ExternalToolを旧形式のオブジェクトに変換
+  const externalToolsMap: { [key: string]: string } = {};
+  externalTools.forEach(tool => {
+    externalToolsMap[tool.triggerKey] = tool.actionName;
+  });
+
+  // CustomKeyを旧形式の配列に変換
+  const customKeysArray = customKeys.map(ck => ({
+    id: ck.keyCode,
+    label: ck.keyName,
+    keyCode: ck.keyCode,
+  }));
+
+  // settings を構築（configとkeybindingsをマージ）
+  const settings: PlayerSettings | undefined = user.config ? {
+    ...user.config,
+    ...keybindingMap,
+    remappings,
+    externalTools: externalToolsMap,
+  } as PlayerSettings : undefined;
 
   return (
     <div className="pb-6">
@@ -109,7 +168,7 @@ export default async function EditPage({ params }: EditPageProps) {
       <div className="mb-12">
         <h2 className="text-2xl font-bold mb-6">キーバインド設定</h2>
         <KeybindingEditor
-          initialSettings={(settings as PlayerSettings) || undefined}
+          initialSettings={settings}
           uuid={user.uuid}
           mcid={user.mcid}
           displayName={user.displayName || ''}

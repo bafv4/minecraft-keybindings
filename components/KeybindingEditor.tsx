@@ -224,13 +224,19 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
   );
 
   // リマップとツール設定（オブジェクトとして管理）
-  const [remappings, setRemappings] = useState<{ [key: string]: string }>(
-    initialSettings?.remappings || {}
-  );
+  const [remappings, setRemappings] = useState<{ [key: string]: string }>(() => {
+    if (initialSettings && 'remappings' in initialSettings) {
+      return (initialSettings.remappings as { [key: string]: string }) || {};
+    }
+    return {};
+  });
 
   // 外部ツール設定（key -> action名）
   const [externalTools, setExternalTools] = useState<{ [key: string]: string }>(() => {
-    return (initialSettings?.externalTools as { [key: string]: string }) || {};
+    if (initialSettings && 'externalTools' in initialSettings) {
+      return (initialSettings.externalTools as { [key: string]: string }) || {};
+    }
+    return {};
   });
 
   // 指の割り当て設定（後方互換性のため、古い形式を配列に変換）
@@ -341,6 +347,23 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
       command: 'コマンド', toggleHud: 'Hide HUD', playerList: 'プレイヤーリスト', reset: 'リセット',
     };
     return labels[action] || action;
+  };
+
+  // アクションのカテゴリを取得
+  const getCategoryForAction = (action: string): string => {
+    if (['forward', 'back', 'left', 'right', 'jump', 'sneak', 'sprint'].includes(action)) {
+      return 'movement';
+    }
+    if (['attack', 'use', 'pickBlock', 'drop'].includes(action)) {
+      return 'action';
+    }
+    if (['inventory', 'swapHands', 'hotbar1', 'hotbar2', 'hotbar3', 'hotbar4', 'hotbar5', 'hotbar6', 'hotbar7', 'hotbar8', 'hotbar9'].includes(action)) {
+      return 'inventory';
+    }
+    if (['togglePerspective', 'fullscreen', 'chat', 'command', 'toggleHud'].includes(action)) {
+      return 'view';
+    }
+    return 'other';
   };
 
   // MCIDを手動同期
@@ -527,75 +550,94 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
     setSaving(true);
 
     try {
-
-      const data = {
-        uuid, // UUIDを送信
-        displayName, // 表示名を送信
-        keyboardLayout, // キーボードレイアウトを送信
-
-        // マウス設定
-        mouseDpi: mouseDpi ? Number(mouseDpi) : null,
-        gameSensitivity: sensitivityRaw ? Number(sensitivityRaw) : null,
-        windowsSpeed: windowsSpeed ? Number(windowsSpeed) : null,
-        mouseAcceleration,
-        rawInput,
-        cm360,
-
-        // 移動
-        forward,
-        back,
-        left,
-        right,
-        jump,
-        sneak,
-        sprint,
-
-        // アクション
-        attack,
-        use,
-        pickBlock,
-        drop,
-
-        // インベントリ
-        inventory,
-        swapHands,
-        hotbar1,
-        hotbar2,
-        hotbar3,
-        hotbar4,
-        hotbar5,
-        hotbar6,
-        hotbar7,
-        hotbar8,
-        hotbar9,
-
-        // ビュー・UI操作
-        togglePerspective,
-        fullscreen,
-        chat,
-        command,
-        toggleHud,
-
-        // リマップと外部ツール（空のオブジェクトの場合はnullに変換）
-        remappings: Object.keys(remappings).length > 0 ? remappings : null,
-        externalTools: Object.keys(externalTools).length > 0 ? externalTools : null,
-        fingerAssignments: Object.keys(fingerAssignments).length > 0 ? fingerAssignments : null,
-
-        // 追加設定（additionalSettings JSONフィールドに保存）
-        additionalSettings: {
-          reset,
-          playerList,
-          customKeys: customKeys.length > 0 ? { keys: customKeys } : undefined
-        },
-
-        // プレイヤー環境設定
-        gameLanguage: gameLanguage.trim() || undefined,
-        mouseModel: mouseModel.trim() || undefined,
-        keyboardModel: keyboardModel.trim() || undefined,
-        notes: notes.trim() || undefined,
+      // キーバインドを新スキーマ形式（Keybinding配列）に変換
+      const keybindingStates: { [action: string]: string | string[] } = {
+        forward, back, left, right, jump, sneak, sprint,
+        attack, use, pickBlock, drop,
+        inventory, swapHands,
+        hotbar1, hotbar2, hotbar3, hotbar4, hotbar5, hotbar6, hotbar7, hotbar8, hotbar9,
+        togglePerspective, fullscreen, chat, command, toggleHud,
       };
 
-      console.log('Saving keybindings:', { remappings, externalTools, fingerAssignments });
+      // additionalSettingsのキーバインドも追加
+      const additionalBindings: { [action: string]: string | string[] } = {
+        reset,
+        playerList,
+      };
+
+      const keybindings: Array<{ action: string; keyCode: string; category: string; fingers?: string[] }> = [];
+
+      // 通常のキーバインドを変換
+      Object.entries(keybindingStates).forEach(([action, keyBinding]) => {
+        const keyCodes = Array.isArray(keyBinding) ? keyBinding : [keyBinding];
+        keyCodes.forEach(keyCode => {
+          if (keyCode && keyCode !== '') {
+            keybindings.push({
+              action,
+              keyCode,
+              category: getCategoryForAction(action),
+              fingers: fingerAssignments[keyCode] || undefined,
+            });
+          }
+        });
+      });
+
+      // 追加設定のキーバインドを変換
+      Object.entries(additionalBindings).forEach(([action, keyBinding]) => {
+        const keyCodes = Array.isArray(keyBinding) ? keyBinding : [keyBinding];
+        keyCodes.forEach(keyCode => {
+          if (keyCode && keyCode !== '') {
+            keybindings.push({
+              action,
+              keyCode,
+              category: 'other',
+              fingers: fingerAssignments[keyCode] || undefined,
+            });
+          }
+        });
+      });
+
+      // キーリマップを配列形式に変換
+      const keyRemaps = Object.entries(remappings).map(([sourceKey, targetKey]) => ({
+        sourceKey,
+        targetKey,
+      }));
+
+      // 外部ツールを配列形式に変換
+      const externalToolsArray = Object.entries(externalTools).map(([triggerKey, actionName]) => ({
+        triggerKey,
+        toolName: 'AutoHotKey', // デフォルト値
+        actionName,
+        description: undefined,
+      }));
+
+      const data = {
+        settings: {
+          displayName,
+          keyboardLayout,
+          mouseDpi: mouseDpi ? Number(mouseDpi) : null,
+          gameSensitivity: sensitivityRaw ? Number(sensitivityRaw) : null,
+          windowsSpeed: windowsSpeed ? Number(windowsSpeed) : null,
+          mouseAcceleration,
+          rawInput,
+          cm360,
+          fingerAssignments: Object.keys(fingerAssignments).length > 0 ? fingerAssignments : undefined,
+          gameLanguage: gameLanguage.trim() || undefined,
+          mouseModel: mouseModel.trim() || undefined,
+          keyboardModel: keyboardModel.trim() || undefined,
+          notes: notes.trim() || undefined,
+        },
+        keybindings,
+        keyRemaps: keyRemaps.length > 0 ? keyRemaps : undefined,
+        externalTools: externalToolsArray.length > 0 ? externalToolsArray : undefined,
+        customKeys: customKeys.length > 0 ? customKeys.map(ck => ({
+          keyCode: ck.keyCode,
+          keyName: ck.label,
+          category: 'keyboard' as const,
+        })) : undefined,
+      };
+
+      console.log('Saving keybindings:', data);
 
       const response = await fetch('/api/keybindings', {
         method: 'POST',
