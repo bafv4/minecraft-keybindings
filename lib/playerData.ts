@@ -4,6 +4,7 @@
  */
 
 import { prisma } from './db';
+import { normalizeKeyCode } from './keyConversion';
 import type { PlayerSettings, CustomKey } from '@/types/player';
 
 /**
@@ -33,13 +34,16 @@ export function convertCustomKeys(
 
 /**
  * KeyRemap配列をフラットオブジェクトに変換
+ * キーコードはWeb標準形式に正規化される
  */
 export function convertKeyRemaps(
   keyRemaps: Array<{ sourceKey: string; targetKey: string | null }>
 ): Record<string, string> {
   return keyRemaps.reduce((acc, remap) => {
     if (remap.targetKey !== null) {
-      acc[remap.sourceKey] = remap.targetKey;
+      // キーコードをWeb標準形式に正規化（Minecraft形式の既存データにも対応）
+      const normalizedKey = normalizeKeyCode(remap.sourceKey);
+      acc[normalizedKey] = remap.targetKey;
     }
     return acc;
   }, {} as Record<string, string>);
@@ -47,12 +51,15 @@ export function convertKeyRemaps(
 
 /**
  * ExternalTool配列をフラットオブジェクトに変換
+ * キーコードはWeb標準形式に正規化される
  */
 export function convertExternalTools(
   externalTools: Array<{ triggerKey: string; actionName: string }>
 ): Record<string, string> {
   return externalTools.reduce((acc, tool) => {
-    acc[tool.triggerKey] = tool.actionName;
+    // キーコードをWeb標準形式に正規化（Minecraft形式の既存データにも対応）
+    const normalizedKey = normalizeKeyCode(tool.triggerKey);
+    acc[normalizedKey] = tool.actionName;
     return acc;
   }, {} as Record<string, string>);
 }

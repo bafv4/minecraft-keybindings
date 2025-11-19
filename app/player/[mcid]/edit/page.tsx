@@ -4,6 +4,7 @@ import { prisma } from '@/lib/db';
 import dynamic from 'next/dynamic';
 import type { PlayerSettings } from '@/types/player';
 import type { Metadata } from 'next';
+import { normalizeKeyCode } from '@/lib/keyConversion';
 
 const KeybindingEditor = dynamic(() => import('@/components/KeybindingEditor').then(mod => ({ default: mod.KeybindingEditor })), {
   loading: () => <div className="flex items-center justify-center py-12"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div></div>
@@ -109,6 +110,7 @@ export default async function EditPage({ params }: EditPageProps) {
 
   // Keybindingテーブルのデータを PlayerSettings 形式に変換
   const keybindingMap: { [action: string]: string | string[] } = {};
+  const additionalSettingsMap: { [action: string]: string | string[] } = {};
 
   if (keybindings && keybindings.length > 0) {
     // アクションごとにキーコードをグループ化
@@ -122,22 +124,33 @@ export default async function EditPage({ params }: EditPageProps) {
 
     // 配列が1つの要素の場合は文字列に、複数の場合は配列のまま
     Object.entries(grouped).forEach(([action, keyCodes]) => {
-      keybindingMap[action] = keyCodes.length === 1 ? keyCodes[0] : keyCodes;
+      const value = keyCodes.length === 1 ? keyCodes[0] : keyCodes;
+
+      // reset、playerListはadditionalSettingsに分類
+      if (action === 'reset' || action === 'playerList') {
+        additionalSettingsMap[action] = value;
+      } else {
+        keybindingMap[action] = value;
+      }
     });
   }
 
-  // KeyRemapを旧形式のオブジェクトに変換
+  // KeyRemapを旧形式のオブジェクトに変換（キーコードを正規化）
   const remappings: { [key: string]: string } = {};
   keyRemaps.forEach(remap => {
     if (remap.targetKey) {
-      remappings[remap.sourceKey] = remap.targetKey;
+      // キーコードをWeb標準形式に正規化（Minecraft形式の既存データにも対応）
+      const normalizedKey = normalizeKeyCode(remap.sourceKey);
+      remappings[normalizedKey] = remap.targetKey;
     }
   });
 
-  // ExternalToolを旧形式のオブジェクトに変換
+  // ExternalToolを旧形式のオブジェクトに変換（キーコードを正規化）
   const externalToolsMap: { [key: string]: string } = {};
   externalTools.forEach(tool => {
-    externalToolsMap[tool.triggerKey] = tool.actionName;
+    // キーコードをWeb標準形式に正規化（Minecraft形式の既存データにも対応）
+    const normalizedKey = normalizeKeyCode(tool.triggerKey);
+    externalToolsMap[normalizedKey] = tool.actionName;
   });
 
   // CustomKeyを旧形式の配列に変換
@@ -153,6 +166,10 @@ export default async function EditPage({ params }: EditPageProps) {
     ...keybindingMap,
     remappings,
     externalTools: externalToolsMap,
+    additionalSettings: {
+      ...additionalSettingsMap,
+      customKeys: customKeysArray.length > 0 ? { keys: customKeysArray } : undefined,
+    },
   } as PlayerSettings : undefined;
 
   return (

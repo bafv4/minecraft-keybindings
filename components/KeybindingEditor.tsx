@@ -7,6 +7,7 @@ import { calculateCm360, calculateCursorSpeed } from '@/lib/utils';
 import type { PlayerSettings, Finger, FingerAssignments, CustomKey } from '@/types/player';
 import { VirtualKeyboard } from './VirtualKeyboard';
 import { Input, Textarea, Button } from '@/components/ui';
+import { minecraftToWeb } from '@/lib/keyConversion';
 
 // Minecraft言語リスト（全言語）
 const MINECRAFT_LANGUAGES = [
@@ -504,15 +505,18 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
       }
     }
 
+    // Minecraft形式のキーコードをWeb標準形式に変換
+    const webKeyCode = minecraftToWeb(keyCode);
+
     // リマップ設定
     if ('remap' in config) {
       setRemappings(prev => {
         const updated = { ...prev };
         if (config.remap && config.remap.trim() !== '') {
-          updated[keyCode] = config.remap;
+          updated[webKeyCode] = config.remap;
         } else {
           // undefinedまたは空文字列の場合は削除
-          delete updated[keyCode];
+          delete updated[webKeyCode];
         }
         return updated;
       });
@@ -524,9 +528,9 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
         const updated = { ...prev };
         if (config.externalTool && config.externalTool.trim() !== '') {
           // アクション名を保存
-          updated[keyCode] = config.externalTool;
+          updated[webKeyCode] = config.externalTool;
         } else {
-          delete updated[keyCode];
+          delete updated[webKeyCode];
         }
         return updated;
       });
@@ -537,9 +541,9 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
       setFingerAssignments(prev => {
         const updated = { ...prev };
         if (config.finger && config.finger.length > 0) {
-          updated[keyCode] = config.finger;
+          updated[webKeyCode] = config.finger;
         } else {
-          delete updated[keyCode];
+          delete updated[webKeyCode];
         }
         return updated;
       });
