@@ -619,14 +619,17 @@ const VirtualKeyboardComponent = ({
       return <div key={Math.random()} className={keyDef.width} />;
     }
 
+    // keyDef.keyはMinecraft形式なので、Web標準形式に変換してから各マップにアクセス
+    const webKeyCode = minecraftToWeb(keyDef.key);
+
     const actions = getActionsForKey(keyDef.key);
     const hasBinding = actions.length > 0;
     const isHovered = hoveredKey === keyDef.key;
-    const hasRemap = !!remappings[keyDef.key];
-    const hasExternalTool = !!externalTools[keyDef.key];
-    const remapTarget = remappings[keyDef.key];
-    const externalTool = externalTools[keyDef.key];
-    const assignedFingers = fingerAssignments[keyDef.key] || [];
+    const hasRemap = !!remappings[webKeyCode];
+    const hasExternalTool = !!externalTools[webKeyCode];
+    const remapTarget = remappings[webKeyCode];
+    const externalTool = externalTools[webKeyCode];
+    const assignedFingers = fingerAssignments[webKeyCode] || [];
 
     const handleClick = () => {
       if (mode === 'edit') {
@@ -742,13 +745,16 @@ const VirtualKeyboardComponent = ({
 
   // マウスボタンをレンダリング（簡潔な表示）
   const renderMouseButton = (btn: typeof MOUSE_BUTTONS[0], customSize?: { width: string; height: string }) => {
+    // btn.keyはMinecraft形式なので、Web標準形式に変換してから各マップにアクセス
+    const webKeyCode = minecraftToWeb(btn.key);
+
     const actions = getActionsForKey(btn.key);
     const hasBinding = actions.length > 0;
-    const hasRemap = !!remappings[btn.key];
-    const hasExternalTool = !!externalTools[btn.key];
-    const remapTarget = remappings[btn.key];
-    const externalTool = externalTools[btn.key];
-    const assignedFingers = fingerAssignments[btn.key] || [];
+    const hasRemap = !!remappings[webKeyCode];
+    const hasExternalTool = !!externalTools[webKeyCode];
+    const remapTarget = remappings[webKeyCode];
+    const externalTool = externalTools[webKeyCode];
+    const assignedFingers = fingerAssignments[webKeyCode] || [];
 
     // 背景色のロジック：renderKeyと同じ
     const isDisabled = remapTarget === 'key.keyboard.disabled';
@@ -1353,7 +1359,9 @@ const VirtualKeyboardComponent = ({
 
       {/* モーダル */}
       {selectedKey && (() => {
-        const customKey = customKeys?.find(k => k.keyCode === selectedKey);
+        // selectedKeyをWeb標準形式に変換してから各マップにアクセス
+        const webSelectedKey = minecraftToWeb(selectedKey);
+        const customKey = customKeys?.find(k => k.keyCode === webSelectedKey);
         const isCustom = !!customKey;
 
         return (
@@ -1364,9 +1372,9 @@ const VirtualKeyboardComponent = ({
             currentAction={
               Object.entries(bindings).find(([_, key]) => key === selectedKey)?.[0] || null
             }
-            currentRemap={remappings[selectedKey]}
-            currentExternalTool={externalTools[selectedKey]}
-            currentFinger={fingerAssignments[selectedKey]}
+            currentRemap={remappings[webSelectedKey]}
+            currentExternalTool={externalTools[webSelectedKey]}
+            currentFinger={fingerAssignments[webSelectedKey]}
             onSave={handleModalSave}
             isCustomKey={isCustom}
             customKeyLabel={customKey?.label || ''}
