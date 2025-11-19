@@ -343,6 +343,21 @@ const VirtualKeyboardComponent = ({
   const [addingKeySection, setAddingKeySection] = useState<'keyboard' | 'edit' | 'numpad' | 'mouse' | null>(null);
   const [newKeyLabel, setNewKeyLabel] = useState('');
 
+  // デバッグ: 受け取ったpropsを確認（表示モードのみ）
+  useEffect(() => {
+    if (mode === 'display') {
+      console.log('[VirtualKeyboard] Props received:', {
+        remappingsCount: Object.keys(remappings).length,
+        externalToolsCount: Object.keys(externalTools).length,
+        fingerAssignmentsCount: Object.keys(fingerAssignments).length,
+        showFingerColors,
+        remappingsSample: Object.entries(remappings).slice(0, 3),
+        externalToolsSample: Object.entries(externalTools).slice(0, 3),
+        fingerAssignmentsSample: Object.entries(fingerAssignments).slice(0, 3),
+      });
+    }
+  }, [mode, remappings, externalTools, fingerAssignments, showFingerColors]);
+
   // 複数の指が割り当てられたキーの色を1.5秒ごとに切り替える
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null;
@@ -630,6 +645,17 @@ const VirtualKeyboardComponent = ({
     const remapTarget = remappings[webKeyCode];
     const externalTool = externalTools[webKeyCode];
     const assignedFingers = fingerAssignments[webKeyCode] || [];
+
+    // デバッグ: 外部ツール・リマップ・指が設定されているキーをログ出力
+    if (mode === 'display' && (hasRemap || hasExternalTool || assignedFingers.length > 0)) {
+      console.log(`[VirtualKeyboard] Key ${keyDef.key} (web: ${webKeyCode}):`, {
+        hasRemap,
+        hasExternalTool,
+        assignedFingers,
+        remapTarget,
+        externalTool,
+      });
+    }
 
     const handleClick = () => {
       if (mode === 'edit') {

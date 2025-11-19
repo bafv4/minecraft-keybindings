@@ -334,7 +334,7 @@ export function KeybindingDisplay({
           <div className="bg-[rgb(var(--card))] p-4 rounded-lg border border-[rgb(var(--border))]">
             <div className="text-sm font-semibold text-[rgb(var(--muted-foreground))] mb-2">リセット</div>
             <kbd className="px-3 py-1.5 text-base bg-[rgb(var(--muted))] border border-[rgb(var(--border))] rounded font-mono">
-              {formatKey((settings.additionalSettings as { reset?: string })?.reset || 'key.keyboard.f6')}
+              {formatKey(mergedSettings.reset || 'F6')}
             </kbd>
           </div>
 
