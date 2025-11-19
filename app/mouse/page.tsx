@@ -23,17 +23,25 @@ const MouseListView = dynamic(() => import('@/components/MouseListView').then(mo
 });
 
 export default async function MousePage() {
-  // 設定があるユーザーのみを取得
+  // 設定があるユーザーのみを取得（旧または新スキーマ）
   const users = await prisma.user.findMany({
     where: {
-      settings: {
-        isNot: null,
-      },
+      OR: [
+        { settingsLegacy: { isNot: null } },
+        { config: { isNot: null } },
+      ],
     },
     include: {
-      settings: true,
+      settingsLegacy: true,
+      config: true,
     },
   });
 
-  return <MouseListView users={users as User[]} />;
+  // 新スキーマ優先で settings を構築
+  const usersWithSettings = users.map(user => ({
+    ...user,
+    settings: user.config || user.settingsLegacy,
+  }));
+
+  return <MouseListView users={usersWithSettings as User[]} />;
 }

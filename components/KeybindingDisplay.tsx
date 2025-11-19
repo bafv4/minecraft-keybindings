@@ -396,6 +396,38 @@ export function KeybindingDisplay({ settings }: KeybindingDisplayProps) {
         </div>
       </section>
 
+      {/* ゲーム設定（手動設定が必要な項目のみ表示） */}
+      {(settings.toggleSprint !== undefined || settings.toggleSneak !== undefined || settings.autoJump !== undefined) && (
+        <section className="bg-[rgb(var(--card))] p-6 rounded-lg border border-[rgb(var(--border))]">
+          <h2 className="text-xl font-bold mb-4">ゲーム設定</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {/* Toggle Sprint */}
+            {settings.toggleSprint !== undefined && settings.toggleSprint !== null && (
+              <div className="bg-[rgb(var(--card))] p-4 rounded-lg border border-[rgb(var(--border))]">
+                <div className="text-sm font-semibold text-[rgb(var(--muted-foreground))] mb-2">Toggle Sprint</div>
+                <div className="text-2xl font-bold">{settings.toggleSprint ? 'ON' : 'OFF'}</div>
+              </div>
+            )}
+
+            {/* Toggle Sneak */}
+            {settings.toggleSneak !== undefined && settings.toggleSneak !== null && (
+              <div className="bg-[rgb(var(--card))] p-4 rounded-lg border border-[rgb(var(--border))]">
+                <div className="text-sm font-semibold text-[rgb(var(--muted-foreground))] mb-2">Toggle Sneak</div>
+                <div className="text-2xl font-bold">{settings.toggleSneak ? 'ON' : 'OFF'}</div>
+              </div>
+            )}
+
+            {/* Auto Jump */}
+            {settings.autoJump !== undefined && settings.autoJump !== null && (
+              <div className="bg-[rgb(var(--card))] p-4 rounded-lg border border-[rgb(var(--border))]">
+                <div className="text-sm font-semibold text-[rgb(var(--muted-foreground))] mb-2">Auto Jump</div>
+                <div className="text-2xl font-bold">{settings.autoJump ? 'ON' : 'OFF'}</div>
+              </div>
+            )}
+          </div>
+        </section>
+      )}
+
       {/* プレイヤー環境設定 */}
       {(settings.gameLanguage || settings.mouseModel || settings.keyboardModel || settings.notes) && (
         <section className="bg-[rgb(var(--card))] p-6 rounded-lg border border-[rgb(var(--border))]">

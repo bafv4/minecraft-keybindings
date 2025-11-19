@@ -24,19 +24,98 @@ model User {
   updatedAt DateTime @updatedAt
 
   // リレーション
-  settings      PlayerSettings?
-  keybindings   Keybinding[]
-  keyRemaps     KeyRemap[]
-  externalTools ExternalTool[]
-  itemLayouts   ItemLayout[]
+  settingsLegacy PlayerSettings? @relation("settingsLegacy") // 旧スキーマ（移行元）
+  config         PlayerConfig?   @relation("config") // 新スキーマ（移行先）
+  keybindings    Keybinding[]
+  customKeys     CustomKey[] // カスタムキー定義
+  keyRemaps      KeyRemap[]
+  externalTools  ExternalTool[]
+  itemLayouts    ItemLayout[]
 }
 
 // ========================================
-// プレイヤー設定テーブル（デバイス・環境設定）
+// 旧プレイヤー設定テーブル（移行元 - レガシー）
 // ========================================
 model PlayerSettings {
   uuid String @id // Minecraft UUID（主キー）
-  user User   @relation(fields: [uuid], references: [uuid], onDelete: Cascade)
+  user User   @relation("settingsLegacy", fields: [uuid], references: [uuid], onDelete: Cascade)
+
+  // キーボード配置種類
+  keyboardLayout String @default("JIS") // "JIS" or "US"
+
+  // マウス設定
+  mouseDpi          Int?     // マウスDPI
+  gameSensitivity   Float?   // ゲーム内感度 (Options.txt形式: 0.0-1.0)
+  windowsSpeed      Int?     // Windowsマウス速度 (1-20)
+  mouseAcceleration Boolean  @default(false) // マウス加速の有無
+  rawInput          Boolean  @default(true) // RawInput使用の有無
+  cm360             Float?   // 振り向き（cm/180度）- 自動計算
+
+  // 物理キー位置ベースの移動キー（旧形式）
+  forward String @default("key.keyboard.w")
+  back    String @default("key.keyboard.s")
+  left    String @default("key.keyboard.a")
+  right   String @default("key.keyboard.d")
+  jump    String @default("key.keyboard.space")
+  sneak   String @default("key.keyboard.left.shift")
+  sprint  String @default("key.keyboard.left.control")
+
+  // アクション
+  attack    String @default("key.mouse.left")
+  use       String @default("key.mouse.right")
+  pickBlock String @default("key.mouse.middle")
+  drop      String @default("key.keyboard.q")
+
+  // インベントリ
+  inventory String @default("key.keyboard.e")
+  swapHands String @default("key.keyboard.f")
+  hotbar1   String @default("key.keyboard.1")
+  hotbar2   String @default("key.keyboard.2")
+  hotbar3   String @default("key.keyboard.3")
+  hotbar4   String @default("key.keyboard.4")
+  hotbar5   String @default("key.keyboard.5")
+  hotbar6   String @default("key.keyboard.6")
+  hotbar7   String @default("key.keyboard.7")
+  hotbar8   String @default("key.keyboard.8")
+  hotbar9   String @default("key.keyboard.9")
+
+  // ビュー・UI操作
+  togglePerspective String @default("key.keyboard.f5") // 視点変更
+  fullscreen        String @default("key.keyboard.f11") // フルスクリーン
+  chat              String @default("key.keyboard.t") // チャット
+  command           String @default("key.keyboard.slash") // コマンド
+  toggleHud         String @default("key.keyboard.f1") // Hide HUD
+
+  // リマップ設定（JSON形式）
+  remappings Json?
+
+  // 外部ツールアクション（JSON形式）
+  externalTools Json?
+
+  // 指の割り当て設定（JSON形式）
+  fingerAssignments Json?
+
+  // その他の追加設定（JSON形式）
+  additionalSettings Json?
+
+  // プレイヤー環境設定
+  gameLanguage  String? // ゲーム内の言語
+  mouseModel    String? // 使用マウスの機種
+  keyboardModel String? // 使用キーボードの機種
+  notes         String? @db.Text // 自由使用欄
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([uuid])
+}
+
+// ========================================
+// 新プレイヤー設定テーブル（移行先 - デバイス・環境設定のみ）
+// ========================================
+model PlayerConfig {
+  uuid String @id // Minecraft UUID（主キー）
+  user User   @relation("config", fields: [uuid], references: [uuid], onDelete: Cascade)
 
   // キーボード設定
   keyboardLayout String @default("JIS") // "JIS" or "US"
@@ -48,6 +127,14 @@ model PlayerSettings {
   mouseAcceleration Boolean  @default(false) // マウス加速の有無
   rawInput          Boolean  @default(true) // RawInput使用の有無
   cm360             Float?   // 振り向き（cm/180度）- 自動計算
+
+  // ゲーム設定（手動設定が必要）
+  toggleSprint Boolean? // スプリント切り替え
+  toggleSneak  Boolean? // スニーク切り替え
+  autoJump     Boolean? // オートジャンプ
+
+  // 指割り当て設定
+  fingerAssignments Json? // キーコード → 指の配列のマッピング
 
   // プレイヤー環境設定
   gameLanguage  String? // ゲーム内の言語
@@ -65,12 +152,11 @@ model PlayerSettings {
 // キーバインドテーブル（正規化）
 // ========================================
 model Keybinding {
-  id       String  @id @default(cuid())
-  uuid     String  // User UUID
-  action   String  // アクション名（例: "forward", "attack", "hotbar1"）
-  keyCode  String  // Web標準キーコード（例: "KeyW", "Mouse0", "Digit1"）
-  category String  // カテゴリ（"movement", "combat", "inventory", "ui", "custom"）
-  isCustom Boolean @default(false) // カスタムアクションかどうか
+  id       String @id @default(cuid())
+  uuid     String // User UUID
+  action   String // アクション名（例: "forward", "attack", "hotbar1", "custom_reset"）
+  keyCode  String // Web標準 or カスタムキーコード（例: "KeyW", "Mouse0", "CustomKey1"）
+  category String // カテゴリ（"movement", "combat", "inventory", "ui", "custom"）
 
   // 指割り当て（このキーを押す指）
   // 例: ["left-middle"], ["left-ring", "left-pinky"]
@@ -88,13 +174,36 @@ model Keybinding {
 }
 
 // ========================================
+// カスタムキーテーブル（ユーザー定義のキー）
+// ========================================
+model CustomKey {
+  id       String  @id @default(cuid())
+  uuid     String  // User UUID
+  keyCode  String  // カスタムキーコード（例: "CustomKey1", "Mouse10"）
+  keyName  String  // 表示名（例: "G1ボタン", "サイドボタン上"）
+  category String  // カテゴリ（"mouse", "keyboard"）
+  position Json?   // キー位置情報（オプション）
+  size     Json?   // キーサイズ情報（オプション）
+  notes    String? // メモ
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [uuid], references: [uuid], onDelete: Cascade)
+
+  @@unique([uuid, keyCode]) // 1ユーザー1キーコード1レコード
+  @@index([uuid])
+  @@index([keyCode])
+}
+
+// ========================================
 // キーリマップテーブル（物理キーの入れ替え）
 // ========================================
 model KeyRemap {
-  id        String @id @default(cuid())
-  uuid      String // User UUID
-  sourceKey String // 元のキー（例: "CapsLock"）
-  targetKey String // リマップ先（例: "ControlLeft"）
+  id        String  @id @default(cuid())
+  uuid      String  // User UUID
+  sourceKey String  // 元のキー（例: "CapsLock"）
+  targetKey String? // リマップ先（例: "ControlLeft"）/ null = 無効化
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

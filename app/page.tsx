@@ -23,17 +23,26 @@ const PlayerListView = dynamic(() => import('@/components/PlayerListView').then(
 });
 
 export default async function HomePage() {
-  // 設定があるユーザーのみを取得
+  // 設定があるユーザーのみを取得（旧または新スキーマ）
   const users = await prisma.user.findMany({
     where: {
-      settings: {
-        isNot: null,
-      },
+      OR: [
+        { settingsLegacy: { isNot: null } },
+        { config: { isNot: null } },
+      ],
     },
     include: {
-      settings: true,
+      settingsLegacy: true,
+      config: true,
+      keybindings: true,
     },
   });
 
-  return <PlayerListView users={users as User[]} />;
+  // 新スキーマ優先で settings を構築
+  const usersWithSettings = users.map(user => ({
+    ...user,
+    settings: user.config || user.settingsLegacy,
+  }));
+
+  return <PlayerListView users={usersWithSettings as User[]} />;
 }

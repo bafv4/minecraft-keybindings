@@ -21,15 +21,19 @@ export async function GET(request: Request) {
     const uuid = session.user.uuid;
 
     // 並列で全データ取得
-    const [user, settings, keybindings, keyRemaps, externalTools] = await Promise.all([
+    const [user, config, keybindings, customKeys, keyRemaps, externalTools] = await Promise.all([
       prisma.user.findUnique({ where: { uuid } }),
-      prisma.playerSettings.findUnique({ where: { uuid } }),
+      prisma.playerConfig.findUnique({ where: { uuid } }),
       prisma.keybinding.findMany({
         where: { uuid },
         orderBy: [
           { category: 'asc' },
           { action: 'asc' }
         ]
+      }),
+      prisma.customKey.findMany({
+        where: { uuid },
+        orderBy: { keyCode: 'asc' }
       }),
       prisma.keyRemap.findMany({ where: { uuid } }),
       prisma.externalTool.findMany({ where: { uuid } }),
@@ -46,18 +50,22 @@ export async function GET(request: Request) {
       uuid: user.uuid,
       mcid: user.mcid,
       displayName: user.displayName || undefined,
-      settings: settings ? {
-        keyboardLayout: settings.keyboardLayout,
-        mouseDpi: settings.mouseDpi ?? undefined,
-        gameSensitivity: settings.gameSensitivity ?? undefined,
-        windowsSpeed: settings.windowsSpeed ?? undefined,
-        mouseAcceleration: settings.mouseAcceleration,
-        rawInput: settings.rawInput,
-        cm360: settings.cm360 ?? undefined,
-        gameLanguage: settings.gameLanguage ?? undefined,
-        mouseModel: settings.mouseModel ?? undefined,
-        keyboardModel: settings.keyboardModel ?? undefined,
-        notes: settings.notes ?? undefined,
+      settings: config ? {
+        keyboardLayout: config.keyboardLayout,
+        mouseDpi: config.mouseDpi ?? undefined,
+        gameSensitivity: config.gameSensitivity ?? undefined,
+        windowsSpeed: config.windowsSpeed ?? undefined,
+        mouseAcceleration: config.mouseAcceleration,
+        rawInput: config.rawInput,
+        cm360: config.cm360 ?? undefined,
+        toggleSprint: config.toggleSprint ?? undefined,
+        toggleSneak: config.toggleSneak ?? undefined,
+        autoJump: config.autoJump ?? undefined,
+        fingerAssignments: config.fingerAssignments ? (config.fingerAssignments as Record<string, string[]>) : undefined,
+        gameLanguage: config.gameLanguage ?? undefined,
+        mouseModel: config.mouseModel ?? undefined,
+        keyboardModel: config.keyboardModel ?? undefined,
+        notes: config.notes ?? undefined,
       } : {
         keyboardLayout: 'JIS',
         mouseAcceleration: false,
@@ -67,8 +75,15 @@ export async function GET(request: Request) {
         action: kb.action,
         keyCode: kb.keyCode,
         category: kb.category as any,
-        isCustom: kb.isCustom,
         fingers: kb.fingers as any[],
+      })),
+      customKeys: customKeys.map(ck => ({
+        keyCode: ck.keyCode,
+        keyName: ck.keyName,
+        category: ck.category as 'mouse' | 'keyboard',
+        position: ck.position ? (ck.position as any) : undefined,
+        size: ck.size ? (ck.size as any) : undefined,
+        notes: ck.notes || undefined,
       })),
       keyRemaps: keyRemaps.map(remap => ({
         sourceKey: remap.sourceKey,
@@ -120,9 +135,9 @@ export async function POST(request: Request) {
         });
       }
 
-      // 2. PlayerSettings更新
+      // 2. PlayerConfig更新
       if (data.settings) {
-        await tx.playerSettings.upsert({
+        await tx.playerConfig.upsert({
           where: { uuid },
           update: {
             keyboardLayout: data.settings.keyboardLayout,
@@ -132,6 +147,10 @@ export async function POST(request: Request) {
             mouseAcceleration: data.settings.mouseAcceleration,
             rawInput: data.settings.rawInput,
             cm360: data.settings.cm360,
+            toggleSprint: data.settings.toggleSprint,
+            toggleSneak: data.settings.toggleSneak,
+            autoJump: data.settings.autoJump,
+            fingerAssignments: data.settings.fingerAssignments ?? undefined,
             gameLanguage: data.settings.gameLanguage,
             mouseModel: data.settings.mouseModel,
             keyboardModel: data.settings.keyboardModel,
@@ -146,6 +165,10 @@ export async function POST(request: Request) {
             mouseAcceleration: data.settings.mouseAcceleration ?? false,
             rawInput: data.settings.rawInput ?? true,
             cm360: data.settings.cm360,
+            toggleSprint: data.settings.toggleSprint ?? null,
+            toggleSneak: data.settings.toggleSneak ?? null,
+            autoJump: data.settings.autoJump ?? null,
+            fingerAssignments: data.settings.fingerAssignments ?? undefined,
             gameLanguage: data.settings.gameLanguage,
             mouseModel: data.settings.mouseModel,
             keyboardModel: data.settings.keyboardModel,
@@ -163,10 +186,27 @@ export async function POST(request: Request) {
             action: kb.action,
             keyCode: kb.keyCode,
             category: kb.category,
-            isCustom: kb.isCustom,
             fingers: kb.fingers || [],
           })),
         });
+      }
+
+      // 3.5. CustomKey更新（全削除 → 再作成）
+      if (data.customKeys !== undefined) {
+        await tx.customKey.deleteMany({ where: { uuid } });
+        if (data.customKeys.length > 0) {
+          await tx.customKey.createMany({
+            data: data.customKeys.map(ck => ({
+              uuid,
+              keyCode: ck.keyCode,
+              keyName: ck.keyName,
+              category: ck.category,
+              position: ck.position ? ck.position : undefined,
+              size: ck.size ? ck.size : undefined,
+              notes: ck.notes,
+            })),
+          });
+        }
       }
 
       // 4. KeyRemap更新（全削除 → 再作成）

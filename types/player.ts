@@ -103,6 +103,11 @@ export interface PlayerSettings extends Keybinding, MouseSettings {
   fingerAssignments?: FingerAssignments | null;
   additionalSettings?: AdditionalSettings | null;
 
+  // ゲーム設定（手動設定が必要）
+  toggleSprint?: boolean | null;
+  toggleSneak?: boolean | null;
+  autoJump?: boolean | null;
+
   // プレイヤー環境設定
   gameLanguage?: string | null;
   mouseModel?: string | null;

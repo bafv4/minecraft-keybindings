@@ -27,10 +27,21 @@ export type FingerType =
  */
 export interface KeybindingData {
   action: string; // アクション名（例: "forward", "attack", "hotbar1"）
-  keyCode: string; // Web標準キーコード（例: "KeyW", "Mouse0"）
+  keyCode: string; // Web標準 or カスタムキーコード（例: "KeyW", "Mouse0", "CustomKey1"）
   category: ActionCategory;
-  isCustom: boolean;
   fingers?: FingerType[]; // このキーを押す指
+}
+
+/**
+ * カスタムキーデータ（ユーザー定義のキー）
+ */
+export interface CustomKeyData {
+  keyCode: string; // カスタムキーコード（例: "CustomKey1", "Mouse10"）
+  keyName: string; // 表示名（例: "G1ボタン", "サイドボタン上"）
+  category: 'mouse' | 'keyboard';
+  position?: { row?: number; col?: number }; // キー位置情報（オプション）
+  size?: { width?: number; height?: number }; // キーサイズ情報（オプション）
+  notes?: string; // メモ
 }
 
 /**
@@ -38,7 +49,7 @@ export interface KeybindingData {
  */
 export interface KeyRemapData {
   sourceKey: string; // 元のキー（例: "CapsLock"）
-  targetKey: string; // リマップ先（例: "ControlLeft"）
+  targetKey: string | null; // リマップ先（例: "ControlLeft"）/ null = 無効化
 }
 
 /**
@@ -62,6 +73,10 @@ export interface PlayerSettingsData {
   mouseAcceleration?: boolean;
   rawInput?: boolean;
   cm360?: number;
+  toggleSprint?: boolean; // スプリント切り替え
+  toggleSneak?: boolean; // スニーク切り替え
+  autoJump?: boolean; // オートジャンプ
+  fingerAssignments?: Record<string, string[]>; // キーコード → 指の配列
   gameLanguage?: string;
   mouseModel?: string;
   keyboardModel?: string;
@@ -77,6 +92,7 @@ export interface PlayerData {
   displayName?: string;
   settings: PlayerSettingsData;
   keybindings: KeybindingData[];
+  customKeys: CustomKeyData[];
   keyRemaps: KeyRemapData[];
   externalTools: ExternalToolData[];
 }
@@ -87,6 +103,7 @@ export interface PlayerData {
 export interface UpdateKeybindingsRequest {
   settings?: Partial<PlayerSettingsData>;
   keybindings?: KeybindingData[];
+  customKeys?: CustomKeyData[];
   keyRemaps?: KeyRemapData[];
   externalTools?: ExternalToolData[];
 }
@@ -129,6 +146,8 @@ export const ACTION_LABELS: Record<string, string> = {
   chat: 'チャット',
   command: 'コマンド',
   toggleHud: 'HUD表示切替',
+  reset: 'リセット',
+  playerList: 'プレイヤーリスト',
 };
 
 /**
@@ -144,7 +163,7 @@ export function getActionCategory(action: string): ActionCategory {
   if (['inventory', 'swapHands', ...Array.from({ length: 9 }, (_, i) => `hotbar${i + 1}`)].includes(action)) {
     return 'inventory';
   }
-  if (['togglePerspective', 'fullscreen', 'chat', 'command', 'toggleHud'].includes(action)) {
+  if (['togglePerspective', 'fullscreen', 'chat', 'command', 'toggleHud', 'reset', 'playerList'].includes(action)) {
     return 'ui';
   }
   return 'custom';

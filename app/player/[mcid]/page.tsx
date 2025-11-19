@@ -70,7 +70,9 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
   const user = await prisma.user.findUnique({
     where: { mcid },
     include: {
-      settings: true,
+      settingsLegacy: true,
+      config: true,
+      keybindings: true,
       itemLayouts: {
         orderBy: { segment: 'asc' },
       },
@@ -80,6 +82,9 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
   if (!user) {
     notFound();
   }
+
+  // 新スキーマ優先で settings を構築
+  const settings = user.config || user.settingsLegacy;
 
   const showDisplayName = user.displayName && user.displayName.trim() !== '';
 
@@ -95,9 +100,9 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
         </div>
       </div>
 
-      {user.settings ? (
+      {settings ? (
         <>
-          <KeybindingDisplay settings={user.settings as PlayerSettings} />
+          <KeybindingDisplay settings={settings as PlayerSettings} />
 
           {/* アイテム配置表示 */}
           {user.itemLayouts && user.itemLayouts.length > 0 && (

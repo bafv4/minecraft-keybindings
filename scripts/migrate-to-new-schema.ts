@@ -1,54 +1,116 @@
 /**
- * 旧スキーマ → 新スキーマへのデータ移行スクリプト
+ * 旧スキーマ → 新スキーマへのデータ移行スクリプト（同一DB内）
+ *
+ * PlayerSettings（旧）のデータを以下に振り分けます：
+ * - PlayerConfig（新）: マウス・環境設定
+ * - Keybinding: キーバインド設定（27個のキーフィールド）
+ * - CustomKey: カスタムキー定義（key.custom.* 形式のキー）
+ * - KeyRemap: キーリマップ設定（remappings JSON）
+ * - ExternalTool: 外部ツール設定（externalTools JSON）
  *
  * 使い方:
- * - stg環境テスト: tsx scripts/migrate-to-new-schema.ts --source=$OLD_DB --target=$STG_DB
- * - 本番移行: tsx scripts/migrate-to-new-schema.ts --production
+ * - ドライラン: DATABASE_URL=xxx tsx scripts/migrate-to-new-schema.ts --dry-run
+ * - 実行: DATABASE_URL=xxx tsx scripts/migrate-to-new-schema.ts
  */
 
 import { PrismaClient } from '@prisma/client';
-import { minecraftToWeb } from '../lib/keyConversion';
+import { minecraftToWeb, minecraftToKeyName } from '../lib/keyConversion';
 import { getActionCategory } from '../types/keybinding';
+
+/**
+ * カスタムキーマッピングを管理するクラス
+ */
+class CustomKeyMapper {
+  private keyMap: Map<string, string> = new Map(); // mcKey → webKeyCode
+  private keyCounter = 1;
+
+  /**
+   * Minecraftカスタムキーから Web keyCode を取得（存在しなければ作成）
+   */
+  getOrCreateKeyCode(mcKey: string): { keyCode: string; isNew: boolean } {
+    if (this.keyMap.has(mcKey)) {
+      return { keyCode: this.keyMap.get(mcKey)!, isNew: false };
+    }
+
+    // 新しいカスタムキーコードを生成
+    const keyCode = `CustomKey${this.keyCounter}`;
+    this.keyCounter++;
+    this.keyMap.set(mcKey, keyCode);
+    return { keyCode, isNew: true };
+  }
+
+  /**
+   * カスタムキー名を生成（Minecraftキー名から抽出）
+   */
+  generateKeyName(mcKey: string): string {
+    // key.custom.mouse.button4 → "Mouse Button 4"
+    // key.custom.keyboard.g1 → "G1"
+    const parts = mcKey.replace('key.custom.', '').split('.');
+    if (parts.length === 0) return mcKey;
+
+    const category = parts[0]; // mouse or keyboard
+    const keyPart = parts.slice(1).join(' ');
+
+    if (category === 'mouse') {
+      return `マウス ${keyPart.toUpperCase()}`;
+    } else if (category === 'keyboard') {
+      return keyPart.toUpperCase();
+    }
+    return mcKey;
+  }
+
+  /**
+   * カスタムキーのカテゴリを判定
+   */
+  getCategory(mcKey: string): 'mouse' | 'keyboard' {
+    if (mcKey.includes('.mouse.')) return 'mouse';
+    if (mcKey.includes('.keyboard.')) return 'keyboard';
+    return 'keyboard'; // デフォルト
+  }
+
+  /**
+   * すべてのカスタムキー情報を取得
+   */
+  getAllCustomKeys(): Array<{
+    mcKey: string;
+    keyCode: string;
+    keyName: string;
+    category: 'mouse' | 'keyboard';
+  }> {
+    return Array.from(this.keyMap.entries()).map(([mcKey, keyCode]) => ({
+      mcKey,
+      keyCode,
+      keyName: this.generateKeyName(mcKey),
+      category: this.getCategory(mcKey),
+    }));
+  }
+}
 
 // コマンドライン引数解析
 const args = process.argv.slice(2);
-const sourceUrl = args.find(arg => arg.startsWith('--source='))?.split('=')[1];
-const targetUrl = args.find(arg => arg.startsWith('--target='))?.split('=')[1];
-const isProduction = args.includes('--production');
 const dryRun = args.includes('--dry-run');
 
-// データベース接続設定
-const oldDbUrl = sourceUrl || process.env.OLD_DATABASE_URL || process.env.DATABASE_URL;
-const newDbUrl = targetUrl || process.env.NEW_DATABASE_URL || process.env.DATABASE_URL;
+const dbUrl = process.env.DATABASE_URL;
 
-if (!oldDbUrl || !newDbUrl) {
-  console.error('❌ エラー: データベースURLが指定されていません');
-  console.error('使い方: tsx scripts/migrate-to-new-schema.ts --source=OLD_URL --target=NEW_URL');
+if (!dbUrl) {
+  console.error('❌ エラー: DATABASE_URLが設定されていません');
+  console.error('使い方: DATABASE_URL=xxx tsx scripts/migrate-to-new-schema.ts');
   process.exit(1);
 }
 
 console.log('🔄 データ移行を開始します...\n');
-console.log(`📊 モード: ${isProduction ? '本番環境' : 'テスト環境'}`);
 console.log(`🔍 ドライラン: ${dryRun ? 'はい（実際の書き込みなし）' : 'いいえ'}`);
-console.log(`📥 旧DB: ${oldDbUrl.replace(/\/\/.*@/, '//***@')}`);
-console.log(`📤 新DB: ${newDbUrl.replace(/\/\/.*@/, '//***@')}\n`);
+console.log(`📊 DB: ${dbUrl.replace(/\/\/.*@/, '//***@')}\n`);
 
 // Prismaクライアント初期化
-// 注: 旧DBは旧スキーマ形式だが、Prisma Clientは新スキーマの型を持つため、
-// 旧DBからのデータ取得時は any 型として扱う
-const oldPrisma = new PrismaClient({
-  datasources: { db: { url: oldDbUrl } },
-});
-
-const newPrisma = new PrismaClient({
-  datasources: { db: { url: newDbUrl } },
+const prisma = new PrismaClient({
+  datasources: { db: { url: dbUrl } },
 });
 
 /**
  * 旧スキーマのキーフィールド定義
  */
 const KEY_FIELDS = [
-  // 移動
   { field: 'forward', action: 'forward' },
   { field: 'back', action: 'back' },
   { field: 'left', action: 'left' },
@@ -56,12 +118,10 @@ const KEY_FIELDS = [
   { field: 'jump', action: 'jump' },
   { field: 'sneak', action: 'sneak' },
   { field: 'sprint', action: 'sprint' },
-  // 戦闘
   { field: 'attack', action: 'attack' },
   { field: 'use', action: 'use' },
   { field: 'pickBlock', action: 'pickBlock' },
   { field: 'drop', action: 'drop' },
-  // インベントリ
   { field: 'inventory', action: 'inventory' },
   { field: 'swapHands', action: 'swapHands' },
   { field: 'hotbar1', action: 'hotbar1' },
@@ -73,7 +133,6 @@ const KEY_FIELDS = [
   { field: 'hotbar7', action: 'hotbar7' },
   { field: 'hotbar8', action: 'hotbar8' },
   { field: 'hotbar9', action: 'hotbar9' },
-  // UI
   { field: 'togglePerspective', action: 'togglePerspective' },
   { field: 'fullscreen', action: 'fullscreen' },
   { field: 'chat', action: 'chat' },
@@ -82,333 +141,336 @@ const KEY_FIELDS = [
 ];
 
 /**
- * 統計情報
+ * 標準アクションとして扱う追加のアクション（additionalSettings から移行）
  */
-interface MigrationStats {
-  totalUsers: number;
-  migratedUsers: number;
-  totalKeybindings: number;
-  totalRemaps: number;
-  totalExternalTools: number;
-  errors: Array<{ uuid: string; error: string }>;
-}
-
-const stats: MigrationStats = {
-  totalUsers: 0,
-  migratedUsers: 0,
-  totalKeybindings: 0,
-  totalRemaps: 0,
-  totalExternalTools: 0,
-  errors: [],
-};
+const STANDARD_ADDITIONAL_ACTIONS = ['reset', 'playerList'];
 
 /**
  * メイン移行処理
  */
 async function migrate() {
   try {
-    console.log('📦 旧データベースから全ユーザーを取得中...');
+    console.log('📥 旧スキーマからデータを取得中...\n');
 
-    // 旧DBから全ユーザー取得
-    const oldUsers = await oldPrisma.user.findMany({
+    // PlayerSettings（旧）からすべてのユーザーデータを取得
+    const oldSettings = await prisma.playerSettings.findMany({
       include: {
-        settings: true,
-        itemLayouts: true,
+        user: {
+          select: {
+            uuid: true,
+            mcid: true,
+            displayName: true,
+          },
+        },
       },
     });
 
-    stats.totalUsers = oldUsers.length;
-    console.log(`✅ ${stats.totalUsers}人のユーザーを取得しました\n`);
+    console.log(`✅ ${oldSettings.length} 件のユーザー設定を取得しました\n`);
 
-    if (stats.totalUsers === 0) {
-      console.log('⚠️  移行するデータがありません');
+    if (oldSettings.length === 0) {
+      console.log('⚠️  移行対象のデータがありません');
       return;
     }
 
-    // 確認プロンプト（本番環境の場合）
-    if (isProduction && !dryRun) {
-      console.log('⚠️  本番環境への移行を実行します。よろしいですか？');
-      console.log('   続行するには CTRL+C で中断してください（10秒待機）...\n');
-      await new Promise(resolve => setTimeout(resolve, 10000));
-    }
+    let successCount = 0;
+    let errorCount = 0;
+    const errors: Array<{ uuid: string; error: string }> = [];
 
-    // 各ユーザーのデータを移行
-    for (const oldUser of oldUsers) {
-      console.log(`\n👤 ユーザー: ${oldUser.mcid} (${oldUser.uuid})`);
+    console.log('🔄 データ変換・移行中...\n');
+
+    for (const oldUser of oldSettings) {
+      const uuid = oldUser.uuid;
+      const mcid = oldUser.user.mcid;
 
       try {
-        await migrateUser(oldUser);
-        stats.migratedUsers++;
+        console.log(`  処理中: ${mcid} (${uuid})`);
+
+        // カスタムキーマッパーを初期化
+        const customKeyMapper = new CustomKeyMapper();
+
+        // 1. PlayerConfig（新）へマウス・環境設定を移行
+
+        // fingerAssignmentsをMinecraft形式からWeb標準形式に変換
+        let convertedFingerAssignments: any = undefined;
+        if (oldUser.fingerAssignments && typeof oldUser.fingerAssignments === 'object') {
+          const oldFingerAssignments = oldUser.fingerAssignments as Record<string, any>;
+          const newFingerAssignments: Record<string, string[]> = {};
+
+          for (const [mcKey, fingers] of Object.entries(oldFingerAssignments)) {
+            // Minecraft形式からWeb標準形式に変換
+            let webKey: string;
+
+            // key.custom.*の場合
+            if (mcKey.startsWith('key.custom.')) {
+              const { keyCode } = customKeyMapper.getOrCreateKeyCode(mcKey);
+              webKey = keyCode;
+            } else {
+              webKey = minecraftToWeb(mcKey);
+            }
+
+            // 指の配列を保持
+            newFingerAssignments[webKey] = Array.isArray(fingers) ? fingers : [];
+          }
+
+          convertedFingerAssignments = newFingerAssignments;
+        }
+
+        const configData = {
+          uuid,
+          keyboardLayout: oldUser.keyboardLayout,
+          mouseDpi: oldUser.mouseDpi,
+          gameSensitivity: oldUser.gameSensitivity,
+          windowsSpeed: oldUser.windowsSpeed,
+          mouseAcceleration: oldUser.mouseAcceleration,
+          rawInput: oldUser.rawInput,
+          cm360: oldUser.cm360,
+          toggleSprint: null, // 手動設定が必要
+          toggleSneak: null, // 手動設定が必要
+          autoJump: null, // 手動設定が必要
+          fingerAssignments: convertedFingerAssignments,
+          gameLanguage: oldUser.gameLanguage,
+          mouseModel: oldUser.mouseModel,
+          keyboardModel: oldUser.keyboardModel,
+          notes: oldUser.notes,
+        };
+
+        // 2. Keybinding（新）へキーバインド設定を移行
+        const keybindings = [];
+
+        // 2-1. 標準キーバインド（27個）
+        for (const { field, action } of KEY_FIELDS) {
+          const mcKey = (oldUser as any)[field] as string;
+          if (mcKey) {
+            let webKey: string;
+
+            // key.custom.* の場合は CustomKey として登録
+            if (mcKey.startsWith('key.custom.')) {
+              const { keyCode } = customKeyMapper.getOrCreateKeyCode(mcKey);
+              webKey = keyCode;
+            } else {
+              webKey = minecraftToWeb(mcKey);
+            }
+
+            keybindings.push({
+              uuid,
+              action,
+              keyCode: webKey,
+              category: getActionCategory(action),
+              fingers: [], // fingerAssignments JSONから取得可能だが、今回は空配列
+            });
+          }
+        }
+
+        // 2-2. カスタムアクション（additionalSettings JSON）
+        if (oldUser.additionalSettings && typeof oldUser.additionalSettings === 'object') {
+          const additionalSettings = oldUser.additionalSettings as Record<string, string>;
+          for (const [action, mcKey] of Object.entries(additionalSettings)) {
+            if (mcKey && typeof mcKey === 'string') {
+              let webKey: string;
+
+              // key.custom.* の場合は CustomKey として登録
+              if (mcKey.startsWith('key.custom.')) {
+                const { keyCode } = customKeyMapper.getOrCreateKeyCode(mcKey);
+                webKey = keyCode;
+              } else {
+                webKey = minecraftToWeb(mcKey);
+              }
+
+              // reset, playerList は標準アクション（ui カテゴリ）として扱う
+              const category = STANDARD_ADDITIONAL_ACTIONS.includes(action)
+                ? getActionCategory(action)
+                : 'custom';
+
+              keybindings.push({
+                uuid,
+                action,
+                keyCode: webKey,
+                category,
+                fingers: [],
+              });
+            }
+          }
+        }
+
+        // 2-3. CustomKey テーブル用のデータを生成
+        const customKeys = customKeyMapper.getAllCustomKeys().map(ck => ({
+          uuid,
+          keyCode: ck.keyCode,
+          keyName: ck.keyName,
+          category: ck.category,
+        }));
+
+        // 3. KeyRemap（新）へリマップ設定を移行
+        const keyRemaps = [];
+        if (oldUser.remappings && typeof oldUser.remappings === 'object') {
+          const remappings = oldUser.remappings as Record<string, string>;
+          for (const [sourceKey, targetKey] of Object.entries(remappings)) {
+            // ソースキー: Minecraft形式からWeb形式へ変換
+            let webSourceKey: string;
+
+            // ソースキーがkey.custom.*の場合
+            if (sourceKey.startsWith('key.custom.')) {
+              const { keyCode } = customKeyMapper.getOrCreateKeyCode(sourceKey);
+              webSourceKey = keyCode;
+            } else {
+              webSourceKey = minecraftToWeb(sourceKey);
+            }
+
+            // ターゲットキー: キー名（表示名）として保存
+            const targetKeyName = minecraftToKeyName(targetKey);
+
+            keyRemaps.push({
+              uuid,
+              sourceKey: webSourceKey,
+              targetKey: targetKeyName,
+            });
+          }
+        }
+
+        // 4. ExternalTool（新）へ外部ツール設定を移行
+        const externalTools = [];
+        if (oldUser.externalTools && typeof oldUser.externalTools === 'object') {
+          const tools = oldUser.externalTools as Record<
+            string,
+            {
+              actions?: Array<{
+                trigger?: string;
+                action?: string;
+                description?: string;
+              }>;
+            }
+          >;
+
+          for (const [toolName, toolConfig] of Object.entries(tools)) {
+            if (toolConfig.actions && Array.isArray(toolConfig.actions)) {
+              for (const toolAction of toolConfig.actions) {
+                if (toolAction.trigger && toolAction.action) {
+                  let webTriggerKey: string;
+
+                  // トリガーキーがkey.custom.*の場合
+                  if (toolAction.trigger.startsWith('key.custom.')) {
+                    const { keyCode } = customKeyMapper.getOrCreateKeyCode(toolAction.trigger);
+                    webTriggerKey = keyCode;
+                  } else {
+                    webTriggerKey = minecraftToWeb(toolAction.trigger);
+                  }
+
+                  externalTools.push({
+                    uuid,
+                    triggerKey: webTriggerKey,
+                    toolName,
+                    actionName: toolAction.action,
+                    description: toolAction.description || null,
+                  });
+                }
+              }
+            }
+          }
+        }
+
+        if (!dryRun) {
+          // トランザクション内で一括作成
+          await prisma.$transaction([
+            // PlayerConfig を upsert
+            prisma.playerConfig.upsert({
+              where: { uuid },
+              create: configData,
+              update: configData,
+            }),
+
+            // 既存の Keybinding を削除（重複回避 - 標準＋カスタムすべて）
+            prisma.keybinding.deleteMany({
+              where: { uuid },
+            }),
+
+            // 新しい Keybinding を作成
+            ...(keybindings.length > 0
+              ? [prisma.keybinding.createMany({ data: keybindings })]
+              : []),
+
+            // 既存の CustomKey を削除（重複回避）
+            prisma.customKey.deleteMany({
+              where: { uuid },
+            }),
+
+            // 新しい CustomKey を作成
+            ...(customKeys.length > 0
+              ? [prisma.customKey.createMany({ data: customKeys })]
+              : []),
+
+            // 既存の KeyRemap を削除（重複回避）
+            prisma.keyRemap.deleteMany({
+              where: { uuid },
+            }),
+
+            // 新しい KeyRemap を作成
+            ...(keyRemaps.length > 0
+              ? [prisma.keyRemap.createMany({ data: keyRemaps })]
+              : []),
+
+            // 既存の ExternalTool を削除（重複回避）
+            prisma.externalTool.deleteMany({
+              where: { uuid },
+            }),
+
+            // 新しい ExternalTool を作成
+            ...(externalTools.length > 0
+              ? [prisma.externalTool.createMany({ data: externalTools })]
+              : []),
+          ]);
+        }
+
+        const standardKeybindings = keybindings.filter(kb => kb.category !== 'custom').length;
+        const customActions = keybindings.filter(kb => kb.category === 'custom').length;
+
+        console.log(`    ✅ 移行成功`);
+        console.log(`       - PlayerConfig: 1件`);
+        console.log(`       - Keybinding: ${keybindings.length}件（標準:${standardKeybindings}, カスタムアクション:${customActions}）`);
+        console.log(`       - CustomKey: ${customKeys.length}件`);
+        console.log(`       - KeyRemap: ${keyRemaps.length}件`);
+        console.log(`       - ExternalTool: ${externalTools.length}件`);
+
+        successCount++;
       } catch (error) {
-        const errorMsg = error instanceof Error ? error.message : String(error);
-        console.error(`   ❌ エラー: ${errorMsg}`);
-        stats.errors.push({ uuid: oldUser.uuid, error: errorMsg });
+        console.error(`    ❌ エラー: ${error instanceof Error ? error.message : String(error)}`);
+        errorCount++;
+        errors.push({
+          uuid,
+          error: error instanceof Error ? error.message : String(error),
+        });
       }
     }
 
     console.log('\n' + '='.repeat(60));
-    console.log('📊 移行完了サマリー');
+    console.log('📊 移行結果サマリー');
     console.log('='.repeat(60));
-    console.log(`✅ 総ユーザー数: ${stats.totalUsers}`);
-    console.log(`✅ 移行成功: ${stats.migratedUsers}`);
-    console.log(`✅ キーバインド: ${stats.totalKeybindings}レコード`);
-    console.log(`✅ キーリマップ: ${stats.totalRemaps}レコード`);
-    console.log(`✅ 外部ツール: ${stats.totalExternalTools}レコード`);
+    console.log(`✅ 成功: ${successCount} 件`);
+    console.log(`❌ 失敗: ${errorCount} 件`);
 
-    if (stats.errors.length > 0) {
-      console.log(`\n❌ エラー: ${stats.errors.length}件`);
-      stats.errors.forEach(({ uuid, error }) => {
-        console.log(`   - ${uuid}: ${error}`);
-      });
+    if (errors.length > 0) {
+      console.log('\n❌ エラー詳細:');
+      for (const err of errors) {
+        console.log(`  - UUID: ${err.uuid}`);
+        console.log(`    エラー: ${err.error}`);
+      }
     }
 
-    console.log('\n✨ 移行処理が完了しました！');
-
+    if (dryRun) {
+      console.log('\n⚠️  ドライランモードのため、データベースへの書き込みは行われませんでした');
+    } else {
+      console.log('\n✅ 移行が完了しました！');
+      console.log('\n次のステップ:');
+      console.log('1. DATABASE_URL=xxx tsx scripts/verify-migration.ts で検証を実行');
+      console.log('2. 問題がなければ、旧 PlayerSettings テーブルの削除を検討');
+    }
   } catch (error) {
-    console.error('\n❌ 致命的なエラーが発生しました:', error);
-    throw error;
+    console.error('\n❌ 致命的なエラーが発生しました:');
+    console.error(error);
+    process.exit(1);
   } finally {
-    await oldPrisma.$disconnect();
-    await newPrisma.$disconnect();
-  }
-}
-
-/**
- * 個別ユーザーの移行
- */
-async function migrateUser(oldUser: any) {
-  if (dryRun) {
-    console.log('   [DRY-RUN] 移行処理をシミュレート中...');
-  }
-
-  // 1. Userレコード作成
-  if (!dryRun) {
-    await newPrisma.user.upsert({
-      where: { uuid: oldUser.uuid },
-      update: {
-        mcid: oldUser.mcid,
-        passphrase: oldUser.passphrase,
-        displayName: oldUser.displayName,
-      },
-      create: {
-        uuid: oldUser.uuid,
-        mcid: oldUser.mcid,
-        passphrase: oldUser.passphrase,
-        displayName: oldUser.displayName,
-      },
-    });
-  }
-  console.log('   ✓ Userレコード作成/更新');
-
-  // 2. PlayerSettings作成
-  if (oldUser.settings) {
-    if (!dryRun) {
-      await newPrisma.playerSettings.upsert({
-        where: { uuid: oldUser.uuid },
-        update: {
-          keyboardLayout: oldUser.settings.keyboardLayout,
-          mouseDpi: oldUser.settings.mouseDpi,
-          gameSensitivity: oldUser.settings.gameSensitivity,
-          windowsSpeed: oldUser.settings.windowsSpeed,
-          mouseAcceleration: oldUser.settings.mouseAcceleration,
-          rawInput: oldUser.settings.rawInput,
-          cm360: oldUser.settings.cm360,
-          gameLanguage: oldUser.settings.gameLanguage,
-          mouseModel: oldUser.settings.mouseModel,
-          keyboardModel: oldUser.settings.keyboardModel,
-          notes: oldUser.settings.notes,
-        },
-        create: {
-          uuid: oldUser.uuid,
-          keyboardLayout: oldUser.settings.keyboardLayout,
-          mouseDpi: oldUser.settings.mouseDpi,
-          gameSensitivity: oldUser.settings.gameSensitivity,
-          windowsSpeed: oldUser.settings.windowsSpeed,
-          mouseAcceleration: oldUser.settings.mouseAcceleration,
-          rawInput: oldUser.settings.rawInput,
-          cm360: oldUser.settings.cm360,
-          gameLanguage: oldUser.settings.gameLanguage,
-          mouseModel: oldUser.settings.mouseModel,
-          keyboardModel: oldUser.settings.keyboardModel,
-          notes: oldUser.settings.notes,
-        },
-      });
-    }
-    console.log('   ✓ PlayerSettings作成/更新');
-
-    // 3. Keybinding作成（25個のフィールド → レコード）
-    const keybindings = [];
-    const fingerAssignments = (oldUser.settings.fingerAssignments || {}) as Record<string, string | string[]>;
-
-    for (const { field, action } of KEY_FIELDS) {
-      const mcKey = oldUser.settings[field];
-      if (!mcKey) continue;
-
-      const webKey = minecraftToWeb(mcKey);
-      const category = getActionCategory(action);
-
-      // 指割り当ての取得（旧形式と新形式の両対応）
-      let fingers: string[] = [];
-      const fingerData = fingerAssignments[mcKey];
-      if (fingerData) {
-        fingers = Array.isArray(fingerData) ? fingerData : [fingerData];
-      }
-
-      keybindings.push({
-        uuid: oldUser.uuid,
-        action,
-        keyCode: webKey,
-        category,
-        isCustom: false,
-        fingers,
-      });
-    }
-
-    // additionalSettings内のカスタムキーも処理
-    const additionalSettings = oldUser.settings.additionalSettings as any;
-    if (additionalSettings) {
-      // reset, playerList などの追加キー
-      if (additionalSettings.reset) {
-        keybindings.push({
-          uuid: oldUser.uuid,
-          action: 'reset',
-          keyCode: minecraftToWeb(additionalSettings.reset),
-          category: 'custom',
-          isCustom: true,
-          fingers: [],
-        });
-      }
-      if (additionalSettings.playerList) {
-        keybindings.push({
-          uuid: oldUser.uuid,
-          action: 'playerList',
-          keyCode: minecraftToWeb(additionalSettings.playerList),
-          category: 'custom',
-          isCustom: true,
-          fingers: [],
-        });
-      }
-
-      // customKeys配列の処理
-      if (additionalSettings.customKeys?.keys) {
-        for (const customKey of additionalSettings.customKeys.keys) {
-          keybindings.push({
-            uuid: oldUser.uuid,
-            action: customKey.id || customKey.label,
-            keyCode: minecraftToWeb(customKey.keyCode),
-            category: 'custom',
-            isCustom: true,
-            fingers: [],
-          });
-        }
-      }
-    }
-
-    if (!dryRun && keybindings.length > 0) {
-      // 既存のキーバインドを削除してから挿入
-      await newPrisma.keybinding.deleteMany({ where: { uuid: oldUser.uuid } });
-      await newPrisma.keybinding.createMany({ data: keybindings });
-    }
-    console.log(`   ✓ Keybinding作成: ${keybindings.length}レコード`);
-    stats.totalKeybindings += keybindings.length;
-
-    // 4. KeyRemap作成（JSON → レコード）
-    const remappings = (oldUser.settings.remappings || {}) as Record<string, string>;
-    const remaps = Object.entries(remappings).map(([source, target]) => ({
-      uuid: oldUser.uuid,
-      sourceKey: minecraftToWeb(source),
-      targetKey: minecraftToWeb(target),
-    }));
-
-    if (!dryRun && remaps.length > 0) {
-      await newPrisma.keyRemap.deleteMany({ where: { uuid: oldUser.uuid } });
-      await newPrisma.keyRemap.createMany({ data: remaps });
-    }
-    console.log(`   ✓ KeyRemap作成: ${remaps.length}レコード`);
-    stats.totalRemaps += remaps.length;
-
-    // 5. ExternalTool作成（JSON → レコード）
-    const externalTools = [];
-    const externalToolsData = oldUser.settings.externalTools as any;
-
-    if (externalToolsData) {
-      // 旧形式の解析（複数のパターンに対応）
-      for (const [toolName, toolData] of Object.entries(externalToolsData)) {
-        if (typeof toolData === 'object' && toolData !== null) {
-          const actions = (toolData as any).actions || [];
-          for (const actionData of actions) {
-            externalTools.push({
-              uuid: oldUser.uuid,
-              triggerKey: minecraftToWeb(actionData.trigger || actionData.key),
-              toolName,
-              actionName: actionData.action || actionData.name,
-              description: actionData.description || null,
-            });
-          }
-        }
-      }
-    }
-
-    if (!dryRun && externalTools.length > 0) {
-      await newPrisma.externalTool.deleteMany({ where: { uuid: oldUser.uuid } });
-      await newPrisma.externalTool.createMany({ data: externalTools });
-    }
-    console.log(`   ✓ ExternalTool作成: ${externalTools.length}レコード`);
-    stats.totalExternalTools += externalTools.length;
-  }
-
-  // 6. ItemLayout移行（構造変更なし）
-  if (oldUser.itemLayouts && oldUser.itemLayouts.length > 0) {
-    if (!dryRun) {
-      for (const layout of oldUser.itemLayouts) {
-        await newPrisma.itemLayout.upsert({
-          where: {
-            uuid_segment: {
-              uuid: layout.uuid,
-              segment: layout.segment,
-            },
-          },
-          update: {
-            slot1: layout.slot1,
-            slot2: layout.slot2,
-            slot3: layout.slot3,
-            slot4: layout.slot4,
-            slot5: layout.slot5,
-            slot6: layout.slot6,
-            slot7: layout.slot7,
-            slot8: layout.slot8,
-            slot9: layout.slot9,
-            offhand: layout.offhand,
-            notes: layout.notes,
-          },
-          create: {
-            uuid: layout.uuid,
-            segment: layout.segment,
-            slot1: layout.slot1,
-            slot2: layout.slot2,
-            slot3: layout.slot3,
-            slot4: layout.slot4,
-            slot5: layout.slot5,
-            slot6: layout.slot6,
-            slot7: layout.slot7,
-            slot8: layout.slot8,
-            slot9: layout.slot9,
-            offhand: layout.offhand,
-            notes: layout.notes,
-          },
-        });
-      }
-    }
-    console.log(`   ✓ ItemLayout移行: ${oldUser.itemLayouts.length}レコード`);
+    await prisma.$disconnect();
   }
 }
 
 // 実行
-migrate()
-  .then(() => {
-    process.exit(0);
-  })
-  .catch((error) => {
-    console.error('❌ 移行に失敗しました:', error);
-    process.exit(1);
-  });
+migrate();

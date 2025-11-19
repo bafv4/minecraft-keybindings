@@ -3,7 +3,18 @@
  * Minecraft形式 ↔ Web標準形式の相互変換
  */
 
-import { KEYS, type KeyDefinition } from './keys';
+import { KEYS } from './keys';
+
+// デバッグ用：KEYSオブジェクトの初期化確認
+let keysInitialized = false;
+function checkKeysInitialization() {
+  if (!keysInitialized) {
+    const keysCount = Object.keys(KEYS).length;
+    const keysWithMinecraft = Object.values(KEYS).filter(k => k.minecraft).length;
+    console.log(`[keyConversion] KEYS initialized: ${keysCount} keys, ${keysWithMinecraft} with minecraft mapping`);
+    keysInitialized = true;
+  }
+}
 
 /**
  * Minecraft形式 → Web標準形式
@@ -12,6 +23,9 @@ import { KEYS, type KeyDefinition } from './keys';
  */
 export function minecraftToWeb(mcKey: string): string {
   if (!mcKey) return mcKey;
+
+  // 初回のみKEYS初期化状態を確認
+  checkKeysInitialization();
 
   // 既にWeb標準形式の場合はそのまま返す
   if (!mcKey.startsWith('key.')) {
@@ -81,6 +95,117 @@ export function formatKeyCode(code: string): string {
   // 見つからない場合はそのまま返す
   console.warn(`[keyConversion] No key definition found for: ${code}`);
   return code;
+}
+
+/**
+ * Minecraft形式 → 表示名（リマップ用）
+ * リマップ先のキーは物理キーではなく機能を表すため、KEYSオブジェクトを使わず直接変換
+ * @param mcKey Minecraft形式（例: "key.keyboard.w", "key.mouse.left"）
+ * @returns 表示名（例: "W", "マウス左", "左Shift"）/ null = 無効化
+ */
+export function minecraftToKeyName(mcKey: string): string | null {
+  if (!mcKey) return null;
+
+  // 無効化キーの判定
+  if (mcKey === 'key.keyboard.disabled' || mcKey === 'disabled' || mcKey === 'Disabled' || mcKey === 'NONE' || mcKey === 'none') {
+    return null;
+  }
+
+  // 既にMinecraft形式でない場合はそのまま返す
+  if (!mcKey.startsWith('key.')) {
+    return mcKey;
+  }
+
+  // マウスキーの変換
+  if (mcKey.startsWith('key.mouse.')) {
+    const button = mcKey.replace('key.mouse.', '');
+    const mouseMapping: Record<string, string> = {
+      'left': 'L',
+      'right': 'R',
+      'middle': 'Middle',
+      '4': 'MB4',
+      '5': 'MB5',
+    };
+    return mouseMapping[button] || `マウス${button}`;
+  }
+
+  // キーボードキーの変換
+  if (mcKey.startsWith('key.keyboard.')) {
+    const key = mcKey.replace('key.keyboard.', '');
+
+    // 特殊キーのマッピング
+    const specialKeyMapping: Record<string, string> = {
+      'left.shift': 'LShift',
+      'right.shift': 'RShift',
+      'left.control': 'LCtrl',
+      'right.control': 'RCtrl',
+      'left.alt': 'LAlt',
+      'right.alt': 'RAlt',
+      'space': 'Space',
+      'enter': 'Enter',
+      'tab': 'Tab',
+      'escape': 'Esc',
+      'caps.lock': 'CapsLock',
+      'backspace': 'Backspace',
+      'delete': 'Delete',
+      'insert': 'Insert',
+      'home': 'Home',
+      'end': 'End',
+      'page.up': 'PageUp',
+      'page.down': 'PageDown',
+      'up': '↑',
+      'down': '↓',
+      'left': '←',
+      'right': '→',
+      'grave.accent': '`',
+      'minus': '-',
+      'equal': '=',
+      'left.bracket': '[',
+      'right.bracket': ']',
+      'backslash': '\\',
+      'semicolon': ';',
+      'apostrophe': "'",
+      'comma': ',',
+      'period': '.',
+      'slash': '/',
+      'menu': 'Menu',
+    };
+
+    if (specialKeyMapping[key]) {
+      return specialKeyMapping[key];
+    }
+
+    // ファンクションキー (f1-f12)
+    if (key.match(/^f\d+$/)) {
+      return key.toUpperCase();
+    }
+
+    // 数字キー (0-9)
+    if (key.match(/^\d$/)) {
+      return key;
+    }
+
+    // アルファベット (a-z)
+    if (key.match(/^[a-z]$/)) {
+      return key.toUpperCase();
+    }
+
+    // テンキー
+    if (key.startsWith('keypad.')) {
+      const numpadKey = key.replace('keypad.', '');
+      return `NumPad ${numpadKey.toUpperCase()}`;
+    }
+
+    // その他はそのまま大文字化
+    return key.toUpperCase();
+  }
+
+  // カスタムキー
+  if (mcKey.startsWith('key.custom.')) {
+    return mcKey;
+  }
+
+  return mcKey;
 }
 
 /**

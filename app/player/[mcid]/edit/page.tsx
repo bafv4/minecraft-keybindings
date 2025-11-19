@@ -81,12 +81,19 @@ export default async function EditPage({ params }: EditPageProps) {
 
   const user = await prisma.user.findUnique({
     where: { mcid },
-    include: { settings: true },
+    include: {
+      settingsLegacy: true,
+      config: true,
+      keybindings: true,
+    },
   });
 
   if (!user) {
     redirect('/');
   }
+
+  // 新スキーマ優先で settings を構築
+  const settings = user.config || user.settingsLegacy;
 
   return (
     <div className="pb-6">
@@ -101,7 +108,7 @@ export default async function EditPage({ params }: EditPageProps) {
       <div className="mb-12">
         <h2 className="text-2xl font-bold mb-6">キーバインド設定</h2>
         <KeybindingEditor
-          initialSettings={(user.settings as PlayerSettings) || undefined}
+          initialSettings={(settings as PlayerSettings) || undefined}
           uuid={user.uuid}
           mcid={user.mcid}
           displayName={user.displayName || ''}
