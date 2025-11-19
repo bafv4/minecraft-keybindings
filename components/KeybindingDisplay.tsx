@@ -8,6 +8,9 @@ import { VirtualKeyboard } from './VirtualKeyboard';
 interface KeybindingDisplayProps {
   settings: PlayerSettings;
   keybindings?: Array<{ action: string; keyCode: string; category: string; fingers?: string[] }>;
+  customKeys?: Array<{ keyCode: string; keyName: string; category: string }>;
+  keyRemaps?: Array<{ sourceKey: string; targetKey: string | null }>;
+  externalTools?: Array<{ triggerKey: string; toolName: string; actionName: string; description?: string | null }>;
 }
 
 // 言語コードを言語名に変換する関数
@@ -100,7 +103,13 @@ function formatKey(keyCode: string | undefined): string {
   return keyCode;
 }
 
-export function KeybindingDisplay({ settings, keybindings = [] }: KeybindingDisplayProps) {
+export function KeybindingDisplay({
+  settings,
+  keybindings = [],
+  customKeys = [],
+  keyRemaps = [],
+  externalTools = []
+}: KeybindingDisplayProps) {
   // keybindings配列をオブジェクトに変換してsettingsにマージ
   const keybindingsMap = keybindings.reduce((acc, kb) => {
     acc[kb.action] = kb.keyCode;
@@ -136,8 +145,12 @@ export function KeybindingDisplay({ settings, keybindings = [] }: KeybindingDisp
     return normalized;
   })();
 
-  // カスタムキーを取得
-  const customKeys: CustomKey[] = (settings.additionalSettings as { customKeys?: { keys: CustomKey[] } })?.customKeys?.keys || [];
+  // カスタムキー（新スキーマではpropsから直接取得）
+  const customKeysData: CustomKey[] = customKeys.map(ck => ({
+    id: ck.keyCode,
+    label: ck.keyName,
+    keyCode: ck.keyCode
+  }));
 
   // 指の色分け表示のトグル（初期値: 指の割り当てがある場合は表示）
   const [showFingerColors, setShowFingerColors] = useState(
@@ -177,8 +190,19 @@ export function KeybindingDisplay({ settings, keybindings = [] }: KeybindingDisp
     playerList: mergedSettings.playerList || 'key.keyboard.tab',
   };
 
-  // 外部ツール設定（既に平坦化されている）
-  const flattenedExternalTools = (settings.externalTools as { [key: string]: string }) || {};
+  // 外部ツール設定（新スキーマ配列を旧形式に変換）
+  const flattenedExternalTools = externalTools.reduce((acc, tool) => {
+    acc[tool.triggerKey] = tool.actionName;
+    return acc;
+  }, {} as { [key: string]: string });
+
+  // キーリマップ設定（新スキーマ配列を旧形式に変換）
+  const remappingsData = keyRemaps.reduce((acc, remap) => {
+    if (remap.targetKey !== null) {
+      acc[remap.sourceKey] = remap.targetKey;
+    }
+    return acc;
+  }, {} as { [key: string]: string });
 
   // ホットバーキー
   const hotbarKeys = [
@@ -229,12 +253,12 @@ export function KeybindingDisplay({ settings, keybindings = [] }: KeybindingDisp
         <VirtualKeyboard
           bindings={bindings}
           mode="display"
-          remappings={settings.remappings as { [key: string]: string } || {}}
+          remappings={remappingsData}
           externalTools={flattenedExternalTools}
           fingerAssignments={normalizedFingerAssignments}
           showFingerColors={showFingerColors}
           keyboardLayout={(settings.keyboardLayout as 'JIS' | 'US') || 'JIS'}
-          customKeys={customKeys}
+          customKeys={customKeysData}
         />
       </section>
 
@@ -478,14 +502,14 @@ export function KeybindingDisplay({ settings, keybindings = [] }: KeybindingDisp
       )}
 
       {/* リマップ設定 */}
-      {settings.remappings && Object.keys(settings.remappings).length > 0 && (
+      {Object.keys(remappingsData).length > 0 && (
         <section className="bg-[rgb(var(--card))] p-6 rounded-lg border border-[rgb(var(--border))]">
           <h2 className="text-xl font-bold mb-4">リマップ設定</h2>
           <p className="text-sm text-[rgb(var(--muted-foreground))] mb-4">
             ハードウェアレベルまたはドライバーレベルでのキー割り当て変更
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {Object.entries(settings.remappings as Record<string, string>).map(([from, to]) => (
+            {Object.entries(remappingsData).map(([from, to]) => (
               <div key={from} className="flex items-center gap-3 p-3 bg-[rgb(var(--muted))]/50 rounded-lg border border-[rgb(var(--border))]">
                 <div className="flex-1">
                   <div className="text-xs text-[rgb(var(--muted-foreground))] mb-1">物理キー</div>
@@ -509,47 +533,37 @@ export function KeybindingDisplay({ settings, keybindings = [] }: KeybindingDisp
       )}
 
       {/* 外部ツール */}
-      {settings.externalTools && Object.keys(settings.externalTools).length > 0 && (() => {
-        // 新しい形式かチェック（string値のみ）
-        const isNewFormat = Object.values(settings.externalTools).every(v => typeof v === 'string');
-
-        if (!isNewFormat) {
-          // 古い形式の場合は表示しない（またはマイグレーション推奨メッセージを表示）
-          return null;
-        }
-
-        return (
-          <section className="bg-[rgb(var(--card))] p-6 rounded-lg border border-[rgb(var(--border))]">
-            <h2 className="text-xl font-bold mb-4">外部ツール・Modキー設定</h2>
-            <p className="text-sm text-[rgb(var(--muted-foreground))] mb-4">
-              JingleやAutoHotKeyなどの外部ツールによるアクション設定。SeedQueueの設定。
-            </p>
-            <div className="space-y-3">
-              {Object.entries(settings.externalTools as Record<string, string>).map(([keyCode, action]) => (
-                <div key={keyCode} className="bg-[rgb(var(--background))] p-3 rounded-lg border border-[rgb(var(--border))]">
-                  <div className="flex items-start gap-3">
-                    <div className="flex-shrink-0">
-                      <div className="text-xs text-[rgb(var(--muted-foreground))] mb-1">トリガーキー</div>
-                      <code className="px-2 py-1 bg-[rgb(var(--muted))] border border-[rgb(var(--border))] rounded font-mono text-sm">
-                        {formatKeyName(keyCode)}
-                      </code>
-                    </div>
-                    <svg className="w-4 h-4 text-[rgb(var(--muted-foreground))] mt-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                    </svg>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-xs text-[rgb(var(--muted-foreground))] mb-1">実行アクション</div>
-                      <div className="px-2 py-1 bg-purple-500/10 border border-purple-500 rounded text-sm font-semibold text-purple-700 dark:text-purple-300">
-                        {action}
-                      </div>
+      {Object.keys(flattenedExternalTools).length > 0 && (
+        <section className="bg-[rgb(var(--card))] p-6 rounded-lg border border-[rgb(var(--border))]">
+          <h2 className="text-xl font-bold mb-4">外部ツール・Modキー設定</h2>
+          <p className="text-sm text-[rgb(var(--muted-foreground))] mb-4">
+            JingleやAutoHotKeyなどの外部ツールによるアクション設定。SeedQueueの設定。
+          </p>
+          <div className="space-y-3">
+            {Object.entries(flattenedExternalTools).map(([keyCode, action]) => (
+              <div key={keyCode} className="bg-[rgb(var(--background))] p-3 rounded-lg border border-[rgb(var(--border))]">
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0">
+                    <div className="text-xs text-[rgb(var(--muted-foreground))] mb-1">トリガーキー</div>
+                    <code className="px-2 py-1 bg-[rgb(var(--muted))] border border-[rgb(var(--border))] rounded font-mono text-sm">
+                      {formatKeyName(keyCode)}
+                    </code>
+                  </div>
+                  <svg className="w-4 h-4 text-[rgb(var(--muted-foreground))] mt-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                  </svg>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-xs text-[rgb(var(--muted-foreground))] mb-1">実行アクション</div>
+                    <div className="px-2 py-1 bg-purple-500/10 border border-purple-500 rounded text-sm font-semibold text-purple-700 dark:text-purple-300">
+                      {action}
                     </div>
                   </div>
                 </div>
-              ))}
-            </div>
-          </section>
-        );
-      })()}
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 }

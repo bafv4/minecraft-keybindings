@@ -72,6 +72,9 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
     include: {
       config: true,
       keybindings: true,
+      customKeys: true,
+      keyRemaps: true,
+      externalTools: true,
       itemLayouts: {
         orderBy: { segment: 'asc' },
       },
@@ -101,7 +104,13 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
 
       {settings ? (
         <>
-          <KeybindingDisplay settings={settings as PlayerSettings} keybindings={user.keybindings} />
+          <KeybindingDisplay
+            settings={settings as PlayerSettings}
+            keybindings={user.keybindings}
+            customKeys={user.customKeys}
+            keyRemaps={user.keyRemaps}
+            externalTools={user.externalTools}
+          />
 
           {/* アイテム配置表示 */}
           {user.itemLayouts && user.itemLayouts.length > 0 && (
