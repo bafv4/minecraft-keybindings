@@ -8,24 +8,47 @@
      ✓ turbopackUseSystemTlsCerts
 
    Creating an optimized production build ...
-(node:27792) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+(node:22676) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
 (Use `node --trace-warnings ...` to show where the warning was created)
- ✓ Compiled successfully in 3.7s
+ ✓ Compiled successfully in 3.9s
    Running TypeScript ...
-Failed to compile.
+   Collecting page data ...
+   Generating static pages (0/22) ...
+   Generating static pages (5/22) 
+   Generating static pages (10/22) 
+   Generating static pages (16/22) 
+ ✓ Generating static pages (22/22) in 6.7s
+   Finalizing page optimization ...
 
-./app/stats/keys/page.tsx:31:20
-Type error: Conversion of type '{ uuid: string; createdAt: Date; updatedAt: Date; notes: string | null; keyboardLayout: string; mouseDpi: number | null; gameSensitivity: number | null; windowsSpeed: number | null; ... 9 more ...; keyboardModel: string | null; } | null' to type 'Record<string, string>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
-  Type '{ uuid: string; createdAt: Date; updatedAt: Date; notes: string | null; keyboardLayout: string; mouseDpi: number | null; gameSensitivity: number | null; windowsSpeed: number | null; ... 9 more ...; keyboardModel: string | null; }' is not comparable to type 'Record<string, string>'.
-    Property 'createdAt' is incompatible with index signature.
-      Type 'Date' is not comparable to type 'string'.
+Route (app)
+┌ ƒ /
+├ ƒ /_not-found
+├ ƒ /api/auth/[...nextauth]
+├ ƒ /api/auth/login-or-register
+├ ƒ /api/auth/register
+├ ƒ /api/avatar
+├ ƒ /api/item-layouts
+├ ƒ /api/keybindings
+├ ƒ /api/player/[mcid]
+├ ƒ /api/players
+├ ƒ /api/sync-mcid
+├ ƒ /api/user/by-uuid/[uuid]
+├ ƒ /api/user/change-mcid
+├ ƒ /api/user/update-mcid
+├ ○ /icon.svg
+├ ƒ /keyboard
+├ ƒ /login
+├ ƒ /mouse
+├ ƒ /player/[mcid]
+├ ƒ /player/[mcid]/edit
+├ ƒ /register
+├ ƒ /setup-mcid
+├ ƒ /stats
+├ ƒ /stats/actions
+├ ƒ /stats/keys
+└ ƒ /stats/mouse
 
-[0m [90m 29 |[39m         uuid[33m:[39m user[33m.[39muuid[33m,[39m
- [90m 30 |[39m       }[33m,[39m
-[31m[1m>[22m[39m[90m 31 |[39m       keybindings[33m:[39m user[33m.[39msettings [36mas[39m [33mRecord[39m[33m<[39m[33mstring[39m[33m,[39m string[33m>[39m[33m,[39m
- [90m    |[39m                    [31m[1m^[22m[39m
- [90m 32 |[39m     }))[33m;[39m
- [90m 33 |[39m
- [90m 34 |[39m   [36mreturn[39m ([0m
-Next.js build worker exited with code: 1 and signal: null
- ELIFECYCLE  Command failed with exit code 1.
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

@@ -161,62 +161,68 @@ export function MouseListView({ users }: MouseListViewProps) {
   return (
     <div className="flex flex-col h-full">
       {/* ヘッダーと検索 */}
-      <div className="flex flex-col gap-3 md:gap-4 mb-4 md:mb-6">
+      <div className="flex flex-col gap-3 md:gap-6 mb-4 md:mb-6 flex-shrink-0">
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 md:gap-3">
             {/* 戻るボタン */}
             <Link
               href="/"
-              className="inline-flex items-center justify-center w-9 h-9 md:w-10 md:h-10 bg-[rgb(var(--card))] hover:bg-[rgb(var(--muted))] border border-[rgb(var(--border))] rounded-lg transition-colors"
+              className="inline-flex items-center justify-center w-10 h-10 bg-[rgb(var(--card))] hover:bg-[rgb(var(--muted))] border-2 border-[rgb(var(--border))] rounded-lg transition-colors shadow-sm"
               title="プレイヤー一覧に戻る"
             >
-              <ArrowLeftIcon className="w-4 h-4 md:w-5 md:h-5" />
+              <ArrowLeftIcon className="w-5 h-5" />
             </Link>
 
-            <h1 className="text-lg md:text-2xl font-semibold">マウス設定一覧</h1>
+            <h1 className="text-xl md:text-3xl font-bold">マウス設定一覧</h1>
           </div>
 
           {/* モバイル検索ボタン */}
           <button
             onClick={() => setMobileSearchOpen(!mobileSearchOpen)}
-            className="md:hidden flex items-center justify-center w-9 h-9 bg-[rgb(var(--card))] border border-[rgb(var(--border))] rounded-lg hover:bg-[rgb(var(--muted))] transition-colors"
+            className="md:hidden flex items-center justify-center w-10 h-10 bg-[rgb(var(--card))] border-2 border-[rgb(var(--border))] rounded-lg hover:bg-[rgb(var(--muted))] transition-colors shadow-sm"
           >
             {mobileSearchOpen ? (
-              <XMarkIcon className="w-4 h-4" />
+              <XMarkIcon className="w-5 h-5" />
             ) : (
-              <MagnifyingGlassIcon className="w-4 h-4" />
+              <MagnifyingGlassIcon className="w-5 h-5" />
             )}
           </button>
         </div>
 
         {/* 検索ボックス - デスクトップは常に表示、モバイルはトグル */}
         <div className={`relative ${mobileSearchOpen ? 'block' : 'hidden md:block'}`}>
-          <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 md:w-5 h-4 md:h-5 text-[rgb(var(--muted-foreground))]" />
+          <MagnifyingGlassIcon className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 w-4 md:w-5 h-4 md:h-5 text-[rgb(var(--muted-foreground))]" />
           <input
             type="text"
-            placeholder="プレイヤー / マウス機種で検索"
+            placeholder="プレイヤー / マウス機種で検索..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 md:pl-10 pr-3 md:pr-4 py-2 md:py-3 text-sm md:text-base border border-[rgb(var(--border))] rounded-lg bg-[rgb(var(--background))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--ring))]"
+            className="w-full pl-9 md:pl-12 pr-3 md:pr-4 py-2 md:py-3.5 text-sm md:text-base border-2 border-[rgb(var(--border))] rounded-lg md:rounded-xl bg-[rgb(var(--card))] focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all duration-200"
           />
         </div>
       </div>
 
       {/* テーブル */}
       {filteredUsers.length === 0 ? (
-        <div className="flex-1 flex items-center justify-center bg-[rgb(var(--card))] rounded-lg border border-[rgb(var(--border))]">
-          <p className="text-[rgb(var(--muted-foreground))]">
-            {searchQuery ? '検索結果が見つかりませんでした' : '登録プレイヤーなし'}
+        <div className="flex-1 flex flex-col items-center justify-center bg-[rgb(var(--card))] rounded-xl md:rounded-2xl border border-[rgb(var(--border))] shadow-sm p-8 md:p-12">
+          <div className="w-16 h-16 rounded-full bg-[rgb(var(--muted))] flex items-center justify-center mb-4">
+            <MagnifyingGlassIcon className="w-8 h-8 text-[rgb(var(--muted-foreground))]" />
+          </div>
+          <p className="text-lg font-medium text-[rgb(var(--foreground))] mb-1">
+            {searchQuery ? '検索結果が見つかりませんでした' : 'プレイヤーが登録されていません'}
+          </p>
+          <p className="text-sm text-[rgb(var(--muted-foreground))]">
+            {searchQuery ? '別のキーワードで検索してみてください' : '最初のプレイヤーになりましょう！'}
           </p>
         </div>
       ) : (
-        <div className="flex-1 bg-[rgb(var(--card))] rounded-lg border border-[rgb(var(--border))] overflow-hidden flex flex-col min-h-0">
+        <div className="flex-1 bg-[rgb(var(--card))] rounded-xl md:rounded-2xl border border-[rgb(var(--border))] shadow-sm overflow-hidden flex flex-col min-h-0">
           <div className="flex-1 overflow-x-auto min-h-0">
             <table className="w-full text-sm relative">
-              <thead className="bg-[rgb(var(--muted))] border-b border-[rgb(var(--border))] sticky top-0 z-10">
+              <thead className="bg-[rgb(var(--muted))] border-b border-[rgb(var(--border))] sticky top-0 z-20">
               <tr>
                 <th
-                  className="sticky left-0 z-20 bg-[rgb(var(--muted))] px-4 py-3 text-left font-semibold cursor-pointer hover:bg-[rgb(var(--muted))]/80 transition-colors whitespace-nowrap border-r border-[rgb(var(--border))]"
+                  className="sticky left-0 z-30 bg-[rgb(var(--muted))] px-4 py-3 text-left font-semibold cursor-pointer hover:bg-[rgb(var(--muted))]/80 transition-colors whitespace-nowrap border-r border-[rgb(var(--border))] shadow-[2px_0_4px_-2px_rgba(0,0,0,0.1)]"
                   onClick={() => handleSort('player')}
                 >
                   プレイヤー <SortIcon columnKey="player" />
@@ -279,7 +285,7 @@ export function MouseListView({ users }: MouseListViewProps) {
                   className="border-b border-[rgb(var(--border))] last:border-b-0 group cursor-pointer hover:bg-gradient-to-r hover:from-primary/5 hover:to-secondary/5 transition-all duration-200"
                 >
                   {/* プレイヤー */}
-                  <td className="sticky left-0 z-10 bg-[rgb(var(--card))] px-4 py-3 border-r border-[rgb(var(--border))] group-hover:bg-gradient-to-r group-hover:from-primary/5 group-hover:to-transparent">
+                  <td className="sticky left-0 z-10 bg-[rgb(var(--card))] px-4 py-3 border-r border-[rgb(var(--border))] group-hover:bg-[rgb(var(--primary)/0.05)] shadow-[2px_0_4px_-2px_rgba(0,0,0,0.1)]">
                     <div className="flex items-center gap-3">
                       <MinecraftAvatar uuid={user.uuid} mcid={user.mcid} size={32} />
                       <div>

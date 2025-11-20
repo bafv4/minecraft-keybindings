@@ -15,8 +15,8 @@ datasource db {
 // ユーザーテーブル（UUIDを主キーとして管理）
 // ========================================
 model User {
-  uuid        String   @id @default(uuid()) // Minecraft UUID（主キー）
-  mcid        String   @unique // Minecraft ID（変更可能）
+  uuid        String  @id @default(uuid()) // Minecraft UUID（主キー）
+  mcid        String  @unique // Minecraft ID（変更可能）
   passphrase  String? // パスフレーズ（変更時の認証用、ハッシュ化）
   displayName String? // 表示名
 
@@ -24,12 +24,15 @@ model User {
   updatedAt DateTime @updatedAt
 
   // リレーション
-  config        PlayerConfig?   @relation("config") // 新スキーマ
+  config        PlayerConfig?  @relation("config") // 新スキーマ
   keybindings   Keybinding[]
   customKeys    CustomKey[] // カスタムキー定義
   keyRemaps     KeyRemap[]
   externalTools ExternalTool[]
   itemLayouts   ItemLayout[]
+
+  // 旧スキーマ（移行用・削除予定）
+  playerSettings PlayerSettings? @relation("playerSettings")
 }
 
 // ========================================
@@ -43,12 +46,12 @@ model PlayerConfig {
   keyboardLayout String @default("JIS") // "JIS" or "US"
 
   // マウス設定
-  mouseDpi          Int?     // マウスDPI
-  gameSensitivity   Float?   // ゲーム内感度 (Options.txt形式: 0.0-1.0)
-  windowsSpeed      Int?     // Windowsマウス速度 (1-20)
-  mouseAcceleration Boolean  @default(false) // マウス加速の有無
-  rawInput          Boolean  @default(true) // RawInput使用の有無
-  cm360             Float?   // 振り向き（cm/180度）- 自動計算
+  mouseDpi          Int? // マウスDPI
+  gameSensitivity   Float? // ゲーム内感度 (Options.txt形式: 0.0-1.0)
+  windowsSpeed      Int? // Windowsマウス速度 (1-20)
+  mouseAcceleration Boolean @default(false) // マウス加速の有無
+  rawInput          Boolean @default(true) // RawInput使用の有無
+  cm360             Float? // 振り向き（cm/180度）- 自動計算
 
   // ゲーム設定
   toggleSprint Boolean? @default(false) // スプリント切り替え
@@ -100,12 +103,12 @@ model Keybinding {
 // ========================================
 model CustomKey {
   id       String  @id @default(cuid())
-  uuid     String  // User UUID
-  keyCode  String  // カスタムキーコード（例: "CustomKey1", "Mouse10"）
-  keyName  String  // 表示名（例: "G1ボタン", "サイドボタン上"）
-  category String  // カテゴリ（"mouse", "keyboard"）
-  position Json?   // キー位置情報（オプション）
-  size     Json?   // キーサイズ情報（オプション）
+  uuid     String // User UUID
+  keyCode  String // カスタムキーコード（例: "CustomKey1", "Mouse10"）
+  keyName  String // 表示名（例: "G1ボタン", "サイドボタン上"）
+  category String // カテゴリ（"mouse", "keyboard"）
+  position Json? // キー位置情報（オプション）
+  size     Json? // キーサイズ情報（オプション）
   notes    String? // メモ
 
   createdAt DateTime @default(now())
@@ -123,8 +126,8 @@ model CustomKey {
 // ========================================
 model KeyRemap {
   id        String  @id @default(cuid())
-  uuid      String  // User UUID
-  sourceKey String  // 元のキー（例: "CapsLock"）
+  uuid      String // User UUID
+  sourceKey String // 元のキー（例: "CapsLock"）
   targetKey String? // リマップ先（例: "ControlLeft"）/ null = 無効化
 
   createdAt DateTime @default(now())
@@ -141,10 +144,10 @@ model KeyRemap {
 // ========================================
 model ExternalTool {
   id          String  @id @default(cuid())
-  uuid        String  // User UUID
-  triggerKey  String  // トリガーキー（例: "KeyF", "KeyX"）
-  toolName    String  // ツール名（例: "Ninb", "SeedQueue", "AutoHotKey"）
-  actionName  String  // アクション名（例: "リセット", "Reset All"）
+  uuid        String // User UUID
+  triggerKey  String // トリガーキー（例: "KeyF", "KeyX"）
+  toolName    String // ツール名（例: "Ninb", "SeedQueue", "AutoHotKey"）
+  actionName  String // アクション名（例: "リセット", "Reset All"）
   description String? @db.Text // 説明
 
   createdAt DateTime @default(now())
@@ -183,5 +186,70 @@ model ItemLayout {
   user User @relation(fields: [uuid], references: [uuid], onDelete: Cascade)
 
   @@id([uuid, segment])
+  @@index([uuid])
+}
+
+// ========================================
+// 旧スキーマ - 移行用（削除予定）
+// ========================================
+model PlayerSettings {
+  uuid String @id // Minecraft UUID（主キー）
+  user User   @relation("playerSettings", fields: [uuid], references: [uuid], onDelete: Cascade)
+
+  // キーボード設定
+  keyboardLayout String @default("JIS")
+
+  // マウス設定
+  mouseDpi          Int?
+  gameSensitivity   Float?
+  windowsSpeed      Int?
+  mouseAcceleration Boolean @default(false)
+  rawInput          Boolean @default(true)
+  cm360             Float?
+
+  // キーバインド（27個の標準キー）
+  forward           String @default("key.keyboard.w")
+  back              String @default("key.keyboard.s")
+  left              String @default("key.keyboard.a")
+  right             String @default("key.keyboard.d")
+  jump              String @default("key.keyboard.space")
+  sneak             String @default("key.keyboard.left.shift")
+  sprint            String @default("key.keyboard.left.control")
+  attack            String @default("key.mouse.left")
+  use               String @default("key.mouse.right")
+  pickBlock         String @default("key.mouse.middle")
+  drop              String @default("key.keyboard.q")
+  inventory         String @default("key.keyboard.e")
+  swapHands         String @default("key.keyboard.f")
+  hotbar1           String @default("key.keyboard.1")
+  hotbar2           String @default("key.keyboard.2")
+  hotbar3           String @default("key.keyboard.3")
+  hotbar4           String @default("key.keyboard.4")
+  hotbar5           String @default("key.keyboard.5")
+  hotbar6           String @default("key.keyboard.6")
+  hotbar7           String @default("key.keyboard.7")
+  hotbar8           String @default("key.keyboard.8")
+  hotbar9           String @default("key.keyboard.9")
+  togglePerspective String @default("key.keyboard.f5")
+  fullscreen        String @default("key.keyboard.f11")
+  chat              String @default("key.keyboard.t")
+  command           String @default("key.keyboard.slash")
+  toggleHud         String @default("key.keyboard.f1")
+
+  // JSON設定フィールド
+  fingerAssignments  Json? // キーコード → 指の配列
+  remappings         Json? // キーリマップ設定
+  externalTools      Json? // 外部ツール設定
+  additionalSettings Json? // カスタムアクション
+
+  // プレイヤー環境設定
+  gameLanguage  String?
+  mouseModel    String?
+  keyboardModel String?
+  notes         String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   @@index([uuid])
 }

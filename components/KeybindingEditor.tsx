@@ -1077,7 +1077,7 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
             leaveFrom="opacity-100"
             leaveTo="opacity-0"
           >
-            <div className="fixed inset-0 bg-black/50" aria-hidden="true" />
+            <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" aria-hidden="true" />
           </TransitionChild>
 
           {/* Full-screen container to center the panel */}
@@ -1091,12 +1091,14 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <DialogPanel className="glass-card p-6 rounded-lg border border-[rgb(var(--border))]/80 max-w-md w-full shadow-xl">
-                <DialogTitle className="text-xl font-bold mb-4">設定を削除しますか？</DialogTitle>
-                <p className="text-[rgb(var(--muted-foreground))] mb-6">
-                  この操作は取り消せません。すべてのキーバインド設定が削除されます。
-                </p>
-                <div className="flex gap-4 justify-end">
+              <DialogPanel className="bg-gradient-to-r from-primary/5 via-secondary/5 to-transparent rounded-2xl border border-border max-w-md w-full shadow-lg max-h-[90vh] flex flex-col">
+                <div className="p-8 overflow-y-auto flex-1">
+                  <DialogTitle className="text-2xl font-bold mb-4">設定を削除しますか？</DialogTitle>
+                  <p className="text-[rgb(var(--muted-foreground))] text-sm">
+                    この操作は取り消せません。すべてのキーバインド設定が削除されます。
+                  </p>
+                </div>
+                <div className="flex gap-3 justify-end px-8 pb-8 pt-6 border-t border-border/50">
                   <Button
                     onClick={() => setShowDeleteConfirm(false)}
                     disabled={deleting}

@@ -43,9 +43,9 @@ export function RadioGroup({
   return (
     <div className={className}>
       {label && (
-        <Label className="block text-sm font-medium mb-2">
+        <label className="block text-sm font-medium mb-2">
           {label}
-        </Label>
+        </label>
       )}
       <HeadlessRadioGroup value={value} onChange={onChange} name={name}>
         <div className={`flex gap-2 ${orientation === 'vertical' ? 'flex-col' : 'flex-row flex-wrap'}`}>

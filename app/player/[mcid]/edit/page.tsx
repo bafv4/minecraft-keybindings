@@ -165,8 +165,26 @@ export default async function EditPage({ params }: EditPageProps) {
   }));
 
   // settings を構築（configとkeybindingsをマージ）
-  const settings: PlayerSettings | undefined = user.config ? {
-    ...user.config,
+  // config が null の場合でも、デフォルト値で初期化
+  const settings: PlayerSettings = {
+    uuid: user.uuid,
+    keyboardLayout: user.config?.keyboardLayout || 'JIS',
+    mouseDpi: user.config?.mouseDpi || null,
+    gameSensitivity: user.config?.gameSensitivity || null,
+    windowsSpeed: user.config?.windowsSpeed || null,
+    mouseAcceleration: user.config?.mouseAcceleration ?? false,
+    rawInput: user.config?.rawInput ?? true,
+    cm360: user.config?.cm360 || null,
+    toggleSprint: user.config?.toggleSprint || null,
+    toggleSneak: user.config?.toggleSneak || null,
+    autoJump: user.config?.autoJump || null,
+    fingerAssignments: user.config?.fingerAssignments as any || null,
+    gameLanguage: user.config?.gameLanguage || null,
+    mouseModel: user.config?.mouseModel || null,
+    keyboardModel: user.config?.keyboardModel || null,
+    notes: user.config?.notes || null,
+    createdAt: user.config?.createdAt || new Date(),
+    updatedAt: user.config?.updatedAt || new Date(),
     ...keybindingMap,
     remappings,
     externalTools: externalToolsMap,
@@ -174,7 +192,7 @@ export default async function EditPage({ params }: EditPageProps) {
       ...additionalSettingsMap,
       customKeys: customKeysArray.length > 0 ? { keys: customKeysArray } : undefined,
     },
-  } as PlayerSettings : undefined;
+  } as PlayerSettings;
 
   return (
     <div className="pb-6">

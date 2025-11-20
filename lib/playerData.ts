@@ -9,14 +9,25 @@ import type { PlayerSettings, CustomKey } from '@/types/player';
 
 /**
  * Keybinding配列をフラットオブジェクトに変換
+ * 同じアクションに複数のキーが割り当てられている場合は配列にする
  */
 export function convertKeybindingsToObject(
   keybindings: Array<{ action: string; keyCode: string }>
-): Record<string, string> {
-  return keybindings.reduce((acc, kb) => {
-    acc[kb.action] = kb.keyCode;
+): Record<string, string | string[]> {
+  // アクションごとにキーコードをグループ化
+  const grouped = keybindings.reduce((acc, kb) => {
+    if (!acc[kb.action]) {
+      acc[kb.action] = [];
+    }
+    acc[kb.action].push(kb.keyCode);
     return acc;
-  }, {} as Record<string, string>);
+  }, {} as Record<string, string[]>);
+
+  // 配列が1つの要素の場合は文字列に、複数の場合は配列のまま
+  return Object.entries(grouped).reduce((acc, [action, keyCodes]) => {
+    acc[action] = keyCodes.length === 1 ? keyCodes[0] : keyCodes;
+    return acc;
+  }, {} as Record<string, string | string[]>);
 }
 
 /**
@@ -82,14 +93,36 @@ export async function getPlayerData(mcid: string) {
     },
   });
 
-  if (!user || !user.config) {
+  if (!user) {
     return null;
   }
 
   // Keybindingsを変換してsettingsにマージ
   const keybindingsMap = convertKeybindingsToObject(user.keybindings);
-  const mergedSettings = {
+
+  // config が null の場合でもデフォルト値で初期化
+  const mergedSettings = user.config ? {
     ...user.config,
+    ...keybindingsMap
+  } : {
+    uuid: user.uuid,
+    keyboardLayout: 'JIS',
+    mouseDpi: null,
+    gameSensitivity: null,
+    windowsSpeed: null,
+    mouseAcceleration: false,
+    rawInput: true,
+    cm360: null,
+    toggleSprint: null,
+    toggleSneak: null,
+    autoJump: null,
+    fingerAssignments: null,
+    gameLanguage: null,
+    mouseModel: null,
+    keyboardModel: null,
+    notes: null,
+    createdAt: user.createdAt,
+    updatedAt: user.updatedAt,
     ...keybindingsMap
   } as PlayerSettings & Record<string, any>;
 

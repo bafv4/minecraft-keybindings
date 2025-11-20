@@ -16,6 +16,7 @@ import {
 import { useState, Fragment } from 'react';
 import type { Session } from 'next-auth';
 import { handleSignOut } from '@/app/actions/auth';
+import { MinecraftAvatar } from './MinecraftAvatar';
 
 interface HeaderProps {
   session: Session | null;
@@ -33,7 +34,7 @@ export function Header({ session }: HeaderProps) {
 
           {/* Logo - モバイルでは中央配置 */}
           <Link href="/" className="flex items-center gap-2 md:gap-3 group">
-            <div className="w-9 h-9 md:w-12 md:h-12 flex-shrink-0 transition-transform group-hover:scale-105">
+            <div className="w-9 h-9 md:w-12 md:h-12 md:mt-2 flex-shrink-0 transition-transform group-hover:scale-105">
               <Image
                 src="/icon.svg"
                 alt="MCSRer Hotkeys"
@@ -42,11 +43,11 @@ export function Header({ session }: HeaderProps) {
                 className="w-full h-full"
               />
             </div>
-            <div className="block">
+            <div className="flex flex-col">
               <h1 className="text-base md:text-xl font-bold bg-gradient-to-r from-primary-light via-secondary to-[#64748b] bg-clip-text text-transparent leading-tight">
                 MCSRer Hotkeys
               </h1>
-              <p className="text-xs text-muted-foreground mt-0.5 leading-tight hidden md:block">RTA勢の設定はこうなっている！</p>
+              <p className="text-xs text-muted-foreground leading-tight hidden md:block">RTA勢の設定はこうなっている！</p>
             </div>
           </Link>
 
@@ -169,7 +170,15 @@ export function Header({ session }: HeaderProps) {
                 {/* User Menu */}
                 <Menu as="div" className="relative">
                   <MenuButton className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-accent rounded-xl transition-all duration-200">
-                    <UserCircleIcon className="w-5 h-5 text-primary" />
+                    {session.user.uuid ? (
+                      <MinecraftAvatar
+                        uuid={session.user.uuid}
+                        mcid={session.user.mcid || session.user.name || ''}
+                        size={20}
+                      />
+                    ) : (
+                      <UserCircleIcon className="w-5 h-5 text-primary" />
+                    )}
                     <span className="font-medium">{session.user.name}</span>
                   </MenuButton>
                   <MenuItems
@@ -332,8 +341,17 @@ export function Header({ session }: HeaderProps) {
             )}
             {session?.user ? (
               <>
-                <div className="px-4 py-2 text-xs text-muted-foreground font-medium">
-                  {session.user.name}
+                <div className="flex items-center gap-2 px-4 py-2">
+                  {session.user.uuid ? (
+                    <MinecraftAvatar
+                      uuid={session.user.uuid}
+                      mcid={session.user.mcid || session.user.name || ''}
+                      size={20}
+                    />
+                  ) : (
+                    <UserCircleIcon className="w-5 h-5 text-muted-foreground" />
+                  )}
+                  <span className="text-xs text-muted-foreground font-medium">{session.user.name}</span>
                 </div>
                 <Link
                   href={`/player/${session.user.mcid}`}

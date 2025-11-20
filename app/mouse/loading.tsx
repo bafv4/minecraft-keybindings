@@ -1,5 +1,5 @@
-import { LoadingPage } from '@/components/ui/LoadingSpinner';
+import { MouseListSkeleton } from '@/components/MouseListSkeleton';
 
 export default function Loading() {
-  return <LoadingPage />;
+  return <MouseListSkeleton />;
 }

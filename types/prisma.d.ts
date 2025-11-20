@@ -14,6 +14,7 @@ declare module '@prisma/client/index' {
     keyRemap: any;
     externalTool: any;
     itemLayout: any;
+    playerSettings: any;
     $connect(): Promise<void>;
     $disconnect(): Promise<void>;
     $transaction(fn: (tx: PrismaClient) => Promise<any>): Promise<any>;

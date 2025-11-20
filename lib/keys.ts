@@ -144,10 +144,10 @@ export const KEYS: Record<string, KeyDefinition> = {
   // ========== 編集キー ==========
   Insert: { code: 'Insert', name: 'Ins', category: 'editing', minecraft: 'key.keyboard.insert' },
   Delete: { code: 'Delete', name: 'Del', category: 'editing', minecraft: 'key.keyboard.delete' },
-  Backspace: { code: 'Backspace', name: 'Back', category: 'editing', position: { row: 0, col: 13 }, size: { width: 2 }, minecraft: 'key.keyboard.backspace' },
+  Backspace: { code: 'Backspace', name: 'BS', category: 'editing', position: { row: 0, col: 13 }, size: { width: 2 }, minecraft: 'key.keyboard.backspace' },
 
   // ========== 記号・特殊キー ==========
-  Space: { code: 'Space', name: 'Space', category: 'special', position: { row: 4, col: 3 }, size: { width: 6 }, minecraft: 'key.keyboard.space' },
+  Space: { code: 'Space', name: 'Space', category: 'special', position: { row: 4, col: 3 }, size: { width: 8 }, minecraft: 'key.keyboard.space' },
   Enter: { code: 'Enter', name: 'Enter', category: 'special', position: { row: 2, col: 13 }, size: { width: 2 }, minecraft: 'key.keyboard.enter' },
   Tab: { code: 'Tab', name: 'Tab', category: 'special', position: { row: 1, col: 0 }, size: { width: 1.5 }, minecraft: 'key.keyboard.tab' },
   Escape: { code: 'Escape', name: 'Esc', category: 'special', minecraft: 'key.keyboard.escape' },
@@ -178,8 +178,8 @@ export const KEYS: Record<string, KeyDefinition> = {
   KanaMode: { code: 'KanaMode', name: 'カナ', category: 'jis-specific', minecraft: 'key.keyboard.kana' },
 
   // ========== マウスボタン ==========
-  Mouse0: { code: 'Mouse0', name: 'L', category: 'mouse', minecraft: 'key.mouse.left' },
-  Mouse1: { code: 'Mouse1', name: 'R', category: 'mouse', minecraft: 'key.mouse.right' },
+  Mouse0: { code: 'Mouse0', name: 'LButton', category: 'mouse', minecraft: 'key.mouse.left' },
+  Mouse1: { code: 'Mouse1', name: 'RButton', category: 'mouse', minecraft: 'key.mouse.right' },
   Mouse2: { code: 'Mouse2', name: 'MButton', category: 'mouse', minecraft: 'key.mouse.middle' },
   Mouse3: { code: 'Mouse3', name: 'MB4', category: 'mouse', minecraft: 'key.mouse.4' },
   Mouse4: { code: 'Mouse4', name: 'MB5', category: 'mouse', minecraft: 'key.mouse.5' },

@@ -1,5 +1,5 @@
-import { LoadingPage } from '@/components/ui/LoadingSpinner';
+import { KeyboardListSkeleton } from '@/components/KeyboardListSkeleton';
 
 export default function Loading() {
-  return <LoadingPage />;
+  return <KeyboardListSkeleton />;
 }

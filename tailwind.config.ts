@@ -8,6 +8,9 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['var(--font-zen-kaku-gothic-new)', 'sans-serif'],
+      },
       colors: {
         background: "rgb(var(--background))",
         foreground: "rgb(var(--foreground))",

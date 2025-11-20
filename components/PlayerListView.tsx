@@ -40,7 +40,7 @@ export function PlayerListView({ users }: PlayerListViewProps) {
       <div className="flex flex-col gap-3 md:gap-6 flex-shrink-0">
         <div className="flex items-center justify-between gap-2">
           <div className="flex-1">
-            <h1 className="text-xl md:text-3xl font-bold bg-gradient-to-r from-primary-light via-secondary to-[#64748b] bg-clip-text text-transparent">
+            <h1 className="text-xl md:text-3xl font-bold">
               プレイヤー一覧
             </h1>
             <p className="text-xs md:text-sm text-muted-foreground mt-0.5 md:mt-1">
@@ -51,7 +51,7 @@ export function PlayerListView({ users }: PlayerListViewProps) {
           {/* モバイル検索ボタン */}
           <button
             onClick={() => setMobileSearchOpen(!mobileSearchOpen)}
-            className="md:hidden flex items-center justify-center w-10 h-10 bg-card border-2 border-border rounded-lg hover:bg-accent transition-colors"
+            className="md:hidden flex items-center justify-center w-10 h-10 bg-card border-2 border-border rounded-lg hover:bg-accent transition-colors shadow-sm"
           >
             {mobileSearchOpen ? (
               <XMarkIcon className="w-5 h-5" />

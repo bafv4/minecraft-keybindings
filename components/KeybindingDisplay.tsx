@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import { Disclosure, Transition } from '@headlessui/react';
+import { ChevronDownIcon } from '@heroicons/react/24/outline';
 import { formatKeyName, formatKeyNameShort, calculateCursorSpeed } from '@/lib/utils';
 import type { PlayerSettings, FingerAssignments, CustomKey } from '@/types/player';
 import { VirtualKeyboard } from './VirtualKeyboard';
@@ -186,10 +188,213 @@ export function KeybindingDisplay({
 
   return (
     <div className="space-y-6">
+      {/* Overview */}
+      <section className="bg-gradient-to-r from-primary/5 via-secondary/5 to-transparent rounded-2xl border border-border shadow-sm p-6">
+        <h2 className="text-2xl font-bold mb-4">Overview</h2>
+        <div className="space-y-4">
+          {/* 移動 */}
+          <div className="bg-[rgb(var(--card))] p-5 rounded-lg border-2 border-[rgb(var(--border))] shadow-md">
+            <h3 className="text-lg font-semibold mb-3 text-primary">移動</h3>
+            <div className="flex flex-wrap gap-3">
+              <div className="flex flex-col gap-1 flex-1 min-w-[110px]">
+                <span className="text-xs text-muted-foreground font-medium">前進</span>
+                <kbd className="px-3 py-2 text-center bg-[rgb(var(--card))] border border-[rgb(var(--border))] rounded-lg font-mono font-semibold text-sm truncate shadow-sm">
+                  {formatKey(settings.forward)}
+                </kbd>
+              </div>
+              <div className="flex flex-col gap-1 flex-1 min-w-[110px]">
+                <span className="text-xs text-muted-foreground font-medium">後退</span>
+                <kbd className="px-3 py-2 text-center bg-[rgb(var(--card))] border border-[rgb(var(--border))] rounded-lg font-mono font-semibold text-sm truncate shadow-sm">
+                  {formatKey(settings.back)}
+                </kbd>
+              </div>
+              <div className="flex flex-col gap-1 flex-1 min-w-[110px]">
+                <span className="text-xs text-muted-foreground font-medium">左</span>
+                <kbd className="px-3 py-2 text-center bg-[rgb(var(--card))] border border-[rgb(var(--border))] rounded-lg font-mono font-semibold text-sm truncate shadow-sm">
+                  {formatKey(settings.left)}
+                </kbd>
+              </div>
+              <div className="flex flex-col gap-1 flex-1 min-w-[110px]">
+                <span className="text-xs text-muted-foreground font-medium">右</span>
+                <kbd className="px-3 py-2 text-center bg-[rgb(var(--card))] border border-[rgb(var(--border))] rounded-lg font-mono font-semibold text-sm truncate shadow-sm">
+                  {formatKey(settings.right)}
+                </kbd>
+              </div>
+              <div className="flex flex-col gap-1 flex-1 min-w-[110px]">
+                <span className="text-xs text-muted-foreground font-medium">ジャンプ</span>
+                <kbd className="px-3 py-2 text-center bg-[rgb(var(--card))] border border-[rgb(var(--border))] rounded-lg font-mono font-semibold text-sm truncate shadow-sm">
+                  {formatKey(settings.jump)}
+                </kbd>
+              </div>
+              <div className="flex flex-col gap-1 flex-1 min-w-[110px]">
+                <span className="text-xs text-muted-foreground font-medium">スニーク</span>
+                <kbd className="px-3 py-2 text-center bg-[rgb(var(--card))] border border-[rgb(var(--border))] rounded-lg font-mono font-semibold text-sm truncate shadow-sm">
+                  {formatKey(settings.sneak)}
+                </kbd>
+              </div>
+              <div className="flex flex-col gap-1 flex-1 min-w-[110px]">
+                <span className="text-xs text-muted-foreground font-medium">ダッシュ</span>
+                <kbd className="px-3 py-2 text-center bg-[rgb(var(--card))] border border-[rgb(var(--border))] rounded-lg font-mono font-semibold text-sm truncate shadow-sm">
+                  {formatKey(settings.sprint)}
+                </kbd>
+              </div>
+              <div className="flex flex-col gap-1 flex-1 min-w-[110px]">
+                <span className="text-xs text-muted-foreground font-medium">視点変更</span>
+                <kbd className="px-3 py-2 text-center bg-[rgb(var(--card))] border border-[rgb(var(--border))] rounded-lg font-mono font-semibold text-sm truncate shadow-sm">
+                  {formatKey(settings.togglePerspective)}
+                </kbd>
+              </div>
+              <div className="flex flex-col gap-1 flex-1 min-w-[110px]">
+                <span className="text-xs text-muted-foreground font-semibold">Sprint</span>
+                <div className={`text-xl font-bold px-3 py-2 text-center ${
+                  settings.toggleSprint === null || settings.toggleSprint === undefined
+                    ? 'text-muted-foreground'
+                    : settings.toggleSprint
+                    ? 'text-green-600 dark:text-green-400'
+                    : 'text-red-600 dark:text-red-400'
+                }`}>
+                  {settings.toggleSprint === null || settings.toggleSprint === undefined
+                    ? '-'
+                    : settings.toggleSprint ? 'Toggle' : 'Hold'}
+                </div>
+              </div>
+              <div className="flex flex-col gap-1 flex-1 min-w-[110px]">
+                <span className="text-xs text-muted-foreground font-semibold">Sneak</span>
+                <div className={`text-xl font-bold px-3 py-2 text-center ${
+                  settings.toggleSneak === null || settings.toggleSneak === undefined
+                    ? 'text-muted-foreground'
+                    : settings.toggleSneak
+                    ? 'text-green-600 dark:text-green-400'
+                    : 'text-red-600 dark:text-red-400'
+                }`}>
+                  {settings.toggleSneak === null || settings.toggleSneak === undefined
+                    ? '-'
+                    : settings.toggleSneak ? 'Toggle' : 'Hold'}
+                </div>
+              </div>
+              <div className="flex flex-col gap-1 flex-1 min-w-[110px]">
+                <span className="text-xs text-muted-foreground font-semibold">オートジャンプ</span>
+                <div className={`text-xl font-bold px-3 py-2 text-center ${
+                  settings.autoJump === null || settings.autoJump === undefined
+                    ? 'text-muted-foreground'
+                    : settings.autoJump
+                    ? 'text-red-600 dark:text-red-400'
+                    : 'text-green-600 dark:text-green-400'
+                }`}>
+                  {settings.autoJump === null || settings.autoJump === undefined
+                    ? '-'
+                    : settings.autoJump ? 'ON' : 'OFF'}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* インベントリ */}
+          <div className="bg-[rgb(var(--card))] p-5 rounded-lg border-2 border-[rgb(var(--border))] shadow-md">
+            <h3 className="text-lg font-semibold mb-3 text-primary">インベントリ</h3>
+            <div className="space-y-3">
+              {/* ホットバー */}
+              <div>
+                <span className="text-xs text-muted-foreground mb-2 block font-medium">ホットバー</span>
+                <div className="flex gap-2 flex-wrap">
+                  {hotbarKeys.map((key, i) => (
+                    <div key={i} className="flex flex-col gap-1 items-center">
+                      <span className="text-xs text-muted-foreground font-semibold">{i + 1}</span>
+                      <kbd className="px-3 py-2 text-base bg-[rgb(var(--card))] border-2 border-[rgb(var(--border))] rounded-lg font-mono font-bold shadow-sm min-w-[2.5rem] max-w-[4rem] text-center truncate">
+                        {key}
+                      </kbd>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              {/* その他のインベントリ操作 */}
+              <div className="flex flex-wrap gap-3">
+                <div className="flex flex-col gap-1 flex-1 min-w-[110px]">
+                  <span className="text-xs text-muted-foreground font-medium">オフハンド</span>
+                  <kbd className="px-3 py-2 text-center bg-[rgb(var(--card))] border border-[rgb(var(--border))] rounded-lg font-mono font-semibold text-sm truncate shadow-sm">
+                    {formatKey(settings.swapHands)}
+                  </kbd>
+                </div>
+                <div className="flex flex-col gap-1 flex-1 min-w-[110px]">
+                  <span className="text-xs text-muted-foreground font-medium">インベントリ</span>
+                  <kbd className="px-3 py-2 text-center bg-[rgb(var(--card))] border border-[rgb(var(--border))] rounded-lg font-mono font-semibold text-sm truncate shadow-sm">
+                    {formatKey(settings.inventory)}
+                  </kbd>
+                </div>
+                <div className="flex flex-col gap-1 flex-1 min-w-[110px]">
+                  <span className="text-xs text-muted-foreground font-medium">ドロップ</span>
+                  <kbd className="px-3 py-2 text-center bg-[rgb(var(--card))] border border-[rgb(var(--border))] rounded-lg font-mono font-semibold text-sm truncate shadow-sm">
+                    {formatKey(settings.drop)}
+                  </kbd>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* マウス設定 */}
+          <div className="bg-[rgb(var(--card))] p-5 rounded-lg border-2 border-[rgb(var(--border))] shadow-md">
+            <h3 className="text-lg font-semibold mb-3 text-primary">マウス設定</h3>
+            <div className="flex flex-wrap gap-3">
+              <div className="flex flex-col gap-2 flex-1 min-w-[130px]">
+                <span className="text-xs text-muted-foreground font-semibold">DPI</span>
+                <div className="text-2xl font-bold">{settings.mouseDpi || '-'}</div>
+              </div>
+              <div className="flex flex-col gap-2 flex-1 min-w-[130px]">
+                <span className="text-xs text-muted-foreground font-semibold">感度（ゲーム内）</span>
+                <div className="text-2xl font-bold">{settings.gameSensitivity ? `${Math.floor(Number(settings.gameSensitivity) * 200)}%` : '-'}</div>
+              </div>
+              <div className="flex flex-col gap-2 flex-1 min-w-[130px]">
+                <span className="text-xs text-muted-foreground font-semibold">RawInput</span>
+                <div className={`text-2xl font-bold ${
+                  settings.rawInput
+                    ? 'text-green-600 dark:text-green-400'
+                    : 'text-red-600 dark:text-red-400'
+                }`}>
+                  {settings.rawInput ? 'ON' : 'OFF'}
+                </div>
+              </div>
+              <div className="flex flex-col gap-2 flex-1 min-w-[130px]">
+                <span className="text-xs text-muted-foreground font-semibold">振り向き</span>
+                <div className="text-2xl font-bold">{settings.cm360 ? `${settings.cm360}cm` : '-'}</div>
+              </div>
+              <div className="flex flex-col gap-2 flex-1 min-w-[130px]">
+                <span className="text-xs text-muted-foreground font-semibold">Win速度</span>
+                <div className="text-2xl font-bold">{settings.windowsSpeed || '-'}</div>
+              </div>
+              <div className="flex flex-col gap-2 flex-1 min-w-[130px]">
+                <span className="text-xs text-muted-foreground font-semibold">マウス加速</span>
+                <div className={`text-2xl font-bold ${
+                  settings.mouseAcceleration
+                    ? 'text-red-600 dark:text-red-400'
+                    : 'text-green-600 dark:text-green-400'
+                }`}>
+                  {settings.mouseAcceleration ? 'ON' : 'OFF'}
+                </div>
+              </div>
+              <div className="flex flex-col gap-2 flex-1 min-w-[130px]">
+                <span className="text-xs text-muted-foreground font-semibold">カーソル速度</span>
+                <div className="text-2xl font-bold">
+                  {(() => {
+                    if (!settings.mouseDpi) return '-';
+                    const cursorSpeed = calculateCursorSpeed(
+                      settings.mouseDpi,
+                      settings.windowsSpeed ?? 10,
+                      settings.rawInput,
+                      settings.mouseAcceleration
+                    );
+                    return cursorSpeed !== null ? `${cursorSpeed}` : '-';
+                  })()}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* 仮想キーボード */}
-      <section>
+      <section className="bg-gradient-to-r from-primary/5 via-secondary/5 to-transparent rounded-2xl border border-border shadow-sm p-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-bold">キー配置</h2>
+          <h2 className="text-2xl font-bold">キー配置</h2>
           <div className="flex items-center gap-2">
             <label className={`text-sm font-medium ${Object.keys(normalizedFingerAssignments).length === 0 ? 'text-[rgb(var(--muted-foreground))]' : ''}`}>
               指の色分け表示
@@ -229,307 +434,116 @@ export function KeybindingDisplay({
         />
       </section>
 
-      {/* キー配置Overview */}
-      <section>
-        <h2 className="text-xl font-bold mb-4">Overview</h2>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-          {/* ホットバー */}
-          <div className="bg-[rgb(var(--card))] p-4 rounded-lg border border-[rgb(var(--border))]">
-            <div className="text-sm font-semibold text-[rgb(var(--muted-foreground))] mb-2">ホットバー</div>
-            <div className="flex gap-1 flex-wrap">
-              {hotbarKeys.map((key, i) => (
-                <kbd key={i} className="px-2 py-1 text-xs bg-[rgb(var(--muted))] border border-[rgb(var(--border))] rounded font-mono">
-                  {key}
-                </kbd>
-              ))}
-            </div>
-          </div>
-
-          {/* オフハンド */}
-          <div className="bg-[rgb(var(--card))] p-4 rounded-lg border border-[rgb(var(--border))]">
-            <div className="text-sm font-semibold text-[rgb(var(--muted-foreground))] mb-2">オフハンド</div>
-            <kbd className="px-3 py-1.5 text-base bg-[rgb(var(--muted))] border border-[rgb(var(--border))] rounded font-mono">
-              {formatKey(settings.swapHands)}
-            </kbd>
-          </div>
-
-          {/* スニーク */}
-          <div className="bg-[rgb(var(--card))] p-4 rounded-lg border border-[rgb(var(--border))]">
-            <div className="text-sm font-semibold text-[rgb(var(--muted-foreground))] mb-2">スニーク</div>
-            <kbd className="px-3 py-1.5 text-base bg-[rgb(var(--muted))] border border-[rgb(var(--border))] rounded font-mono">
-              {formatKey(settings.sneak)}
-            </kbd>
-          </div>
-
-          {/* ダッシュ */}
-          <div className="bg-[rgb(var(--card))] p-4 rounded-lg border border-[rgb(var(--border))]">
-            <div className="text-sm font-semibold text-[rgb(var(--muted-foreground))] mb-2">ダッシュ</div>
-            <kbd className="px-3 py-1.5 text-base bg-[rgb(var(--muted))] border border-[rgb(var(--border))] rounded font-mono">
-              {formatKey(settings.sprint)}
-            </kbd>
-          </div>
-
-          {/* ジャンプ */}
-          <div className="bg-[rgb(var(--card))] p-4 rounded-lg border border-[rgb(var(--border))]">
-            <div className="text-sm font-semibold text-[rgb(var(--muted-foreground))] mb-2">ジャンプ</div>
-            <kbd className="px-3 py-1.5 text-base bg-[rgb(var(--muted))] border border-[rgb(var(--border))] rounded font-mono">
-              {formatKey(settings.jump)}
-            </kbd>
-          </div>
-
-          {/* インベントリ */}
-          <div className="bg-[rgb(var(--card))] p-4 rounded-lg border border-[rgb(var(--border))]">
-            <div className="text-sm font-semibold text-[rgb(var(--muted-foreground))] mb-2">インベントリ</div>
-            <kbd className="px-3 py-1.5 text-base bg-[rgb(var(--muted))] border border-[rgb(var(--border))] rounded font-mono">
-              {formatKey(settings.inventory)}
-            </kbd>
-          </div>
-
-          {/* ドロップ */}
-          <div className="bg-[rgb(var(--card))] p-4 rounded-lg border border-[rgb(var(--border))]">
-            <div className="text-sm font-semibold text-[rgb(var(--muted-foreground))] mb-2">ドロップ</div>
-            <kbd className="px-3 py-1.5 text-base bg-[rgb(var(--muted))] border border-[rgb(var(--border))] rounded font-mono">
-              {formatKey(settings.drop)}
-            </kbd>
-          </div>
-
-          {/* 視点変更 */}
-          <div className="bg-[rgb(var(--card))] p-4 rounded-lg border border-[rgb(var(--border))]">
-            <div className="text-sm font-semibold text-[rgb(var(--muted-foreground))] mb-2">視点変更</div>
-            <kbd className="px-3 py-1.5 text-base bg-[rgb(var(--muted))] border border-[rgb(var(--border))] rounded font-mono">
-              {formatKey(settings.togglePerspective)}
-            </kbd>
-          </div>
-
-          {/* フルスクリーン */}
-          <div className="bg-[rgb(var(--card))] p-4 rounded-lg border border-[rgb(var(--border))]">
-            <div className="text-sm font-semibold text-[rgb(var(--muted-foreground))] mb-2">フルスクリーン</div>
-            <kbd className="px-3 py-1.5 text-base bg-[rgb(var(--muted))] border border-[rgb(var(--border))] rounded font-mono">
-              {formatKey(settings.fullscreen)}
-            </kbd>
-          </div>
-
-          {/* チャット */}
-          <div className="bg-[rgb(var(--card))] p-4 rounded-lg border border-[rgb(var(--border))]">
-            <div className="text-sm font-semibold text-[rgb(var(--muted-foreground))] mb-2">チャット</div>
-            <kbd className="px-3 py-1.5 text-base bg-[rgb(var(--muted))] border border-[rgb(var(--border))] rounded font-mono">
-              {formatKey(settings.chat)}
-            </kbd>
-          </div>
-
-          {/* コマンド */}
-          <div className="bg-[rgb(var(--card))] p-4 rounded-lg border border-[rgb(var(--border))]">
-            <div className="text-sm font-semibold text-[rgb(var(--muted-foreground))] mb-2">コマンド</div>
-            <kbd className="px-3 py-1.5 text-base bg-[rgb(var(--muted))] border border-[rgb(var(--border))] rounded font-mono">
-              {formatKey(settings.command)}
-            </kbd>
-          </div>
-
-          {/* HUD非表示 */}
-          <div className="bg-[rgb(var(--card))] p-4 rounded-lg border border-[rgb(var(--border))]">
-            <div className="text-sm font-semibold text-[rgb(var(--muted-foreground))] mb-2">HUD非表示</div>
-            <kbd className="px-3 py-1.5 text-base bg-[rgb(var(--muted))] border border-[rgb(var(--border))] rounded font-mono">
-              {formatKey(settings.toggleHud)}
-            </kbd>
-          </div>
-
-          {/* リセット */}
-          <div className="bg-[rgb(var(--card))] p-4 rounded-lg border border-[rgb(var(--border))]">
-            <div className="text-sm font-semibold text-[rgb(var(--muted-foreground))] mb-2">リセット</div>
-            <kbd className="px-3 py-1.5 text-base bg-[rgb(var(--muted))] border border-[rgb(var(--border))] rounded font-mono">
-              {formatKey(mergedSettings.reset || 'F6')}
-            </kbd>
-          </div>
-
-          {/* DPI */}
-          <div className="bg-[rgb(var(--card))] p-4 rounded-lg border border-[rgb(var(--border))]">
-            <div className="text-sm font-semibold text-[rgb(var(--muted-foreground))] mb-2">DPI</div>
-            <div className="text-2xl font-bold">{settings.mouseDpi || '-'}</div>
-          </div>
-
-          {/* 感度 */}
-          <div className="bg-[rgb(var(--card))] p-4 rounded-lg border border-[rgb(var(--border))]">
-            <div className="text-sm font-semibold text-[rgb(var(--muted-foreground))] mb-2">感度（ゲーム内）</div>
-            <div className="text-2xl font-bold">{settings.gameSensitivity ? `${Math.floor(Number(settings.gameSensitivity) * 200)}%` : '-'}</div>
-          </div>
-
-          {/* RawInput */}
-          <div className="bg-[rgb(var(--card))] p-4 rounded-lg border border-[rgb(var(--border))]">
-            <div className="text-sm font-semibold text-[rgb(var(--muted-foreground))] mb-2">RawInput</div>
-            <div className="text-2xl font-bold">{settings.rawInput ? 'ON' : 'OFF'}</div>
-          </div>
-
-          {/* 振り向き */}
-          <div className="bg-[rgb(var(--card))] p-4 rounded-lg border border-[rgb(var(--border))]">
-            <div className="text-sm font-semibold text-[rgb(var(--muted-foreground))] mb-2">振り向き</div>
-            <div className="text-2xl font-bold">{settings.cm360 ? `${settings.cm360}cm` : '-'}</div>
-          </div>
-
-          {/* Windows速度 */}
-          <div className="bg-[rgb(var(--card))] p-4 rounded-lg border border-[rgb(var(--border))]">
-            <div className="text-sm font-semibold text-[rgb(var(--muted-foreground))] mb-2">Win Sens</div>
-            <div className="text-2xl font-bold">{settings.windowsSpeed || '-'}</div>
-          </div>
-
-          {/* マウス加速 */}
-          <div className="bg-[rgb(var(--card))] p-4 rounded-lg border border-[rgb(var(--border))]">
-            <div className="text-sm font-semibold text-[rgb(var(--muted-foreground))] mb-2">マウス加速</div>
-            <div className="text-2xl font-bold">{settings.mouseAcceleration ? 'ON' : 'OFF'}</div>
-          </div>
-
-          {/* カーソル速度 */}
-          <div className="bg-[rgb(var(--card))] p-4 rounded-lg border border-[rgb(var(--border))]">
-            <div className="text-sm font-semibold text-[rgb(var(--muted-foreground))] mb-2">カーソル速度</div>
-            <div className="text-2xl font-bold">
-              {(() => {
-                if (!settings.mouseDpi) return '-';
-                const cursorSpeed = calculateCursorSpeed(
-                  settings.mouseDpi,
-                  settings.windowsSpeed ?? 10,
-                  settings.rawInput,
-                  settings.mouseAcceleration
-                );
-                return cursorSpeed !== null ? `${cursorSpeed}` : '-';
-              })()}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ゲーム設定（手動設定が必要な項目のみ表示） */}
-      {(settings.toggleSprint !== undefined || settings.toggleSneak !== undefined || settings.autoJump !== undefined) && (
-        <section className="bg-[rgb(var(--card))] p-6 rounded-lg border border-[rgb(var(--border))]">
-          <h2 className="text-xl font-bold mb-4">ゲーム設定</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {/* Toggle Sprint */}
-            {settings.toggleSprint !== undefined && settings.toggleSprint !== null && (
-              <div className="bg-[rgb(var(--card))] p-4 rounded-lg border border-[rgb(var(--border))]">
-                <div className="text-sm font-semibold text-[rgb(var(--muted-foreground))] mb-2">Toggle Sprint</div>
-                <div className="text-2xl font-bold">{settings.toggleSprint ? 'ON' : 'OFF'}</div>
-              </div>
-            )}
-
-            {/* Toggle Sneak */}
-            {settings.toggleSneak !== undefined && settings.toggleSneak !== null && (
-              <div className="bg-[rgb(var(--card))] p-4 rounded-lg border border-[rgb(var(--border))]">
-                <div className="text-sm font-semibold text-[rgb(var(--muted-foreground))] mb-2">Toggle Sneak</div>
-                <div className="text-2xl font-bold">{settings.toggleSneak ? 'ON' : 'OFF'}</div>
-              </div>
-            )}
-
-            {/* Auto Jump */}
-            {settings.autoJump !== undefined && settings.autoJump !== null && (
-              <div className="bg-[rgb(var(--card))] p-4 rounded-lg border border-[rgb(var(--border))]">
-                <div className="text-sm font-semibold text-[rgb(var(--muted-foreground))] mb-2">Auto Jump</div>
-                <div className="text-2xl font-bold">{settings.autoJump ? 'ON' : 'OFF'}</div>
-              </div>
-            )}
-          </div>
-        </section>
-      )}
-
-      {/* プレイヤー環境設定 */}
-      {(settings.gameLanguage || settings.mouseModel || settings.keyboardModel || settings.notes) && (
-        <section className="bg-[rgb(var(--card))] p-6 rounded-lg border border-[rgb(var(--border))]">
-          <h2 className="text-xl font-bold mb-4">プレイヤー環境設定</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* ゲーム内の言語 */}
-            {settings.gameLanguage && (
-              <div className="bg-[rgb(var(--card))] p-4 rounded-lg border border-[rgb(var(--border))]">
-                <div className="text-sm font-semibold text-[rgb(var(--muted-foreground))] mb-2">ゲーム内の言語</div>
-                <div className="text-lg font-medium">{getLanguageName(settings.gameLanguage)}</div>
-              </div>
-            )}
-
-            {/* マウス */}
-            {settings.mouseModel && (
-              <div className="bg-[rgb(var(--card))] p-4 rounded-lg border border-[rgb(var(--border))]">
-                <div className="text-sm font-semibold text-[rgb(var(--muted-foreground))] mb-2">マウス</div>
-                <div className="text-lg font-medium">{settings.mouseModel}</div>
-              </div>
-            )}
-
-            {/* キーボード */}
-            {settings.keyboardModel && (
-              <div className="bg-[rgb(var(--card))] p-4 rounded-lg border border-[rgb(var(--border))]">
-                <div className="text-sm font-semibold text-[rgb(var(--muted-foreground))] mb-2">キーボード</div>
-                <div className="text-lg font-medium">{settings.keyboardModel}</div>
-              </div>
-            )}
-
-            {/* 自由使用欄 */}
-            {settings.notes && (
-              <div className="bg-[rgb(var(--card))] p-4 rounded-lg border border-[rgb(var(--border))] md:col-span-2">
-                <div className="text-sm font-semibold text-[rgb(var(--muted-foreground))] mb-2">コメント</div>
-                <div className="text-base whitespace-pre-wrap">{settings.notes}</div>
-              </div>
-            )}
-          </div>
-        </section>
-      )}
-
       {/* リマップ設定 */}
       {Object.keys(remappingsData).length > 0 && (
-        <section className="bg-[rgb(var(--card))] p-6 rounded-lg border border-[rgb(var(--border))]">
-          <h2 className="text-xl font-bold mb-4">リマップ設定</h2>
-          <p className="text-sm text-[rgb(var(--muted-foreground))] mb-4">
-            ハードウェアレベルまたはドライバーレベルでのキー割り当て変更
-          </p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {Object.entries(remappingsData).map(([from, to]) => (
-              <div key={from} className="flex items-center gap-3 p-3 bg-[rgb(var(--muted))]/50 rounded-lg border border-[rgb(var(--border))]">
-                <div className="flex-1 min-w-0">
-                  <div className="text-xs text-[rgb(var(--muted-foreground))] mb-1">物理キー</div>
-                  <code className="px-2 py-1 bg-[rgb(var(--background))] border border-[rgb(var(--border))] rounded font-mono text-sm break-all">
-                    {formatKeyNameShort(from)}
-                  </code>
+        <Disclosure>
+          {({ open }) => (
+            <section className="bg-[rgb(var(--card))] rounded-xl border border-[rgb(var(--border))] shadow-sm">
+              <Disclosure.Button className="flex w-full items-center justify-between p-6 text-left hover:bg-accent/50 transition-colors rounded-xl">
+                <div>
+                  <h2 className="text-xl font-bold">リマップ設定</h2>
+                  <p className="text-sm text-[rgb(var(--muted-foreground))] mt-1">
+                    ハードウェアレベルまたはドライバーレベルでのキー割り当て変更
+                  </p>
                 </div>
-                <svg className="w-5 h-5 flex-shrink-0 text-[rgb(var(--muted-foreground))]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                </svg>
-                <div className="flex-1 min-w-0">
-                  <div className="text-xs text-[rgb(var(--muted-foreground))] mb-1">リマップ先</div>
-                  <code className="px-2 py-1 bg-blue-500/10 border border-blue-500 rounded font-mono text-sm font-semibold break-all">
-                    {formatKeyNameShort(to)}
-                  </code>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
+                <ChevronDownIcon
+                  className={`${
+                    open ? 'rotate-180 transform' : ''
+                  } h-6 w-6 text-muted-foreground transition-transform duration-200`}
+                />
+              </Disclosure.Button>
+              <Transition
+                enter="transition duration-100 ease-out"
+                enterFrom="transform scale-95 opacity-0"
+                enterTo="transform scale-100 opacity-100"
+                leave="transition duration-75 ease-out"
+                leaveFrom="transform scale-100 opacity-100"
+                leaveTo="transform scale-95 opacity-0"
+              >
+                <Disclosure.Panel className="px-6 pb-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {Object.entries(remappingsData).map(([from, to]) => (
+                      <div key={from} className="flex items-center gap-3 p-3 bg-[rgb(var(--muted))]/50 rounded-lg border border-[rgb(var(--border))]">
+                        <div className="flex-1 min-w-0">
+                          <div className="text-xs text-[rgb(var(--muted-foreground))] mb-1">物理キー</div>
+                          <code className="px-2 py-1 bg-[rgb(var(--background))] border border-[rgb(var(--border))] rounded font-mono text-sm break-all">
+                            {formatKeyNameShort(from)}
+                          </code>
+                        </div>
+                        <svg className="w-5 h-5 flex-shrink-0 text-[rgb(var(--muted-foreground))]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                        </svg>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-xs text-[rgb(var(--muted-foreground))] mb-1">リマップ先</div>
+                          <code className="px-2 py-1 bg-blue-500/10 border border-blue-500 rounded font-mono text-sm font-semibold break-all">
+                            {formatKeyNameShort(to)}
+                          </code>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </Disclosure.Panel>
+              </Transition>
+            </section>
+          )}
+        </Disclosure>
       )}
 
       {/* 外部ツール */}
       {Object.keys(flattenedExternalTools).length > 0 && (
-        <section className="bg-[rgb(var(--card))] p-6 rounded-lg border border-[rgb(var(--border))]">
-          <h2 className="text-xl font-bold mb-4">外部ツール・Modキー設定</h2>
-          <p className="text-sm text-[rgb(var(--muted-foreground))] mb-4">
-            JingleやAutoHotKeyなどの外部ツールによるアクション設定。SeedQueueの設定。
-          </p>
-          <div className="space-y-3">
-            {Object.entries(flattenedExternalTools).map(([keyCode, action]) => (
-              <div key={keyCode} className="bg-[rgb(var(--background))] p-3 rounded-lg border border-[rgb(var(--border))]">
-                <div className="flex items-start gap-3">
-                  <div className="flex-shrink-0">
-                    <div className="text-xs text-[rgb(var(--muted-foreground))] mb-1">トリガーキー</div>
-                    <code className="px-2 py-1 bg-[rgb(var(--muted))] border border-[rgb(var(--border))] rounded font-mono text-sm">
-                      {formatKeyName(keyCode)}
-                    </code>
-                  </div>
-                  <svg className="w-4 h-4 text-[rgb(var(--muted-foreground))] mt-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                  </svg>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-xs text-[rgb(var(--muted-foreground))] mb-1">実行アクション</div>
-                    <div className="px-2 py-1 bg-purple-500/10 border border-purple-500 rounded text-sm font-semibold text-purple-700 dark:text-purple-300">
-                      {action}
-                    </div>
-                  </div>
+        <Disclosure>
+          {({ open }) => (
+            <section className="bg-[rgb(var(--card))] rounded-xl border border-[rgb(var(--border))] shadow-sm">
+              <Disclosure.Button className="flex w-full items-center justify-between p-6 text-left hover:bg-accent/50 transition-colors rounded-xl">
+                <div>
+                  <h2 className="text-xl font-bold">外部ツール・Modキー設定</h2>
+                  <p className="text-sm text-[rgb(var(--muted-foreground))] mt-1">
+                    JingleやAutoHotKeyなどの外部ツールによるアクション設定。SeedQueueの設定。
+                  </p>
                 </div>
-              </div>
-            ))}
-          </div>
-        </section>
+                <ChevronDownIcon
+                  className={`${
+                    open ? 'rotate-180 transform' : ''
+                  } h-6 w-6 text-muted-foreground transition-transform duration-200`}
+                />
+              </Disclosure.Button>
+              <Transition
+                enter="transition duration-100 ease-out"
+                enterFrom="transform scale-95 opacity-0"
+                enterTo="transform scale-100 opacity-100"
+                leave="transition duration-75 ease-out"
+                leaveFrom="transform scale-100 opacity-100"
+                leaveTo="transform scale-95 opacity-0"
+              >
+                <Disclosure.Panel className="px-6 pb-6">
+                  <div className="space-y-3">
+                    {Object.entries(flattenedExternalTools).map(([keyCode, action]) => (
+                      <div key={keyCode} className="bg-[rgb(var(--background))] p-3 rounded-lg border border-[rgb(var(--border))]">
+                        <div className="flex items-start gap-3">
+                          <div className="flex-shrink-0">
+                            <div className="text-xs text-[rgb(var(--muted-foreground))] mb-1">トリガーキー</div>
+                            <code className="px-2 py-1 bg-[rgb(var(--muted))] border border-[rgb(var(--border))] rounded font-mono text-sm">
+                              {formatKeyName(keyCode)}
+                            </code>
+                          </div>
+                          <svg className="w-4 h-4 text-[rgb(var(--muted-foreground))] mt-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                          </svg>
+                          <div className="flex-1 min-w-0">
+                            <div className="text-xs text-[rgb(var(--muted-foreground))] mb-1">実行アクション</div>
+                            <div className="px-2 py-1 bg-purple-500/10 border border-purple-500 rounded text-sm font-semibold text-purple-700 dark:text-purple-300">
+                              {action}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </Disclosure.Panel>
+              </Transition>
+            </section>
+          )}
+        </Disclosure>
       )}
     </div>
   );

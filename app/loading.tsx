@@ -1,5 +1,5 @@
-import { LoadingPage } from '@/components/ui/LoadingSpinner';
+import { PlayerListSkeleton } from '@/components/PlayerListSkeleton';
 
 export default function Loading() {
-  return <LoadingPage />;
+  return <PlayerListSkeleton />;
 }

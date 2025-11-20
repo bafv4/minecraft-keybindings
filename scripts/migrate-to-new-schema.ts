@@ -1,8 +1,7 @@
-// @ts-nocheck - This script is deprecated as migration has been completed
 /**
- * 旧スキーマ → 新スキーマへのデータ移行スクリプト（同一DB内）
+ * 旧スキーマ → 新スキーマへのデータ移行スクリプト（異なるDB間での移行対応）
  *
- * ⚠️ このスクリプトは既に実行済みです。PlayerSettings テーブルは削除されました。
+ * ⚠️ このスクリプトはSTG環境で実行済みです。本番環境での実行用に使用可能です。
  *
  * PlayerSettings（旧）のデータを以下に振り分けます：
  * - PlayerConfig（新）: マウス・環境設定
@@ -12,8 +11,13 @@
  * - ExternalTool: 外部ツール設定（externalTools JSON）
  *
  * 使い方:
- * - ドライラン: DATABASE_URL=xxx tsx scripts/migrate-to-new-schema.ts --dry-run
- * - 実行: DATABASE_URL=xxx tsx scripts/migrate-to-new-schema.ts
+ * - 同一DB内での移行:
+ *   DATABASE_URL=xxx tsx scripts/migrate-to-new-schema.ts [--dry-run]
+ *
+ * - 別環境間での移行（退避環境 → 本番環境）:
+ *   SOURCE_DATABASE_URL=退避環境のDB接続文字列 \
+ *   TARGET_DATABASE_URL=本番環境のDB接続文字列 \
+ *   tsx scripts/migrate-to-new-schema.ts [--dry-run]
  */
 
 import { PrismaClient } from '@prisma/client';
@@ -93,22 +97,51 @@ class CustomKeyMapper {
 const args = process.argv.slice(2);
 const dryRun = args.includes('--dry-run');
 
-const dbUrl = process.env.DATABASE_URL;
+// 環境変数からDB接続情報を取得
+const sourceDbUrl = process.env.SOURCE_DATABASE_URL;
+const targetDbUrl = process.env.TARGET_DATABASE_URL;
+const singleDbUrl = process.env.DATABASE_URL;
 
-if (!dbUrl) {
-  console.error('❌ エラー: DATABASE_URLが設定されていません');
-  console.error('使い方: DATABASE_URL=xxx tsx scripts/migrate-to-new-schema.ts');
+// 接続モードを判定
+let isCrossEnvironmentMigration = false;
+let sourceUrl: string;
+let targetUrl: string;
+
+if (sourceDbUrl && targetDbUrl) {
+  // 別環境間での移行モード
+  isCrossEnvironmentMigration = true;
+  sourceUrl = sourceDbUrl;
+  targetUrl = targetDbUrl;
+  console.log('🔄 データ移行を開始します（別環境間モード）\n');
+  console.log(`📥 ソースDB（退避環境）: ${sourceUrl.replace(/\/\/.*@/, '//***@')}`);
+  console.log(`📤 ターゲットDB（本番環境）: ${targetUrl.replace(/\/\/.*@/, '//***@')}\n`);
+} else if (singleDbUrl) {
+  // 同一DB内での移行モード（後方互換性）
+  isCrossEnvironmentMigration = false;
+  sourceUrl = singleDbUrl;
+  targetUrl = singleDbUrl;
+  console.log('🔄 データ移行を開始します（同一DB内モード）\n');
+  console.log(`📊 DB: ${singleDbUrl.replace(/\/\/.*@/, '//***@')}\n`);
+} else {
+  console.error('❌ エラー: データベース接続情報が設定されていません');
+  console.error('\n使い方:');
+  console.error('  同一DB内: DATABASE_URL=xxx tsx scripts/migrate-to-new-schema.ts');
+  console.error('  別環境間: SOURCE_DATABASE_URL=xxx TARGET_DATABASE_URL=yyy tsx scripts/migrate-to-new-schema.ts');
   process.exit(1);
 }
 
-console.log('🔄 データ移行を開始します...\n');
-console.log(`🔍 ドライラン: ${dryRun ? 'はい（実際の書き込みなし）' : 'いいえ'}`);
-console.log(`📊 DB: ${dbUrl.replace(/\/\/.*@/, '//***@')}\n`);
+console.log(`🔍 ドライラン: ${dryRun ? 'はい（実際の書き込みなし）' : 'いいえ'}\n`);
 
 // Prismaクライアント初期化
-const prisma = new PrismaClient({
-  datasources: { db: { url: dbUrl } },
+const sourcePrisma = new PrismaClient({
+  datasources: { db: { url: sourceUrl } },
 });
+
+const targetPrisma = isCrossEnvironmentMigration
+  ? new PrismaClient({
+      datasources: { db: { url: targetUrl } },
+    })
+  : sourcePrisma; // 同一DB内の場合は同じクライアントを使用
 
 /**
  * 旧スキーマのキーフィールド定義
@@ -155,14 +188,15 @@ async function migrate() {
   try {
     console.log('📥 旧スキーマからデータを取得中...\n');
 
-    // PlayerSettings（旧）からすべてのユーザーデータを取得
-    const oldSettings = await prisma.playerSettings.findMany({
+    // PlayerSettings（旧）からすべてのユーザーデータを取得（ソースDBから）
+    const oldSettings = await sourcePrisma.playerSettings.findMany({
       include: {
         user: {
           select: {
             uuid: true,
             mcid: true,
             displayName: true,
+            passphrase: true, // パスフレーズも取得
           },
         },
       },
@@ -372,55 +406,73 @@ async function migrate() {
         }
 
         if (!dryRun) {
-          // トランザクション内で一括作成
-          await prisma.$transaction([
+          // 別環境間移行の場合、ターゲットDBにUserレコードを作成
+          if (isCrossEnvironmentMigration) {
+            await targetPrisma.user.upsert({
+              where: { uuid },
+              create: {
+                uuid,
+                mcid,
+                displayName: oldUser.user.displayName,
+                passphrase: oldUser.user.passphrase, // パスフレーズも移行
+              },
+              update: {
+                mcid,
+                displayName: oldUser.user.displayName,
+                passphrase: oldUser.user.passphrase, // パスフレーズも更新
+              },
+            });
+          }
+
+          // トランザクション内で一括作成（ターゲットDBに書き込み）
+          await targetPrisma.$transaction([
             // PlayerConfig を upsert
-            prisma.playerConfig.upsert({
+            targetPrisma.playerConfig.upsert({
               where: { uuid },
               create: configData,
               update: configData,
             }),
 
             // 既存の Keybinding を削除（重複回避 - 標準＋カスタムすべて）
-            prisma.keybinding.deleteMany({
+            targetPrisma.keybinding.deleteMany({
               where: { uuid },
             }),
 
             // 新しい Keybinding を作成
             ...(keybindings.length > 0
-              ? [prisma.keybinding.createMany({ data: keybindings })]
+              ? [targetPrisma.keybinding.createMany({ data: keybindings })]
               : []),
 
             // 既存の CustomKey を削除（重複回避）
-            prisma.customKey.deleteMany({
+            targetPrisma.customKey.deleteMany({
               where: { uuid },
             }),
 
             // 新しい CustomKey を作成
             ...(customKeys.length > 0
-              ? [prisma.customKey.createMany({ data: customKeys })]
+              ? [targetPrisma.customKey.createMany({ data: customKeys })]
               : []),
 
             // 既存の KeyRemap を削除（重複回避）
-            prisma.keyRemap.deleteMany({
+            targetPrisma.keyRemap.deleteMany({
               where: { uuid },
             }),
 
             // 新しい KeyRemap を作成
             ...(keyRemaps.length > 0
-              ? [prisma.keyRemap.createMany({ data: keyRemaps })]
+              ? [targetPrisma.keyRemap.createMany({ data: keyRemaps })]
               : []),
 
             // 既存の ExternalTool を削除（重複回避）
-            prisma.externalTool.deleteMany({
+            targetPrisma.externalTool.deleteMany({
               where: { uuid },
             }),
 
             // 新しい ExternalTool を作成
             ...(externalTools.length > 0
-              ? [prisma.externalTool.createMany({ data: externalTools })]
+              ? [targetPrisma.externalTool.createMany({ data: externalTools })]
               : []),
-          ]);
+          ] as any);
         }
 
         const standardKeybindings = keybindings.filter(kb => kb.category !== 'custom').length;
@@ -471,7 +523,10 @@ async function migrate() {
     console.error(error);
     process.exit(1);
   } finally {
-    await prisma.$disconnect();
+    await sourcePrisma.$disconnect();
+    if (isCrossEnvironmentMigration) {
+      await targetPrisma.$disconnect();
+    }
   }
 }
 

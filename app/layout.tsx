@@ -1,16 +1,14 @@
 import type { Metadata } from "next";
-// import { Noto_Sans_JP } from "next/font/google";
+import { Zen_Kaku_Gothic_New } from "next/font/google";
 import "./globals.css";
 import { HeaderWrapper } from "@/components/HeaderWrapper";
 
-// Note: Google Fonts may fail to load in restricted environments (403 error)
-// In production/deployment, uncomment the following lines:
-// const notoSansJP = Noto_Sans_JP({
-//   weight: ['400', '500', '700'],
-//   subsets: ['latin'],
-//   display: 'swap',
-//   variable: '--font-noto-sans-jp',
-// });
+const zenKakuGothicNew = Zen_Kaku_Gothic_New({
+  weight: ['400', '500', '700'],
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-zen-kaku-gothic-new',
+});
 
 export const metadata: Metadata = {
   title: "MCSRer Hotkeys",
@@ -43,7 +41,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ja" className="h-full">
+    <html lang="ja" className={`h-full ${zenKakuGothicNew.variable}`}>
       <body className="h-full flex flex-col font-sans">
         <HeaderWrapper />
         <main className="container mx-auto px-4 py-6 md:py-8 pt-20 md:pt-28 flex-1 flex flex-col min-h-0">

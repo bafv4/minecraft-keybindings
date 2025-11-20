@@ -45,7 +45,13 @@
       "Bash(copy:*)",
       "Bash(git commit:*)",
       "Bash(git push)",
-      "Bash(git restore:*)"
+      "Bash(git restore:*)",
+      "Bash(set DATABASE_URL=%DATABASE_URL%)",
+      "Bash(tsx scripts/migrate-to-new-schema.ts:*)",
+      "Bash(pnpm tsx:*)",
+      "Bash(chmod:*)",
+      "Bash(tasklist:*)",
+      "Bash(findstr:*)"
     ],
     "deny": [],
     "ask": []
