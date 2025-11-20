@@ -6,14 +6,9 @@ import { getSegmentInfo } from '@/lib/segments';
 import { getPlayerData } from '@/lib/playerData';
 import dynamic from 'next/dynamic';
 import type { Metadata } from 'next';
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
 const KeybindingDisplay = dynamic(() => import('@/components/KeybindingDisplay').then(mod => ({ default: mod.KeybindingDisplay })), {
-  loading: () => (
-    <div className="flex items-center justify-center py-12">
-      <LoadingSpinner size="md" />
-    </div>
-  )
+  ssr: true
 });
 
 interface PlayerPageProps {
@@ -94,7 +89,7 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
             <MinecraftAvatar uuid={user.uuid} mcid={user.mcid} size={96} />
           </div>
           <div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-primary-light via-secondary to-foreground bg-clip-text text-transparent">
+            <h1 className="text-4xl font-bold text-foreground">
               {showDisplayName ? user.displayName : user.mcid}
             </h1>
             {showDisplayName && user.displayName !== user.mcid && (

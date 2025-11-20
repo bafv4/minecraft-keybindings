@@ -158,7 +158,7 @@ export function PlayerListItem({ user }: PlayerListItemProps) {
               <KeyBadgeWithLabel keyName={settings?.sneak || 'key.keyboard.left.shift'} label="スニーク" />
               <KeyBadgeWithLabel keyName={settings?.sprint || 'key.keyboard.left.control'} label="ダッシュ" />
               <KeyBadgeWithLabel keyName={settings?.jump || 'key.keyboard.space'} label="ジャンプ" />
-              <KeyBadgeWithLabel keyName={settings?.inventory || 'key.keyboard.e'} label="インベ" />
+              <KeyBadgeWithLabel keyName={settings?.inventory || 'key.keyboard.e'} label="ｲﾝﾍﾞ" />
               <KeyBadgeWithLabel keyName={settings?.drop || 'key.keyboard.q'} label="ドロップ" />
             </div>
           </div>
@@ -192,9 +192,9 @@ function KeyBadgeWithLabel({ keyName, label }: { keyName: string | string[]; lab
     : formatKeyName(keyName);
 
   return (
-    <div className="inline-flex items-center gap-1 bg-muted border border-border rounded-md px-1.5 py-0.5 text-[9px]">
-      <span className="text-muted-foreground">{label}</span>
-      <kbd className="font-mono font-medium">{formattedKey}</kbd>
-    </div>
+    <kbd className="inline-flex items-center gap-1 bg-muted border border-border rounded-md px-1.5 py-0.5 text-[9px] font-mono">
+      <span className="text-muted-foreground font-sans">{label}</span>
+      <span className="font-medium">[{formattedKey}]</span>
+    </kbd>
   );
 }

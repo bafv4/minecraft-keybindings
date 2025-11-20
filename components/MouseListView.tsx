@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { MinecraftAvatar } from './MinecraftAvatar';
 import { calculateCursorSpeed } from '@/lib/utils';
 import type { User } from '@/types/player';
-import { MagnifyingGlassIcon, ChevronUpIcon, ChevronDownIcon, ArrowLeftIcon } from '@heroicons/react/24/outline';
+import { MagnifyingGlassIcon, ChevronUpIcon, ChevronDownIcon, ArrowLeftIcon, XMarkIcon } from '@heroicons/react/24/outline';
 
 interface MouseListViewProps {
   users: User[];
@@ -16,6 +16,7 @@ type SortOrder = 'asc' | 'desc';
 
 export function MouseListView({ users }: MouseListViewProps) {
   const [searchQuery, setSearchQuery] = useState('');
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [sortKey, setSortKey] = useState<SortKey>('player');
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
 
@@ -160,29 +161,43 @@ export function MouseListView({ users }: MouseListViewProps) {
   return (
     <div className="flex flex-col h-full">
       {/* ヘッダーと検索 */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-        <div className="flex items-center gap-3">
-          {/* 戻るボタン */}
-          <Link
-            href="/"
-            className="inline-flex items-center justify-center w-10 h-10 bg-[rgb(var(--card))] hover:bg-[rgb(var(--muted))] border border-[rgb(var(--border))] rounded-lg transition-colors"
-            title="プレイヤー一覧に戻る"
-          >
-            <ArrowLeftIcon className="w-5 h-5" />
-          </Link>
+      <div className="flex flex-col gap-3 md:gap-4 mb-4 md:mb-6">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 md:gap-3">
+            {/* 戻るボタン */}
+            <Link
+              href="/"
+              className="inline-flex items-center justify-center w-9 h-9 md:w-10 md:h-10 bg-[rgb(var(--card))] hover:bg-[rgb(var(--muted))] border border-[rgb(var(--border))] rounded-lg transition-colors"
+              title="プレイヤー一覧に戻る"
+            >
+              <ArrowLeftIcon className="w-4 h-4 md:w-5 md:h-5" />
+            </Link>
 
-          <h1 className="text-2xl font-semibold">マウス設定一覧</h1>
+            <h1 className="text-lg md:text-2xl font-semibold">マウス設定一覧</h1>
+          </div>
+
+          {/* モバイル検索ボタン */}
+          <button
+            onClick={() => setMobileSearchOpen(!mobileSearchOpen)}
+            className="md:hidden flex items-center justify-center w-9 h-9 bg-[rgb(var(--card))] border border-[rgb(var(--border))] rounded-lg hover:bg-[rgb(var(--muted))] transition-colors"
+          >
+            {mobileSearchOpen ? (
+              <XMarkIcon className="w-4 h-4" />
+            ) : (
+              <MagnifyingGlassIcon className="w-4 h-4" />
+            )}
+          </button>
         </div>
 
-        {/* 検索ボックス */}
-        <div className="relative w-full sm:w-96">
-          <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[rgb(var(--muted-foreground))]" />
+        {/* 検索ボックス - デスクトップは常に表示、モバイルはトグル */}
+        <div className={`relative ${mobileSearchOpen ? 'block' : 'hidden md:block'}`}>
+          <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 md:w-5 h-4 md:h-5 text-[rgb(var(--muted-foreground))]" />
           <input
             type="text"
             placeholder="プレイヤー / マウス機種で検索"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-3 text-base border border-[rgb(var(--border))] rounded-lg bg-[rgb(var(--background))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--ring))]"
+            className="w-full pl-9 md:pl-10 pr-3 md:pr-4 py-2 md:py-3 text-sm md:text-base border border-[rgb(var(--border))] rounded-lg bg-[rgb(var(--background))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--ring))]"
           />
         </div>
       </div>
@@ -260,14 +275,12 @@ export function MouseListView({ users }: MouseListViewProps) {
               {filteredUsers.map((user) => (
                 <tr
                   key={user.uuid}
-                  className="border-b border-[rgb(var(--border))] last:border-b-0 group"
+                  onClick={() => window.location.href = `/player/${user.mcid}`}
+                  className="border-b border-[rgb(var(--border))] last:border-b-0 group cursor-pointer hover:bg-gradient-to-r hover:from-primary/5 hover:to-secondary/5 transition-all duration-200"
                 >
                   {/* プレイヤー */}
                   <td className="px-4 py-3">
-                    <Link
-                      href={`/player/${user.mcid}`}
-                      className="flex items-center gap-3 hover:bg-gradient-to-r hover:from-primary/5 hover:to-secondary/5 transition-all duration-200 -mx-4 -my-3 px-4 py-3"
-                    >
+                    <div className="flex items-center gap-3">
                       <MinecraftAvatar uuid={user.uuid} mcid={user.mcid} size={32} />
                       <div>
                         <div className="font-medium group-hover:text-primary transition-colors">
@@ -279,7 +292,7 @@ export function MouseListView({ users }: MouseListViewProps) {
                           </div>
                         )}
                       </div>
-                    </Link>
+                    </div>
                   </td>
 
                   {/* マウス機種 */}

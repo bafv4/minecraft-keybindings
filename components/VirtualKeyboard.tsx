@@ -676,23 +676,16 @@ const VirtualKeyboardComponent = ({
     };
 
     // 背景色のロジック：
-    // 1. 指の割り当てがある場合 → 指の色（複数の場合は切り替え）
-    // 2. 指の割り当てがないが、何らかのマッピングがある場合 → Primaryカラー（黒系/白系）
-    // 3. 何もない場合 → デフォルト色
+    // 1. 何らかのマッピングがある場合 → Primaryカラー（黒系/白系）
+    // 2. 何もない場合 → デフォルト色
+    // 注: 指の色はチップで表示するため、背景色には反映しない
     const isDisabled = remapTarget === 'key.keyboard.disabled';
     const hasAnyMapping = hasBinding || hasRemap || hasExternalTool;
     const primaryColorClass = 'bg-gray-900/10 border-gray-900 dark:bg-gray-100/10 dark:border-gray-100';
     const defaultColorClass = 'bg-[rgb(var(--card))] border-[rgb(var(--border))]';
 
-    // 複数の指が割り当てられている場合は、colorCycleIndexを使って色を切り替える
-    const currentFingerIndex = assignedFingers.length > 0 ? colorCycleIndex % assignedFingers.length : -1;
-    const currentFinger = currentFingerIndex >= 0 ? assignedFingers[currentFingerIndex] : undefined;
-    const fingerColorClass = showFingerColors && currentFinger ? getFingerColor(currentFinger) : '';
-
     let backgroundClass = defaultColorClass;
-    if (fingerColorClass) {
-      backgroundClass = fingerColorClass;
-    } else if (hasAnyMapping) {
+    if (hasAnyMapping) {
       backgroundClass = primaryColorClass;
     }
 
@@ -753,6 +746,33 @@ const VirtualKeyboardComponent = ({
             <div className="absolute top-1 left-1.5 text-[14px]">{keyDef.label}</div>
         )}
 
+        {/* 指のチップ表示 - 右上 */}
+        {showFingerColors && assignedFingers.length > 0 && (
+          <div className="absolute top-1 right-1 flex gap-0.5">
+            {assignedFingers.map((finger, idx) => (
+              <div
+                key={idx}
+                className={`w-2 h-2 rounded-full border ${getFingerColor(finger)}`}
+                title={(() => {
+                  const fingerLabels: Record<string, string> = {
+                    'left-pinky': '左手小指',
+                    'left-ring': '左手薬指',
+                    'left-middle': '左手中指',
+                    'left-index': '左手人差し指',
+                    'left-thumb': '左手親指',
+                    'right-thumb': '右手親指',
+                    'right-index': '右手人差し指',
+                    'right-middle': '右手中指',
+                    'right-ring': '右手薬指',
+                    'right-pinky': '右手小指',
+                  };
+                  return fingerLabels[finger] || finger;
+                })()}
+              />
+            ))}
+          </div>
+        )}
+
         <div className="absolute bottom-1 left-1 right-1 flex flex-col gap-0.5">
           {/* マイクラのアクション */}
           {actions.length > 0 && (
@@ -791,20 +811,14 @@ const VirtualKeyboardComponent = ({
     const assignedFingers = fingerAssignments[webKeyCode] || [];
 
     // 背景色のロジック：renderKeyと同じ
+    // 注: 指の色はチップで表示するため、背景色には反映しない
     const isDisabled = remapTarget === 'key.keyboard.disabled';
     const hasAnyMapping = hasBinding || hasRemap || hasExternalTool;
     const primaryColorClass = 'bg-gray-900/10 border-gray-900 dark:bg-gray-100/10 dark:border-gray-100';
     const defaultColorClass = 'bg-[rgb(var(--card))] border-[rgb(var(--border))]';
 
-    // 複数の指が割り当てられている場合は、colorCycleIndexを使って色を切り替える
-    const currentFingerIndex = assignedFingers.length > 0 ? colorCycleIndex % assignedFingers.length : -1;
-    const currentFinger = currentFingerIndex >= 0 ? assignedFingers[currentFingerIndex] : undefined;
-    const fingerColorClass = showFingerColors && currentFinger ? getFingerColor(currentFinger) : '';
-
     let backgroundClass = defaultColorClass;
-    if (fingerColorClass) {
-      backgroundClass = fingerColorClass;
-    } else if (hasAnyMapping) {
+    if (hasAnyMapping) {
       backgroundClass = primaryColorClass;
     }
 
@@ -865,6 +879,33 @@ const VirtualKeyboardComponent = ({
           </div>
         ) : (
           <div className="absolute top-1 left-1.5 text-xs">{btn.label}</div>
+        )}
+
+        {/* 指のチップ表示 - 右上 */}
+        {showFingerColors && assignedFingers.length > 0 && (
+          <div className="absolute top-1 right-1 flex gap-0.5">
+            {assignedFingers.map((finger, idx) => (
+              <div
+                key={idx}
+                className={`w-2 h-2 rounded-full border ${getFingerColor(finger)}`}
+                title={(() => {
+                  const fingerLabels: Record<string, string> = {
+                    'left-pinky': '左手小指',
+                    'left-ring': '左手薬指',
+                    'left-middle': '左手中指',
+                    'left-index': '左手人差し指',
+                    'left-thumb': '左手親指',
+                    'right-thumb': '右手親指',
+                    'right-index': '右手人差し指',
+                    'right-middle': '右手中指',
+                    'right-ring': '右手薬指',
+                    'right-pinky': '右手小指',
+                  };
+                  return fingerLabels[finger] || finger;
+                })()}
+              />
+            ))}
+          </div>
         )}
 
         <div className="absolute bottom-1 left-1 right-1 flex flex-col gap-0.5">
