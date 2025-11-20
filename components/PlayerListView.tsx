@@ -1,10 +1,9 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import Link from 'next/link';
 import { PlayerListItem } from './PlayerListItem';
 import type { User } from '@/types/player';
-import { MagnifyingGlassIcon, ComputerDesktopIcon, CursorArrowRaysIcon } from '@heroicons/react/24/outline';
+import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 
 interface PlayerListViewProps {
   users: User[];
@@ -38,33 +37,13 @@ export function PlayerListView({ users }: PlayerListViewProps) {
     <div className="flex flex-col h-full min-h-0 space-y-3 md:space-y-6">
       {/* ヘッダーセクション */}
       <div className="flex flex-col gap-3 md:gap-6 flex-shrink-0">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 md:gap-4">
-          <div>
-            <h1 className="text-xl md:text-3xl font-bold bg-gradient-to-r from-primary-light via-secondary to-[#64748b] bg-clip-text text-transparent">
-              プレイヤー一覧
-            </h1>
-            <p className="text-xs md:text-sm text-muted-foreground mt-0.5 md:mt-1">
-              {filteredUsers.length}人のプレイヤー
-            </p>
-          </div>
-
-          {/* ナビゲーションボタン */}
-          <div className="flex gap-1.5 md:gap-2 flex-wrap">
-            <Link
-              href="/keyboard"
-              className="flex items-center gap-1.5 md:gap-2 px-2.5 md:px-4 py-1.5 md:py-2.5 bg-card hover:bg-accent border border-border rounded-lg md:rounded-xl transition-all duration-200 shadow-sm hover:shadow"
-            >
-              <ComputerDesktopIcon className="w-4 md:w-5 h-4 md:h-5 text-primary" />
-              <span className="text-xs md:text-sm font-medium">キーボード</span>
-            </Link>
-            <Link
-              href="/mouse"
-              className="flex items-center gap-1.5 md:gap-2 px-2.5 md:px-4 py-1.5 md:py-2.5 bg-card hover:bg-accent border border-border rounded-lg md:rounded-xl transition-all duration-200 shadow-sm hover:shadow"
-            >
-              <CursorArrowRaysIcon className="w-4 md:w-5 h-4 md:h-5 text-secondary" />
-              <span className="text-xs md:text-sm font-medium">マウス</span>
-            </Link>
-          </div>
+        <div>
+          <h1 className="text-xl md:text-3xl font-bold bg-gradient-to-r from-primary-light via-secondary to-[#64748b] bg-clip-text text-transparent">
+            プレイヤー一覧
+          </h1>
+          <p className="text-xs md:text-sm text-muted-foreground mt-0.5 md:mt-1">
+            {filteredUsers.length}人のプレイヤー
+          </p>
         </div>
 
         {/* 検索ボックス */}
