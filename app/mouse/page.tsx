@@ -4,6 +4,9 @@ import type { Metadata } from 'next';
 import { getMousePageData } from '@/lib/playerData';
 import { MouseListSkeleton } from '@/components/MouseListSkeleton';
 
+// キャッシュを60秒間保持し、それ以降はバックグラウンドで再検証
+export const revalidate = 60;
+
 export const metadata: Metadata = {
   title: 'マウス設定一覧 | MCSRer Hotkeys',
   description: 'RTA勢のマウス設定一覧',

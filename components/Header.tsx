@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { Menu, MenuButton, MenuItems, MenuItem } from '@headlessui/react';
+import { Menu, MenuButton, MenuItems, MenuItem, Transition } from '@headlessui/react';
 import {
   PencilSquareIcon,
   ArrowRightOnRectangleIcon,
@@ -13,7 +13,7 @@ import {
   ListBulletIcon,
   ChevronDownIcon
 } from '@heroicons/react/24/outline';
-import { useState } from 'react';
+import { useState, Fragment } from 'react';
 import type { Session } from 'next-auth';
 import { handleSignOut } from '@/app/actions/auth';
 
@@ -59,7 +59,10 @@ export function Header({ session }: HeaderProps) {
                 <span>一覧</span>
                 <ChevronDownIcon className="w-4 h-4" />
               </MenuButton>
-              <MenuItems className="absolute left-0 mt-2 w-48 origin-top-left rounded-xl bg-card border border-border shadow-lg ring-1 ring-black/5 focus:outline-none overflow-hidden">
+              <MenuItems
+                transition
+                className="absolute left-0 mt-2 w-48 origin-top-left rounded-xl bg-card border border-border shadow-lg ring-1 ring-black/5 focus:outline-none overflow-hidden transition duration-200 ease-out data-[closed]:scale-95 data-[closed]:opacity-0"
+              >
                 <MenuItem>
                   {({ focus }) => (
                     <Link
@@ -106,7 +109,10 @@ export function Header({ session }: HeaderProps) {
                 <span>統計</span>
                 <ChevronDownIcon className="w-4 h-4" />
               </MenuButton>
-              <MenuItems className="absolute left-0 mt-2 w-48 origin-top-left rounded-xl bg-card border border-border shadow-lg ring-1 ring-black/5 focus:outline-none overflow-hidden">
+              <MenuItems
+                transition
+                className="absolute left-0 mt-2 w-48 origin-top-left rounded-xl bg-card border border-border shadow-lg ring-1 ring-black/5 focus:outline-none overflow-hidden transition duration-200 ease-out data-[closed]:scale-95 data-[closed]:opacity-0"
+              >
                 <MenuItem>
                   {({ focus }) => (
                     <Link
@@ -166,7 +172,10 @@ export function Header({ session }: HeaderProps) {
                     <UserCircleIcon className="w-5 h-5 text-primary" />
                     <span className="font-medium">{session.user.name}</span>
                   </MenuButton>
-                  <MenuItems className="absolute right-0 mt-2 w-56 origin-top-right rounded-xl bg-card border border-border shadow-lg ring-1 ring-black/5 focus:outline-none overflow-hidden">
+                  <MenuItems
+                    transition
+                    className="absolute right-0 mt-2 w-56 origin-top-right rounded-xl bg-card border border-border shadow-lg ring-1 ring-black/5 focus:outline-none overflow-hidden transition duration-200 ease-out data-[closed]:scale-95 data-[closed]:opacity-0"
+                  >
                     <MenuItem>
                       {({ focus }) => (
                         <Link
@@ -234,19 +243,28 @@ export function Header({ session }: HeaderProps) {
           {/* Mobile Menu Button */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-1.5 text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition-colors"
+            className="md:hidden p-2 text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition-colors"
           >
             {mobileMenuOpen ? (
-              <XMarkIcon className="w-5 h-5" />
+              <XMarkIcon className="w-6 h-6" />
             ) : (
-              <Bars3Icon className="w-5 h-5" />
+              <Bars3Icon className="w-6 h-6" />
             )}
           </button>
         </div>
 
         {/* Mobile Menu */}
-        {mobileMenuOpen && (
-          <div className="md:hidden border-t border-border/50 py-4 space-y-2 animate-slide-down">
+        <Transition
+          show={mobileMenuOpen}
+          as={Fragment}
+          enter="transition ease-out duration-200"
+          enterFrom="opacity-0 -translate-y-2"
+          enterTo="opacity-100 translate-y-0"
+          leave="transition ease-in duration-150"
+          leaveFrom="opacity-100 translate-y-0"
+          leaveTo="opacity-0 -translate-y-2"
+        >
+          <div className="md:hidden border-t border-border/50 py-4 space-y-2">
             {/* 一覧メニュー */}
             <div className="space-y-1">
               <div className="px-4 py-2 text-xs text-muted-foreground font-semibold">一覧</div>
@@ -355,7 +373,7 @@ export function Header({ session }: HeaderProps) {
               </Link>
             )}
           </div>
-        )}
+        </Transition>
       </div>
     </header>
   );

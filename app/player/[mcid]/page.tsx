@@ -6,9 +6,11 @@ import { getSegmentInfo } from '@/lib/segments';
 import { getPlayerData } from '@/lib/playerData';
 import dynamic from 'next/dynamic';
 import type { Metadata } from 'next';
+import { KeybindingDisplaySkeleton } from '@/components/KeybindingDisplaySkeleton';
 
 const KeybindingDisplay = dynamic(() => import('@/components/KeybindingDisplay').then(mod => ({ default: mod.KeybindingDisplay })), {
-  ssr: true
+  ssr: true,
+  loading: () => <KeybindingDisplaySkeleton />
 });
 
 interface PlayerPageProps {
