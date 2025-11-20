@@ -89,7 +89,7 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
             <MinecraftAvatar uuid={user.uuid} mcid={user.mcid} size={96} />
           </div>
           <div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-primary-light via-secondary to-foreground bg-clip-text text-transparent">
+            <h1 className="text-4xl font-bold text-foreground">
               {showDisplayName ? user.displayName : user.mcid}
             </h1>
             {showDisplayName && user.displayName !== user.mcid && (
