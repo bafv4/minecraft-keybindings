@@ -211,60 +211,60 @@ export function MouseListView({ users }: MouseListViewProps) {
         </div>
       ) : (
         <div className="flex-1 bg-[rgb(var(--card))] rounded-lg border border-[rgb(var(--border))] overflow-hidden flex flex-col min-h-0">
-          <div className="flex-1 overflow-auto min-h-0">
-            <table className="w-full text-sm">
+          <div className="flex-1 overflow-x-auto min-h-0">
+            <table className="w-full text-sm relative">
               <thead className="bg-[rgb(var(--muted))] border-b border-[rgb(var(--border))] sticky top-0 z-10">
               <tr>
                 <th
-                  className="px-4 py-3 text-left font-semibold cursor-pointer hover:bg-[rgb(var(--muted))]/80 transition-colors"
+                  className="sticky left-0 z-20 bg-[rgb(var(--muted))] px-4 py-3 text-left font-semibold cursor-pointer hover:bg-[rgb(var(--muted))]/80 transition-colors whitespace-nowrap border-r border-[rgb(var(--border))]"
                   onClick={() => handleSort('player')}
                 >
                   プレイヤー <SortIcon columnKey="player" />
                 </th>
                 <th
-                  className="px-4 py-3 text-left font-semibold cursor-pointer hover:bg-[rgb(var(--muted))]/80 transition-colors"
+                  className="px-4 py-3 text-left font-semibold cursor-pointer hover:bg-[rgb(var(--muted))]/80 transition-colors whitespace-nowrap"
                   onClick={() => handleSort('model')}
                 >
                   マウス機種 <SortIcon columnKey="model" />
                 </th>
                 <th
-                  className="px-4 py-3 text-center font-semibold cursor-pointer hover:bg-[rgb(var(--muted))]/80 transition-colors"
+                  className="px-4 py-3 text-center font-semibold cursor-pointer hover:bg-[rgb(var(--muted))]/80 transition-colors whitespace-nowrap"
                   onClick={() => handleSort('dpi')}
                 >
                   DPI <SortIcon columnKey="dpi" />
                 </th>
                 <th
-                  className="px-4 py-3 text-center font-semibold cursor-pointer hover:bg-[rgb(var(--muted))]/80 transition-colors"
+                  className="px-4 py-3 text-center font-semibold cursor-pointer hover:bg-[rgb(var(--muted))]/80 transition-colors whitespace-nowrap"
                   onClick={() => handleSort('acceleration')}
                 >
                   マウス加速 <SortIcon columnKey="acceleration" />
                 </th>
                 <th
-                  className="px-4 py-3 text-center font-semibold cursor-pointer hover:bg-[rgb(var(--muted))]/80 transition-colors"
+                  className="px-4 py-3 text-center font-semibold cursor-pointer hover:bg-[rgb(var(--muted))]/80 transition-colors whitespace-nowrap"
                   onClick={() => handleSort('rawInput')}
                 >
                   RawInput <SortIcon columnKey="rawInput" />
                 </th>
                 <th
-                  className="px-4 py-3 text-center font-semibold cursor-pointer hover:bg-[rgb(var(--muted))]/80 transition-colors"
+                  className="px-4 py-3 text-center font-semibold cursor-pointer hover:bg-[rgb(var(--muted))]/80 transition-colors whitespace-nowrap"
                   onClick={() => handleSort('sensitivity')}
                 >
                   ゲーム内感度 <SortIcon columnKey="sensitivity" />
                 </th>
                 <th
-                  className="px-4 py-3 text-center font-semibold cursor-pointer hover:bg-[rgb(var(--muted))]/80 transition-colors"
+                  className="px-4 py-3 text-center font-semibold cursor-pointer hover:bg-[rgb(var(--muted))]/80 transition-colors whitespace-nowrap"
                   onClick={() => handleSort('cm360')}
                 >
                   振り向き <SortIcon columnKey="cm360" />
                 </th>
                 <th
-                  className="px-4 py-3 text-center font-semibold cursor-pointer hover:bg-[rgb(var(--muted))]/80 transition-colors"
+                  className="px-4 py-3 text-center font-semibold cursor-pointer hover:bg-[rgb(var(--muted))]/80 transition-colors whitespace-nowrap"
                   onClick={() => handleSort('windowsSpeed')}
                 >
                   Win Sens <SortIcon columnKey="windowsSpeed" />
                 </th>
                 <th
-                  className="px-4 py-3 text-center font-semibold cursor-pointer hover:bg-[rgb(var(--muted))]/80 transition-colors"
+                  className="px-4 py-3 text-center font-semibold cursor-pointer hover:bg-[rgb(var(--muted))]/80 transition-colors whitespace-nowrap"
                   onClick={() => handleSort('cursorSpeed')}
                 >
                   カーソル速度 <SortIcon columnKey="cursorSpeed" />
@@ -279,15 +279,15 @@ export function MouseListView({ users }: MouseListViewProps) {
                   className="border-b border-[rgb(var(--border))] last:border-b-0 group cursor-pointer hover:bg-gradient-to-r hover:from-primary/5 hover:to-secondary/5 transition-all duration-200"
                 >
                   {/* プレイヤー */}
-                  <td className="px-4 py-3">
+                  <td className="sticky left-0 z-10 bg-[rgb(var(--card))] px-4 py-3 border-r border-[rgb(var(--border))] group-hover:bg-gradient-to-r group-hover:from-primary/5 group-hover:to-transparent">
                     <div className="flex items-center gap-3">
                       <MinecraftAvatar uuid={user.uuid} mcid={user.mcid} size={32} />
                       <div>
-                        <div className="font-medium group-hover:text-primary transition-colors">
+                        <div className="font-medium group-hover:text-primary transition-colors whitespace-nowrap">
                           {user.displayName && user.displayName.trim() !== '' ? user.displayName : user.mcid}
                         </div>
                         {user.displayName && user.displayName.trim() !== '' && user.displayName !== user.mcid && (
-                          <div className="text-xs text-[rgb(var(--muted-foreground))]">
+                          <div className="text-xs text-[rgb(var(--muted-foreground))] whitespace-nowrap">
                             {user.mcid}
                           </div>
                         )}

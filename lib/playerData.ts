@@ -187,6 +187,7 @@ export async function getKeyboardStatsData() {
     include: {
       config: true,
       keybindings: true,
+      keyRemaps: true,
     },
   });
 
@@ -199,6 +200,7 @@ export async function getKeyboardStatsData() {
       mcid: user.mcid,
       displayName: user.displayName,
       settings,
+      keyRemaps: user.keyRemaps,
     };
   });
 }

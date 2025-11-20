@@ -42,8 +42,15 @@ export function KeyboardListView({ users }: KeyboardListViewProps) {
 
   // リマップ数を計算
   const getRemapCount = (user: User): number => {
-    if (!user.settings?.remappings) return 0;
-    return Object.keys(user.settings.remappings).length;
+    // keyRemapsプロパティが存在する場合はその長さを返す
+    if ('keyRemaps' in user && Array.isArray((user as any).keyRemaps)) {
+      return (user as any).keyRemaps.length;
+    }
+    // 後方互換性のため、古い形式もサポート
+    if (user.settings?.remappings) {
+      return Object.keys(user.settings.remappings).length;
+    }
+    return 0;
   };
 
   // ソート済みユーザー
@@ -162,36 +169,36 @@ export function KeyboardListView({ users }: KeyboardListViewProps) {
         </div>
       ) : (
         <div className="flex-1 bg-[rgb(var(--card))] rounded-lg border border-[rgb(var(--border))] overflow-hidden flex flex-col min-h-0">
-          <div className="flex-1 overflow-auto min-h-0">
-            <table className="w-full text-sm">
+          <div className="flex-1 overflow-x-auto min-h-0">
+            <table className="w-full text-sm relative">
               <thead className="bg-[rgb(var(--muted))] border-b border-[rgb(var(--border))] sticky top-0 z-10">
               <tr>
                 <th
-                  className="px-4 py-3 text-left font-semibold cursor-pointer hover:bg-[rgb(var(--muted))]/80 transition-colors"
+                  className="sticky left-0 z-20 bg-[rgb(var(--muted))] px-4 py-3 text-left font-semibold cursor-pointer hover:bg-[rgb(var(--muted))]/80 transition-colors whitespace-nowrap border-r border-[rgb(var(--border))]"
                   onClick={() => handleSort('player')}
                 >
                   プレイヤー <SortIcon columnKey="player" />
                 </th>
                 <th
-                  className="px-4 py-3 text-left font-semibold cursor-pointer hover:bg-[rgb(var(--muted))]/80 transition-colors"
+                  className="px-4 py-3 text-left font-semibold cursor-pointer hover:bg-[rgb(var(--muted))]/80 transition-colors whitespace-nowrap"
                   onClick={() => handleSort('model')}
                 >
                   キーボード機種 <SortIcon columnKey="model" />
                 </th>
                 <th
-                  className="px-4 py-3 text-center font-semibold cursor-pointer hover:bg-[rgb(var(--muted))]/80 transition-colors"
+                  className="px-4 py-3 text-center font-semibold cursor-pointer hover:bg-[rgb(var(--muted))]/80 transition-colors whitespace-nowrap"
                   onClick={() => handleSort('layout')}
                 >
                   キー配列 <SortIcon columnKey="layout" />
                 </th>
                 <th
-                  className="px-4 py-3 text-center font-semibold cursor-pointer hover:bg-[rgb(var(--muted))]/80 transition-colors"
+                  className="px-4 py-3 text-center font-semibold cursor-pointer hover:bg-[rgb(var(--muted))]/80 transition-colors whitespace-nowrap"
                   onClick={() => handleSort('language')}
                 >
                   言語 <SortIcon columnKey="language" />
                 </th>
                 <th
-                  className="px-4 py-3 text-center font-semibold cursor-pointer hover:bg-[rgb(var(--muted))]/80 transition-colors"
+                  className="px-4 py-3 text-center font-semibold cursor-pointer hover:bg-[rgb(var(--muted))]/80 transition-colors whitespace-nowrap"
                   onClick={() => handleSort('remapCount')}
                 >
                   リマップ数 <SortIcon columnKey="remapCount" />
@@ -206,15 +213,15 @@ export function KeyboardListView({ users }: KeyboardListViewProps) {
                   className="border-b border-[rgb(var(--border))] last:border-b-0 group cursor-pointer hover:bg-gradient-to-r hover:from-primary/5 hover:to-secondary/5 transition-all duration-200"
                 >
                   {/* プレイヤー */}
-                  <td className="px-4 py-3">
+                  <td className="sticky left-0 z-10 bg-[rgb(var(--card))] px-4 py-3 border-r border-[rgb(var(--border))] group-hover:bg-gradient-to-r group-hover:from-primary/5 group-hover:to-transparent">
                     <div className="flex items-center gap-3">
                       <MinecraftAvatar uuid={user.uuid} mcid={user.mcid} size={32} />
                       <div>
-                        <div className="font-medium group-hover:text-primary transition-colors">
+                        <div className="font-medium group-hover:text-primary transition-colors whitespace-nowrap">
                           {user.displayName && user.displayName.trim() !== '' ? user.displayName : user.mcid}
                         </div>
                         {user.displayName && user.displayName.trim() !== '' && user.displayName !== user.mcid && (
-                          <div className="text-xs text-[rgb(var(--muted-foreground))]">
+                          <div className="text-xs text-[rgb(var(--muted-foreground))] whitespace-nowrap">
                             {user.mcid}
                           </div>
                         )}
