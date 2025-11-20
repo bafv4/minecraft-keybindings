@@ -5,13 +5,14 @@ import dynamic from 'next/dynamic';
 import type { PlayerSettings } from '@/types/player';
 import type { Metadata } from 'next';
 import { normalizeKeyCode } from '@/lib/keyConversion';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
 const KeybindingEditor = dynamic(() => import('@/components/KeybindingEditor').then(mod => ({ default: mod.KeybindingEditor })), {
-  loading: () => <div className="flex items-center justify-center py-12"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div></div>
+  loading: () => <div className="flex items-center justify-center py-12"><LoadingSpinner size="md" /></div>
 });
 
 const ItemLayoutEditor = dynamic(() => import('@/components/ItemLayoutEditor').then(mod => ({ default: mod.ItemLayoutEditor })), {
-  loading: () => <div className="flex items-center justify-center py-12"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div></div>
+  loading: () => <div className="flex items-center justify-center py-12"><LoadingSpinner size="md" /></div>
 });
 
 interface EditPageProps {

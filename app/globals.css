@@ -134,8 +134,25 @@
 }
 
 .animate-circular-rotate {
-  animation: circularRotate 1.4s linear infinite;
+  animation: circularRotate 1.4s cubic-bezier(0.4, 0.0, 0.2, 1) infinite;
   transform-origin: center center;
+}
+
+/* Circular progress dash animation (expanding and contracting arc) */
+@keyframes circularDash {
+  0% {
+    stroke-dashoffset: calc(var(--circumference) * 0.85);
+  }
+  50% {
+    stroke-dashoffset: calc(var(--circumference) * 0.15);
+  }
+  100% {
+    stroke-dashoffset: calc(var(--circumference) * 0.85);
+  }
+}
+
+.animate-circular-dash {
+  animation: circularDash 1.4s ease-in-out infinite;
 }
 
 /* ガラスモーフィズム効果（透かし + ブラー） */

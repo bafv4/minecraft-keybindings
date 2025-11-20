@@ -42,7 +42,10 @@ export function LoadingSpinner({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) {
           strokeLinecap="round"
           strokeDasharray={circumference}
           strokeDashoffset={circumference * 0.25}
-          className="origin-center"
+          className="animate-circular-dash"
+          style={{
+            '--circumference': circumference,
+          } as React.CSSProperties}
         />
         {/* Gradient definition */}
         <defs>
