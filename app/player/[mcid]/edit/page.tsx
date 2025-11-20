@@ -5,13 +5,17 @@ import dynamic from 'next/dynamic';
 import type { PlayerSettings } from '@/types/player';
 import type { Metadata } from 'next';
 import { normalizeKeyCode } from '@/lib/keyConversion';
+import { KeybindingEditorSkeleton } from '@/components/KeybindingEditorSkeleton';
+import { ItemLayoutEditorSkeleton } from '@/components/ItemLayoutEditorSkeleton';
 
 const KeybindingEditor = dynamic(() => import('@/components/KeybindingEditor').then(mod => ({ default: mod.KeybindingEditor })), {
-  ssr: true
+  ssr: true,
+  loading: () => <KeybindingEditorSkeleton />
 });
 
 const ItemLayoutEditor = dynamic(() => import('@/components/ItemLayoutEditor').then(mod => ({ default: mod.ItemLayoutEditor })), {
-  ssr: true
+  ssr: true,
+  loading: () => <ItemLayoutEditorSkeleton />
 });
 
 interface EditPageProps {

@@ -128,9 +128,24 @@ export async function getPlayersList() {
     where: {
       config: { isNot: null },
     },
-    include: {
-      config: true,
-      keybindings: true,
+    select: {
+      uuid: true,
+      mcid: true,
+      displayName: true,
+      createdAt: true,
+      updatedAt: true,
+      config: {
+        select: {
+          gameSensitivity: true,
+          cm360: true,
+        },
+      },
+      keybindings: {
+        select: {
+          action: true,
+          keyCode: true,
+        },
+      },
     },
   });
 
@@ -184,10 +199,29 @@ export async function getKeyboardStatsData() {
         some: {},  // 少なくとも1つのkeybindingレコードが存在する
       },
     },
-    include: {
-      config: true,
-      keybindings: true,
-      keyRemaps: true,
+    select: {
+      uuid: true,
+      mcid: true,
+      displayName: true,
+      config: {
+        select: {
+          keyboardModel: true,
+          keyboardLayout: true,
+          gameLanguage: true,
+        },
+      },
+      keybindings: {
+        select: {
+          action: true,
+          keyCode: true,
+        },
+      },
+      keyRemaps: {
+        select: {
+          sourceKey: true,
+          targetKey: true,
+        },
+      },
     },
   });
 
@@ -213,9 +247,27 @@ export async function getMousePageData() {
     where: {
       config: { isNot: null },
     },
-    include: {
-      config: true,
-      keybindings: true,
+    select: {
+      uuid: true,
+      mcid: true,
+      displayName: true,
+      config: {
+        select: {
+          mouseModel: true,
+          mouseDpi: true,
+          gameSensitivity: true,
+          cm360: true,
+          windowsSpeed: true,
+          mouseAcceleration: true,
+          rawInput: true,
+        },
+      },
+      keybindings: {
+        select: {
+          action: true,
+          keyCode: true,
+        },
+      },
     },
   });
 
