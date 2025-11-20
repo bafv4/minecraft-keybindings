@@ -91,78 +91,77 @@ export function PlayerListItem({ user }: PlayerListItemProps) {
         </div>
       </div>
 
-      {/* モバイル/タブレット表示: 2行 */}
-      <div className="lg:hidden px-4 py-3 space-y-2 text-xs">
-        {/* 1行目: プレイヤー情報 + マウス設定 */}
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex items-center gap-2 flex-1 min-w-0">
-            <MinecraftAvatar uuid={uuid} mcid={mcid} size={32} />
-            <div className="font-semibold truncate flex-1 min-w-0">
-              <div className="truncate text-sm group-hover:text-primary transition-colors">
-                {showDisplayName ? displayName : mcid}
+      {/* モバイル/タブレット表示: 改良されたレイアウト */}
+      <div className="lg:hidden px-3 py-3 space-y-3 text-xs">
+        {/* プレイヤー情報 */}
+        <div className="flex items-center gap-3">
+          <MinecraftAvatar uuid={uuid} mcid={mcid} size={40} />
+          <div className="flex-1 min-w-0">
+            <div className="font-semibold text-sm group-hover:text-primary transition-colors truncate">
+              {showDisplayName ? displayName : mcid}
+            </div>
+            {showDisplayName && displayName !== mcid && (
+              <div className="text-[10px] text-muted-foreground truncate">
+                {mcid}
               </div>
-              {showDisplayName && displayName !== mcid && (
-                <div className="text-[10px] text-muted-foreground truncate">
-                  {mcid}
-                </div>
+            )}
+            {/* マウス設定 - アバターの下に配置 */}
+            <div className="flex items-center gap-2 mt-0.5 text-[10px] text-muted-foreground">
+              {settings?.gameSensitivity && (
+                <span className="inline-flex items-center gap-1">
+                  <span className="opacity-70">感度</span>
+                  <span className="text-foreground font-medium">
+                    {Math.floor(Number(settings.gameSensitivity) * 200)}%
+                  </span>
+                </span>
+              )}
+              {settings?.cm360 && (
+                <>
+                  <span className="opacity-50">•</span>
+                  <span className="inline-flex items-center gap-1">
+                    <span className="opacity-70">振り向き</span>
+                    <span className="text-foreground font-medium">{settings.cm360}cm</span>
+                  </span>
+                </>
               )}
             </div>
           </div>
-
-          {/* マウス設定 */}
-          <div className="flex items-center gap-2 text-[10px] text-muted-foreground flex-shrink-0">
-            {settings?.gameSensitivity && (
-              <span>
-                感度 <span className="text-foreground font-semibold">{Math.floor(Number(settings.gameSensitivity) * 200)}%</span>
-              </span>
-            )}
-            {settings?.cm360 && (
-              <span>
-                振り向き <span className="text-foreground font-semibold">{settings.cm360}cm</span>
-              </span>
-            )}
-          </div>
         </div>
 
-        {/* 2行目: キーバインド */}
-        <div className="flex items-center gap-2 overflow-x-auto">
+        {/* キーバインド */}
+        <div className="space-y-1.5">
           {/* ホットバー */}
-          <div className="flex gap-0.5 flex-shrink-0">
-            {[
-              settings?.hotbar1 || 'key.keyboard.1',
-              settings?.hotbar2 || 'key.keyboard.2',
-              settings?.hotbar3 || 'key.keyboard.3',
-              settings?.hotbar4 || 'key.keyboard.4',
-              settings?.hotbar5 || 'key.keyboard.5',
-              settings?.hotbar6 || 'key.keyboard.6',
-              settings?.hotbar7 || 'key.keyboard.7',
-              settings?.hotbar8 || 'key.keyboard.8',
-              settings?.hotbar9 || 'key.keyboard.9',
-            ].map((keyName, i) => (
-              <KeyBadge key={i} keyName={keyName} size="xs" />
-            ))}
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] text-muted-foreground w-14 flex-shrink-0">ホットバー</span>
+            <div className="flex gap-0.5 overflow-x-auto flex-1 scrollbar-hide">
+              {[
+                settings?.hotbar1 || 'key.keyboard.1',
+                settings?.hotbar2 || 'key.keyboard.2',
+                settings?.hotbar3 || 'key.keyboard.3',
+                settings?.hotbar4 || 'key.keyboard.4',
+                settings?.hotbar5 || 'key.keyboard.5',
+                settings?.hotbar6 || 'key.keyboard.6',
+                settings?.hotbar7 || 'key.keyboard.7',
+                settings?.hotbar8 || 'key.keyboard.8',
+                settings?.hotbar9 || 'key.keyboard.9',
+              ].map((keyName, i) => (
+                <KeyBadge key={i} keyName={keyName} size="xs" />
+              ))}
+            </div>
           </div>
 
-          {/* セパレーター */}
-          <div className="h-4 w-px bg-border flex-shrink-0" />
-
-          {/* オフハンド */}
-          <KeyBadge keyName={settings?.swapHands || 'key.keyboard.f'} size="xs" />
-
-          {/* スニーク */}
-          <KeyBadge keyName={settings?.sneak || 'key.keyboard.left.shift'} size="xs" />
-
-          {/* ダッシュ */}
-          <KeyBadge keyName={settings?.sprint || 'key.keyboard.left.control'} size="xs" />
-
-          {/* ジャンプ */}
-          <KeyBadge keyName={settings?.jump || 'key.keyboard.space'} size="xs" />
-
-          {/* インベントリ */}
-          <KeyBadge keyName={settings?.inventory || 'key.keyboard.e'} size="xs" />
-
-          {/* ドロップ */}
-          <KeyBadge keyName={settings?.drop || 'key.keyboard.q'} size="xs" />
+          {/* その他のキー */}
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] text-muted-foreground w-14 flex-shrink-0">その他</span>
+            <div className="flex gap-1 flex-wrap flex-1">
+              <KeyBadgeWithLabel keyName={settings?.swapHands || 'key.keyboard.f'} label="オフハンド" />
+              <KeyBadgeWithLabel keyName={settings?.sneak || 'key.keyboard.left.shift'} label="スニーク" />
+              <KeyBadgeWithLabel keyName={settings?.sprint || 'key.keyboard.left.control'} label="ダッシュ" />
+              <KeyBadgeWithLabel keyName={settings?.jump || 'key.keyboard.space'} label="ジャンプ" />
+              <KeyBadgeWithLabel keyName={settings?.inventory || 'key.keyboard.e'} label="インベ" />
+              <KeyBadgeWithLabel keyName={settings?.drop || 'key.keyboard.q'} label="ドロップ" />
+            </div>
+          </div>
         </div>
       </div>
     </Link>
@@ -179,10 +178,23 @@ function KeyBadge({ keyName, size = 'sm' }: { keyName: string | string[]; size?:
       className={`
         inline-flex items-center justify-center rounded-md font-mono bg-muted border border-border
         shadow-sm group-hover:border-primary/30 group-hover:bg-primary/5 transition-colors
-        ${size === 'xs' ? 'px-1 py-0.5 text-[9px]' : 'px-1 py-0.5 text-[10px]'}
+        ${size === 'xs' ? 'px-1 py-0.5 text-[9px] min-w-[18px]' : 'px-1 py-0.5 text-[10px]'}
       `}
     >
       {formattedKey}
     </kbd>
+  );
+}
+
+function KeyBadgeWithLabel({ keyName, label }: { keyName: string | string[]; label: string }) {
+  const formattedKey = Array.isArray(keyName)
+    ? keyName.map(k => formatKeyName(k)).join(', ')
+    : formatKeyName(keyName);
+
+  return (
+    <div className="inline-flex items-center gap-1 bg-muted border border-border rounded-md px-1.5 py-0.5 text-[9px]">
+      <span className="text-muted-foreground">{label}</span>
+      <kbd className="font-mono font-medium">{formattedKey}</kbd>
+    </div>
   );
 }
