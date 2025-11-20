@@ -2,7 +2,7 @@ import dynamic from 'next/dynamic';
 import type { User } from '@/types/player';
 import type { Metadata } from 'next';
 import { getKeyboardStatsData } from '@/lib/playerData';
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { KeyboardListSkeleton } from '@/components/KeyboardListSkeleton';
 
 export const metadata: Metadata = {
   title: 'キーボード設定一覧 | MCSRer Hotkeys',
@@ -20,7 +20,7 @@ export const metadata: Metadata = {
 
 const KeyboardListView = dynamic(() => import('@/components/KeyboardListView').then(mod => ({ default: mod.KeyboardListView })), {
   ssr: true,
-  loading: () => <div className="flex items-center justify-center py-12"><LoadingSpinner size="md" /></div>
+  loading: () => <KeyboardListSkeleton />
 });
 
 export default async function KeyboardPage() {

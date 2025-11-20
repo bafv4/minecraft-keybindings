@@ -2,7 +2,7 @@ import dynamic from 'next/dynamic';
 import type { User } from '@/types/player';
 import type { Metadata } from 'next';
 import { getMousePageData } from '@/lib/playerData';
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { MouseListSkeleton } from '@/components/MouseListSkeleton';
 
 export const metadata: Metadata = {
   title: 'マウス設定一覧 | MCSRer Hotkeys',
@@ -20,7 +20,7 @@ export const metadata: Metadata = {
 
 const MouseListView = dynamic(() => import('@/components/MouseListView').then(mod => ({ default: mod.MouseListView })), {
   ssr: true,
-  loading: () => <div className="flex items-center justify-center py-12"><LoadingSpinner size="md" /></div>
+  loading: () => <MouseListSkeleton />
 });
 
 export default async function MousePage() {
