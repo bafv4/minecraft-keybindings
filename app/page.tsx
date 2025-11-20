@@ -4,9 +4,6 @@ import type { Metadata } from 'next';
 import { getPlayersList } from '@/lib/playerData';
 import { PlayerListSkeleton } from '@/components/PlayerListSkeleton';
 
-// キャッシュを60秒間保持し、それ以降はバックグラウンドで再検証
-export const revalidate = 60;
-
 export const metadata: Metadata = {
   title: 'プレイヤー一覧 | MCSRer Hotkeys',
   description: 'RTA勢の設定はこうなっている！',

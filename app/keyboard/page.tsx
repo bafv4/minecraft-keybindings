@@ -4,9 +4,6 @@ import type { Metadata } from 'next';
 import { getKeyboardStatsData } from '@/lib/playerData';
 import { KeyboardListSkeleton } from '@/components/KeyboardListSkeleton';
 
-// キャッシュを60秒間保持し、それ以降はバックグラウンドで再検証
-export const revalidate = 60;
-
 export const metadata: Metadata = {
   title: 'キーボード設定一覧 | MCSRer Hotkeys',
   description: 'RTA勢のキーボード設定一覧',
