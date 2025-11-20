@@ -1,18 +1,9 @@
-import { LoadingSpinner } from './ui/LoadingSpinner';
-
 /**
  * プレイヤーリストのスケルトンスクリーン
  */
 export function PlayerListSkeleton() {
   return (
-    <div className="flex flex-col h-full min-h-0 space-y-3 md:space-y-6 relative">
-      {/* スピナーオーバーレイ */}
-      <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
-        <div className="bg-background/80 backdrop-blur-sm rounded-full p-4">
-          <LoadingSpinner size="lg" />
-        </div>
-      </div>
-
+    <div className="flex flex-col h-full min-h-0 space-y-3 md:space-y-6">
       {/* ヘッダースケルトン */}
       <div className="flex flex-col gap-3 md:gap-6 flex-shrink-0 animate-pulse">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 md:gap-4">

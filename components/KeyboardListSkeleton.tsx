@@ -1,19 +1,9 @@
-import { LoadingSpinner } from './ui/LoadingSpinner';
-import { ArrowLeftIcon } from '@heroicons/react/24/outline';
-
 /**
  * キーボード設定リストのスケルトンスクリーン
  */
 export function KeyboardListSkeleton() {
   return (
-    <div className="flex flex-col h-full relative">
-      {/* スピナーオーバーレイ */}
-      <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
-        <div className="bg-background/80 backdrop-blur-sm rounded-full p-4">
-          <LoadingSpinner size="lg" />
-        </div>
-      </div>
-
+    <div className="flex flex-col h-full">
       {/* ヘッダーと検索スケルトン */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 animate-pulse">
         <div className="flex items-center gap-3">
