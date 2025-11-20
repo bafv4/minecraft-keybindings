@@ -40,7 +40,7 @@ export function UserListModal({ isOpen, onClose, title, users }: UserListModalPr
             leaveFrom="opacity-100 scale-100"
             leaveTo="opacity-0 scale-95"
           >
-            <DialogPanel className="glass-card rounded-lg border border-[rgb(var(--border))]/50 max-w-2xl w-full max-h-[80vh] overflow-hidden flex flex-col shadow-xl">
+            <DialogPanel className="glass-card rounded-lg border border-[rgb(var(--border))]/80 max-w-2xl w-full max-h-[80vh] overflow-hidden flex flex-col shadow-xl">
               {/* Header */}
               <div className="flex items-center justify-between p-6 border-b border-[rgb(var(--border))]">
                 <div>

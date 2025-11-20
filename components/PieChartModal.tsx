@@ -130,7 +130,7 @@ export function PieChartModal({
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <DialogPanel className="glass-card rounded-lg border border-[rgb(var(--border))]/50 max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col shadow-xl">
+              <DialogPanel className="glass-card rounded-lg border border-[rgb(var(--border))]/80 max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col shadow-xl">
                 {/* Header */}
                 <div className="p-6 border-b border-[rgb(var(--border))] flex-shrink-0">
                   <div className="flex items-center justify-between">
