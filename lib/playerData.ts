@@ -128,33 +128,9 @@ export async function getPlayersList() {
     where: {
       config: { isNot: null },
     },
-    select: {
-      uuid: true,
-      mcid: true,
-      displayName: true,
-      createdAt: true,
-      updatedAt: true,
-      config: {
-        select: {
-          gameSensitivity: true,
-          cm360: true,
-        },
-      },
-      keybindings: {
-        where: {
-          action: {
-            in: [
-              'hotbar1', 'hotbar2', 'hotbar3', 'hotbar4', 'hotbar5',
-              'hotbar6', 'hotbar7', 'hotbar8', 'hotbar9',
-              'swapHands', 'sneak', 'sprint', 'jump', 'inventory', 'drop'
-            ]
-          }
-        },
-        select: {
-          action: true,
-          keyCode: true,
-        },
-      },
+    include: {
+      config: true,
+      keybindings: true,
     },
   });
 
@@ -208,36 +184,16 @@ export async function getKeyboardStatsData() {
         some: {},  // 少なくとも1つのkeybindingレコードが存在する
       },
     },
-    select: {
-      uuid: true,
-      mcid: true,
-      displayName: true,
-      config: {
-        select: {
-          keyboardModel: true,
-          keyboardLayout: true,
-          gameLanguage: true,
-        },
-      },
-      keybindings: {
-        select: {
-          action: true,
-          keyCode: true,
-        },
-      },
-      keyRemaps: {
-        select: {
-          sourceKey: true,
-          targetKey: true,
-        },
-      },
+    include: {
+      config: true,
+      keybindings: true,
+      keyRemaps: true,
     },
   });
 
   return users.map((user: any) => {
     const keybindingsMap = convertKeybindingsToObject(user.keybindings);
-    const remappings = convertKeyRemaps(user.keyRemaps);
-    const settings = user.config ? { ...user.config, ...keybindingsMap, remappings } : null;
+    const settings = user.config ? { ...user.config, ...keybindingsMap } : null;
 
     return {
       uuid: user.uuid,
@@ -257,26 +213,15 @@ export async function getMousePageData() {
     where: {
       config: { isNot: null },
     },
-    select: {
-      uuid: true,
-      mcid: true,
-      displayName: true,
-      config: {
-        select: {
-          mouseModel: true,
-          mouseDpi: true,
-          gameSensitivity: true,
-          cm360: true,
-          windowsSpeed: true,
-          mouseAcceleration: true,
-          rawInput: true,
-        },
-      },
+    include: {
+      config: true,
+      keybindings: true,
     },
   });
 
   return users.map((user: any) => {
-    const settings = user.config || null;
+    const keybindingsMap = convertKeybindingsToObject(user.keybindings);
+    const settings = user.config ? { ...user.config, ...keybindingsMap } : null;
 
     return {
       uuid: user.uuid,
