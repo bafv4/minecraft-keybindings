@@ -118,7 +118,7 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
             <div className="space-y-6">
               <h2 className="text-2xl font-bold">アイテム配置</h2>
               <div className="space-y-4">
-                {itemLayouts.map((layout) => {
+                {itemLayouts.map((layout: any) => {
                   const segmentInfo = getSegmentInfo(layout.segment);
                   return (
                     <div key={layout.segment} className="bg-card border border-border rounded-2xl shadow-sm p-6 space-y-4">

@@ -22,8 +22,8 @@ export default async function KeyStatsPage() {
 
   // Transform the data for client component
   const allSettings = users
-    .filter(user => user.settings) // Only include users with settings
-    .map((user) => ({
+    .filter((user: any) => user.settings) // Only include users with settings
+    .map((user: any) => ({
       user: {
         mcid: user.mcid,
         uuid: user.uuid,

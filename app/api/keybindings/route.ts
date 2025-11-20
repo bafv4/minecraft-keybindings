@@ -68,13 +68,13 @@ export async function GET(request: Request) {
         mouseAcceleration: false,
         rawInput: true,
       },
-      keybindings: keybindings.map(kb => ({
+      keybindings: keybindings.map((kb: any) => ({
         action: kb.action,
         keyCode: kb.keyCode,
         category: kb.category as any,
         fingers: kb.fingers as any[],
       })),
-      customKeys: customKeys.map(ck => ({
+      customKeys: customKeys.map((ck: any) => ({
         keyCode: ck.keyCode,
         keyName: ck.keyName,
         category: ck.category as 'mouse' | 'keyboard',
@@ -82,11 +82,11 @@ export async function GET(request: Request) {
         size: ck.size ? (ck.size as any) : undefined,
         notes: ck.notes || undefined,
       })),
-      keyRemaps: keyRemaps.map(remap => ({
+      keyRemaps: keyRemaps.map((remap: any) => ({
         sourceKey: remap.sourceKey,
         targetKey: remap.targetKey,
       })),
-      externalTools: externalTools.map(tool => ({
+      externalTools: externalTools.map((tool: any) => ({
         triggerKey: tool.triggerKey,
         toolName: tool.toolName,
         actionName: tool.actionName,
@@ -123,7 +123,7 @@ export async function POST(request: Request) {
     const data: UpdateKeybindingsRequest = await request.json();
 
     // トランザクションで全更新
-    await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(async (tx: any) => {
       // 1. 表示名更新（送信されている場合）
       if (data.settings && 'displayName' in data.settings) {
         await tx.user.update({

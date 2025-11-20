@@ -134,7 +134,7 @@ export async function getPlayersList() {
     },
   });
 
-  return users.map(user => {
+  return users.map((user: any) => {
     const keybindingsMap = convertKeybindingsToObject(user.keybindings);
     const settings = user.config ? { ...user.config, ...keybindingsMap } : null;
 
@@ -186,7 +186,7 @@ export async function getKeyboardStatsData() {
     },
   });
 
-  return users.map(user => {
+  return users.map((user: any) => {
     const keybindingsMap = convertKeybindingsToObject(user.keybindings);
     const settings = user.config ? { ...user.config, ...keybindingsMap } : null;
 
@@ -213,7 +213,7 @@ export async function getMousePageData() {
     },
   });
 
-  return users.map(user => {
+  return users.map((user: any) => {
     const keybindingsMap = convertKeybindingsToObject(user.keybindings);
     const settings = user.config ? { ...user.config, ...keybindingsMap } : null;
 

@@ -13,6 +13,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { useState } from 'react';
 import type { Session } from 'next-auth';
+import { handleSignOut } from '@/app/actions/auth';
 
 interface HeaderProps {
   session: Session | null;
@@ -92,13 +93,7 @@ export function Header({ session }: HeaderProps) {
                     <div className="border-t border-border" />
                     <MenuItem>
                       {({ focus }) => (
-                        <form
-                          action={async () => {
-                            'use server';
-                            const { signOut } = await import('@/lib/auth');
-                            await signOut();
-                          }}
-                        >
+                        <form action={handleSignOut}>
                           <button
                             type="submit"
                             className={`${
@@ -179,13 +174,7 @@ export function Header({ session }: HeaderProps) {
                   <PencilSquareIcon className="w-5 h-5 text-muted-foreground" />
                   <span>設定を編集</span>
                 </Link>
-                <form
-                  action={async () => {
-                    'use server';
-                    const { signOut } = await import('@/lib/auth');
-                    await signOut();
-                  }}
-                >
+                <form action={handleSignOut}>
                   <button
                     type="submit"
                     className="flex items-center gap-3 px-4 py-3 text-sm hover:bg-accent rounded-lg transition-colors w-full text-left"

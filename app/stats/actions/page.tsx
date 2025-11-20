@@ -32,7 +32,7 @@ export default async function ActionStatsPage() {
   });
 
   // Transform the data for client component
-  const allSettings = users.map((user) => {
+  const allSettings = users.map((user: any) => {
     // Convert keybindings array to object map
     const keybindingsMap: Record<string, string> = {};
     for (const kb of user.keybindings) {
