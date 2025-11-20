@@ -243,12 +243,12 @@ export function Header({ session }: HeaderProps) {
           {/* Mobile Menu Button */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-1.5 text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition-colors"
+            className="md:hidden p-2 text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition-colors"
           >
             {mobileMenuOpen ? (
-              <XMarkIcon className="w-5 h-5" />
+              <XMarkIcon className="w-6 h-6" />
             ) : (
-              <Bars3Icon className="w-5 h-5" />
+              <Bars3Icon className="w-6 h-6" />
             )}
           </button>
         </div>

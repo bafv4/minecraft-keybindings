@@ -192,9 +192,11 @@ function KeyBadgeWithLabel({ keyName, label }: { keyName: string | string[]; lab
     : formatKeyName(keyName);
 
   return (
-    <kbd className="inline-flex items-center gap-1 bg-muted border border-border rounded-md px-1.5 py-0.5 text-[9px] font-mono">
-      <span className="text-muted-foreground font-sans">{label}</span>
-      <span className="font-medium">[{formattedKey}]</span>
-    </kbd>
+    <div className="inline-flex items-center gap-1">
+      <span className="text-[9px] text-muted-foreground font-sans">{label}</span>
+      <kbd className="bg-muted border border-border rounded-md px-1.5 py-0.5 text-[9px] font-mono font-medium">
+        {formattedKey}
+      </kbd>
+    </div>
   );
 }
