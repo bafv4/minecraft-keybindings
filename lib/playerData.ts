@@ -141,6 +141,15 @@ export async function getPlayersList() {
         },
       },
       keybindings: {
+        where: {
+          action: {
+            in: [
+              'hotbar1', 'hotbar2', 'hotbar3', 'hotbar4', 'hotbar5',
+              'hotbar6', 'hotbar7', 'hotbar8', 'hotbar9',
+              'swapHands', 'sneak', 'sprint', 'jump', 'inventory', 'drop'
+            ]
+          }
+        },
         select: {
           action: true,
           keyCode: true,
@@ -227,7 +236,8 @@ export async function getKeyboardStatsData() {
 
   return users.map((user: any) => {
     const keybindingsMap = convertKeybindingsToObject(user.keybindings);
-    const settings = user.config ? { ...user.config, ...keybindingsMap } : null;
+    const remappings = convertKeyRemaps(user.keyRemaps);
+    const settings = user.config ? { ...user.config, ...keybindingsMap, remappings } : null;
 
     return {
       uuid: user.uuid,
@@ -262,18 +272,11 @@ export async function getMousePageData() {
           rawInput: true,
         },
       },
-      keybindings: {
-        select: {
-          action: true,
-          keyCode: true,
-        },
-      },
     },
   });
 
   return users.map((user: any) => {
-    const keybindingsMap = convertKeybindingsToObject(user.keybindings);
-    const settings = user.config ? { ...user.config, ...keybindingsMap } : null;
+    const settings = user.config || null;
 
     return {
       uuid: user.uuid,
