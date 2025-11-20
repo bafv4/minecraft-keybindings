@@ -23,18 +23,24 @@ export default async function SetupMcidPage() {
 
   return (
     <div className="min-h-[calc(100vh-200px)] flex items-center justify-center py-12">
-      <div className="max-w-md w-full">
-        <div className="bg-[rgb(var(--card))] p-8 rounded-lg border border-[rgb(var(--border))]">
-          <h1 className="text-2xl font-semibold mb-2">MCID設定</h1>
-          <p className="text-sm text-[rgb(var(--muted-foreground))] mb-6">
-            Minecraftのユーザー名を入力してください
-          </p>
+      <div className="max-w-md w-full px-4">
+        <div className="bg-card p-8 rounded-2xl border border-border shadow-lg">
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-primary-light via-secondary to-foreground bg-clip-text text-transparent mb-2">
+              MCID設定
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              Minecraftのユーザー名を入力してください
+            </p>
+          </div>
 
           <SetupMcidForm userId={session.user.uuid} />
 
-          <p className="mt-4 text-xs text-[rgb(var(--muted-foreground))]">
-            ※ MCIDは後から変更できません
-          </p>
+          <div className="mt-6 p-3 bg-muted/50 rounded-lg border border-border">
+            <p className="text-xs text-muted-foreground text-center">
+              ※ MCIDは後から変更できません
+            </p>
+          </div>
         </div>
       </div>
     </div>

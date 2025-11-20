@@ -8,7 +8,11 @@ import dynamic from 'next/dynamic';
 import type { Metadata } from 'next';
 
 const KeybindingDisplay = dynamic(() => import('@/components/KeybindingDisplay').then(mod => ({ default: mod.KeybindingDisplay })), {
-  loading: () => <div className="flex items-center justify-center py-12"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div></div>
+  loading: () => (
+    <div className="flex items-center justify-center py-12">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+    </div>
+  )
 });
 
 interface PlayerPageProps {
@@ -80,14 +84,22 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
   const showDisplayName = user.displayName && user.displayName.trim() !== '';
 
   return (
-    <div className="pb-6">
-      <div className="mb-8 flex items-center gap-4">
-        <MinecraftAvatar uuid={user.uuid} mcid={user.mcid} size={96} />
-        <div>
-          <h1 className="text-4xl font-bold">{showDisplayName ? user.displayName : user.mcid}</h1>
-          {showDisplayName && user.displayName !== user.mcid && (
-            <p className="text-[rgb(var(--muted-foreground))] text-lg mt-1">{user.mcid}</p>
-          )}
+    <div className="pb-6 space-y-8">
+      {/* プレイヤーヘッダー */}
+      <div className="bg-gradient-to-r from-primary/10 via-secondary/10 to-transparent rounded-2xl border border-border shadow-sm p-6">
+        <div className="flex items-center gap-6">
+          <div className="relative">
+            <div className="absolute inset-0 bg-gradient-to-br from-primary to-secondary rounded-2xl blur-xl opacity-30"></div>
+            <MinecraftAvatar uuid={user.uuid} mcid={user.mcid} size={96} />
+          </div>
+          <div>
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-primary-light via-secondary to-foreground bg-clip-text text-transparent">
+              {showDisplayName ? user.displayName : user.mcid}
+            </h1>
+            {showDisplayName && user.displayName !== user.mcid && (
+              <p className="text-muted-foreground text-lg mt-1">{user.mcid}</p>
+            )}
+          </div>
         </div>
       </div>
 
@@ -103,21 +115,23 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
 
           {/* アイテム配置表示 */}
           {itemLayouts && itemLayouts.length > 0 && (
-            <div className="mt-12">
-              <h2 className="text-2xl font-bold mb-6">アイテム配置</h2>
-              <div className="space-y-8">
+            <div className="space-y-6">
+              <h2 className="text-2xl font-bold">アイテム配置</h2>
+              <div className="space-y-4">
                 {itemLayouts.map((layout) => {
                   const segmentInfo = getSegmentInfo(layout.segment);
                   return (
-                    <div key={layout.segment} className="bg-[rgb(var(--muted))] rounded-lg p-6">
-                      <h3 className="text-xl font-semibold mb-4">
-                        {segmentInfo?.label || layout.segment}
+                    <div key={layout.segment} className="bg-card border border-border rounded-2xl shadow-sm p-6 space-y-4">
+                      <div>
+                        <h3 className="text-xl font-semibold">
+                          {segmentInfo?.label || layout.segment}
+                        </h3>
                         {segmentInfo?.description && (
-                          <span className="text-sm text-[rgb(var(--muted-foreground))] ml-2">
+                          <p className="text-sm text-muted-foreground mt-1">
                             {segmentInfo.description}
-                          </span>
+                          </p>
                         )}
-                      </h3>
+                      </div>
                       <HotbarDisplay
                         slot1={layout.slot1}
                         slot2={layout.slot2}
@@ -131,8 +145,8 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
                         offhand={layout.offhand}
                       />
                       {layout.notes && (
-                        <div className="mt-4 p-3 bg-gray-800/50 rounded border border-gray-700">
-                          <p className="text-sm text-gray-300">{layout.notes}</p>
+                        <div className="p-4 bg-muted/50 rounded-xl border border-border">
+                          <p className="text-sm">{layout.notes}</p>
                         </div>
                       )}
                     </div>
@@ -143,9 +157,17 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
           )}
         </>
       ) : (
-        <div className="text-center py-12 bg-[rgb(var(--muted))] rounded-lg">
-          <p className="text-[rgb(var(--muted-foreground))]">
-            このプレイヤーはまだ設定を登録していません
+        <div className="text-center py-16 bg-card rounded-2xl border border-border shadow-sm">
+          <div className="w-16 h-16 rounded-full bg-muted mx-auto mb-4 flex items-center justify-center">
+            <svg className="w-8 h-8 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+            </svg>
+          </div>
+          <p className="text-lg font-medium text-foreground mb-1">
+            設定が登録されていません
+          </p>
+          <p className="text-sm text-muted-foreground">
+            このプレイヤーはまだキーボード・マウス設定を登録していません
           </p>
         </div>
       )}
