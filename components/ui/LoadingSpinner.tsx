@@ -1,51 +1,58 @@
 /**
- * Windows 11 style loading spinner
+ * Vuetify v-progress-circular style loading spinner
  */
 export function LoadingSpinner({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) {
-  const sizeClasses = {
-    sm: 'w-8 h-8',
-    md: 'w-12 h-12',
-    lg: 'w-16 h-16',
+  const dimensions = {
+    sm: { size: 32, stroke: 3 },
+    md: { size: 48, stroke: 4 },
+    lg: { size: 64, stroke: 5 },
   };
 
-  const dotSizeClasses = {
-    sm: 'w-1.5 h-1.5',
-    md: 'w-2 h-2',
-    lg: 'w-2.5 h-2.5',
-  };
-
-  const radiusMap = {
-    sm: 12,
-    md: 18,
-    lg: 24,
-  };
+  const { size: svgSize, stroke } = dimensions[size];
+  const radius = (svgSize - stroke) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const center = svgSize / 2;
 
   return (
-    <div className={`relative ${sizeClasses[size]}`}>
-      {[...Array(6)].map((_, i) => {
-        const angle = i * 60;
-        const radius = radiusMap[size];
-        const x = Math.sin((angle * Math.PI) / 180) * radius;
-        const y = -Math.cos((angle * Math.PI) / 180) * radius;
-
-        return (
-          <div
-            key={i}
-            className="absolute top-1/2 left-1/2"
-            style={{
-              transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`,
-            }}
-          >
-            <div
-              className={`${dotSizeClasses[size]} rounded-full bg-primary animate-pulse-fade`}
-              style={{
-                animationDelay: `${i * 0.2}s`,
-                animationDuration: '1.2s',
-              }}
-            />
-          </div>
-        );
-      })}
+    <div className="inline-flex items-center justify-center">
+      <svg
+        width={svgSize}
+        height={svgSize}
+        viewBox={`0 0 ${svgSize} ${svgSize}`}
+        className="animate-circular-rotate"
+      >
+        {/* Background circle */}
+        <circle
+          cx={center}
+          cy={center}
+          r={radius}
+          fill="none"
+          stroke="rgb(var(--border))"
+          strokeWidth={stroke}
+          opacity="0.2"
+        />
+        {/* Progress circle */}
+        <circle
+          cx={center}
+          cy={center}
+          r={radius}
+          fill="none"
+          stroke="url(#gradient)"
+          strokeWidth={stroke}
+          strokeLinecap="round"
+          strokeDasharray={circumference}
+          strokeDashoffset={circumference * 0.25}
+          className="origin-center"
+        />
+        {/* Gradient definition */}
+        <defs>
+          <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="rgb(var(--primary-light))" />
+            <stop offset="50%" stopColor="rgb(var(--secondary))" />
+            <stop offset="100%" stopColor="rgb(var(--primary))" />
+          </linearGradient>
+        </defs>
+      </svg>
     </div>
   );
 }

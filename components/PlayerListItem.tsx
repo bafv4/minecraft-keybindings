@@ -92,10 +92,10 @@ export function PlayerListItem({ user }: PlayerListItemProps) {
       </div>
 
       {/* モバイル/タブレット表示: 改良されたレイアウト */}
-      <div className="lg:hidden px-3 py-3 space-y-3 text-xs">
+      <div className="lg:hidden px-3 py-2 space-y-2 text-xs">
         {/* プレイヤー情報 */}
-        <div className="flex items-center gap-3">
-          <MinecraftAvatar uuid={uuid} mcid={mcid} size={40} />
+        <div className="flex items-center gap-2.5">
+          <MinecraftAvatar uuid={uuid} mcid={mcid} size={36} />
           <div className="flex-1 min-w-0">
             <div className="font-semibold text-sm group-hover:text-primary transition-colors truncate">
               {showDisplayName ? displayName : mcid}
@@ -129,10 +129,10 @@ export function PlayerListItem({ user }: PlayerListItemProps) {
         </div>
 
         {/* キーバインド */}
-        <div className="space-y-1.5">
+        <div className="space-y-1">
           {/* ホットバー */}
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] text-muted-foreground w-14 flex-shrink-0">ホットバー</span>
+          <div className="flex items-center gap-1.5">
+            <span className="text-[10px] text-muted-foreground w-12 flex-shrink-0">ホットバー</span>
             <div className="flex gap-0.5 overflow-x-auto flex-1 scrollbar-hide">
               {[
                 settings?.hotbar1 || 'key.keyboard.1',
@@ -151,8 +151,8 @@ export function PlayerListItem({ user }: PlayerListItemProps) {
           </div>
 
           {/* その他のキー */}
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] text-muted-foreground w-14 flex-shrink-0">その他</span>
+          <div className="flex items-center gap-1.5">
+            <span className="text-[10px] text-muted-foreground w-12 flex-shrink-0">その他</span>
             <div className="flex gap-1 flex-wrap flex-1">
               <KeyBadgeWithLabel keyName={settings?.swapHands || 'key.keyboard.f'} label="オフハンド" />
               <KeyBadgeWithLabel keyName={settings?.sneak || 'key.keyboard.left.shift'} label="スニーク" />
