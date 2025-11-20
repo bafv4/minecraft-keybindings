@@ -114,7 +114,7 @@ export default async function EditPage({ params }: EditPageProps) {
 
   if (keybindings && keybindings.length > 0) {
     // アクションごとにキーコードをグループ化
-    const grouped = keybindings.reduce((acc, kb) => {
+    const grouped = keybindings.reduce((acc: { [action: string]: string[] }, kb: any) => {
       if (!acc[kb.action]) {
         acc[kb.action] = [];
       }
@@ -123,7 +123,7 @@ export default async function EditPage({ params }: EditPageProps) {
     }, {} as { [action: string]: string[] });
 
     // 配列が1つの要素の場合は文字列に、複数の場合は配列のまま
-    Object.entries(grouped).forEach(([action, keyCodes]) => {
+    (Object.entries(grouped) as [string, string[]][]).forEach(([action, keyCodes]) => {
       const value = keyCodes.length === 1 ? keyCodes[0] : keyCodes;
 
       // reset、playerListはadditionalSettingsに分類
@@ -137,7 +137,7 @@ export default async function EditPage({ params }: EditPageProps) {
 
   // KeyRemapを旧形式のオブジェクトに変換（キーコードを正規化）
   const remappings: { [key: string]: string } = {};
-  keyRemaps.forEach(remap => {
+  keyRemaps.forEach((remap: any) => {
     if (remap.targetKey) {
       // キーコードをWeb標準形式に正規化（Minecraft形式の既存データにも対応）
       const normalizedKey = normalizeKeyCode(remap.sourceKey);
@@ -147,14 +147,14 @@ export default async function EditPage({ params }: EditPageProps) {
 
   // ExternalToolを旧形式のオブジェクトに変換（キーコードを正規化）
   const externalToolsMap: { [key: string]: string } = {};
-  externalTools.forEach(tool => {
+  externalTools.forEach((tool: any) => {
     // キーコードをWeb標準形式に正規化（Minecraft形式の既存データにも対応）
     const normalizedKey = normalizeKeyCode(tool.triggerKey);
     externalToolsMap[normalizedKey] = tool.actionName;
   });
 
   // CustomKeyを旧形式の配列に変換
-  const customKeysArray = customKeys.map(ck => ({
+  const customKeysArray = customKeys.map((ck: any) => ({
     id: ck.keyCode,
     label: ck.keyName,
     keyCode: ck.keyCode,

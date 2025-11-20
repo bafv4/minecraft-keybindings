@@ -1,15 +1,6 @@
 import type { Metadata } from "next";
-import { IBM_Plex_Sans_JP, Zen_Kaku_Gothic_New } from "next/font/google";
 import "./globals.css";
-import { Header } from "@/components/Header";
-
-const fontSetting = Zen_Kaku_Gothic_New({
-  subsets: ["latin"],
-  weight: ["400", "500", "700"],
-  display: "swap",
-  preload: true,
-  fallback: ['system-ui', 'arial'],
-});
+import { HeaderWrapper } from "@/components/HeaderWrapper";
 
 export const metadata: Metadata = {
   title: "MCSRer Hotkeys",
@@ -43,8 +34,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ja" className="h-full">
-      <body className={`h-full flex flex-col ${fontSetting.className}`}>
-        <Header />
+      <body className="h-full flex flex-col font-sans">
+        <HeaderWrapper />
         <main className="container mx-auto px-4 py-8 pt-28 flex-1 flex flex-col min-h-0">
           {children}
         </main>

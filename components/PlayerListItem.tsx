@@ -14,7 +14,7 @@ export function PlayerListItem({ user }: PlayerListItemProps) {
   return (
     <Link
       href={`/player/${mcid}`}
-      className="block border-b border-[rgb(var(--border))] hover:bg-blue-50 dark:hover:bg-blue-950/30 hover:border-blue-500/40 active:bg-blue-100 dark:active:bg-blue-900/40 active:border-blue-500/60 transition-all duration-200 last:border-b-0 group"
+      className="block border-b border-border hover:bg-gradient-to-r hover:from-primary/5 hover:to-secondary/5 hover:border-primary/20 active:from-primary/10 active:to-secondary/10 transition-all duration-200 last:border-b-0 group"
     >
       {/* デスクトップ表示: 1行 */}
       <div className="hidden lg:grid lg:grid-cols-[180px_240px_repeat(8,minmax(60px,1fr))] gap-3 px-4 py-3 items-center text-xs">
@@ -22,11 +22,11 @@ export function PlayerListItem({ user }: PlayerListItemProps) {
         <div className="flex items-center gap-2">
           <MinecraftAvatar uuid={uuid} mcid={mcid} size={32} />
           <div className="font-semibold truncate flex-1 min-w-0">
-            <div className="truncate text-sm group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+            <div className="truncate text-sm group-hover:text-primary transition-colors">
               {showDisplayName ? displayName : mcid}
             </div>
             {showDisplayName && displayName !== mcid && (
-              <div className="text-[10px] text-[rgb(var(--muted-foreground))] truncate">
+              <div className="text-[10px] text-muted-foreground truncate">
                 {mcid}
               </div>
             )}
@@ -98,11 +98,11 @@ export function PlayerListItem({ user }: PlayerListItemProps) {
           <div className="flex items-center gap-2 flex-1 min-w-0">
             <MinecraftAvatar uuid={uuid} mcid={mcid} size={32} />
             <div className="font-semibold truncate flex-1 min-w-0">
-              <div className="truncate text-sm group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+              <div className="truncate text-sm group-hover:text-primary transition-colors">
                 {showDisplayName ? displayName : mcid}
               </div>
               {showDisplayName && displayName !== mcid && (
-                <div className="text-[10px] text-[rgb(var(--muted-foreground))] truncate">
+                <div className="text-[10px] text-muted-foreground truncate">
                   {mcid}
                 </div>
               )}
@@ -110,15 +110,15 @@ export function PlayerListItem({ user }: PlayerListItemProps) {
           </div>
 
           {/* マウス設定 */}
-          <div className="flex items-center gap-2 text-[10px] text-[rgb(var(--muted-foreground))] flex-shrink-0">
+          <div className="flex items-center gap-2 text-[10px] text-muted-foreground flex-shrink-0">
             {settings?.gameSensitivity && (
               <span>
-                感度 <span className="text-[rgb(var(--foreground))] font-semibold">{Math.floor(Number(settings.gameSensitivity) * 200)}%</span>
+                感度 <span className="text-foreground font-semibold">{Math.floor(Number(settings.gameSensitivity) * 200)}%</span>
               </span>
             )}
             {settings?.cm360 && (
               <span>
-                振り向き <span className="text-[rgb(var(--foreground))] font-semibold">{settings.cm360}cm</span>
+                振り向き <span className="text-foreground font-semibold">{settings.cm360}cm</span>
               </span>
             )}
           </div>
@@ -144,7 +144,7 @@ export function PlayerListItem({ user }: PlayerListItemProps) {
           </div>
 
           {/* セパレーター */}
-          <div className="h-4 w-px bg-[rgb(var(--border))] flex-shrink-0" />
+          <div className="h-4 w-px bg-border flex-shrink-0" />
 
           {/* オフハンド */}
           <KeyBadge keyName={settings?.swapHands || 'key.keyboard.f'} size="xs" />
@@ -177,7 +177,8 @@ function KeyBadge({ keyName, size = 'sm' }: { keyName: string | string[]; size?:
   return (
     <kbd
       className={`
-        inline-flex items-center justify-center rounded font-mono bg-[rgb(var(--muted))] border border-[rgb(var(--border))]
+        inline-flex items-center justify-center rounded-md font-mono bg-muted border border-border
+        shadow-sm group-hover:border-primary/30 group-hover:bg-primary/5 transition-colors
         ${size === 'xs' ? 'px-1 py-0.5 text-[9px]' : 'px-1 py-0.5 text-[10px]'}
       `}
     >

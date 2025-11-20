@@ -8,9 +8,9 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
 }
 
 const variantStyles = {
-  primary: 'bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500',
-  secondary: 'bg-[rgb(var(--muted))] text-[rgb(var(--foreground))] hover:bg-[rgb(var(--accent))] focus:ring-[rgb(var(--ring))]',
-  ghost: 'bg-transparent hover:bg-[rgb(var(--accent))] text-[rgb(var(--foreground))] focus:ring-[rgb(var(--ring))]',
+  primary: 'bg-gradient-to-r from-primary to-primary-light hover:from-primary-light hover:to-primary text-white shadow-md hover:shadow-lg focus:ring-primary',
+  secondary: 'bg-gradient-to-r from-secondary to-secondary-light hover:from-secondary-light hover:to-secondary text-white shadow-md hover:shadow-lg focus:ring-secondary',
+  ghost: 'bg-transparent hover:bg-accent text-foreground focus:ring-ring',
   danger: 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500',
 };
 

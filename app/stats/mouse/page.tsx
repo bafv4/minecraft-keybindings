@@ -46,7 +46,7 @@ export default async function MouseStatsPage() {
   const cursorSpeedMap = new Map<string, number>();
   const cursorSpeedUsersMap = new Map<string, Array<{ mcid: string; uuid: string }>>();
 
-  settings.forEach((setting) => {
+  settings.forEach((setting: any) => {
     const userInfo = { mcid: setting.user.mcid, uuid: setting.user.uuid };
 
     // DPI - group by ranges (細分化: 3200以上を分割)

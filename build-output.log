@@ -1,0 +1,25 @@
+
+> minecraft-keybindings@1.0.0 build /home/user/minecraft-keybindings
+> next build
+
+   ▲ Next.js 16.0.1 (Turbopack)
+   - Experiments (use with caution):
+     ✓ turbopackUseSystemTlsCerts
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully in 5.9s
+   Running TypeScript ...
+Failed to compile.
+
+./app/api/keybindings/route.ts:71:36
+Type error: Parameter 'kb' implicitly has an 'any' type.
+
+[0m [90m 69 |[39m         rawInput[33m:[39m [36mtrue[39m[33m,[39m
+ [90m 70 |[39m       }[33m,[39m
+[31m[1m>[22m[39m[90m 71 |[39m       keybindings[33m:[39m keybindings[33m.[39mmap(kb [33m=>[39m ({
+ [90m    |[39m                                    [31m[1m^[22m[39m
+ [90m 72 |[39m         action[33m:[39m kb[33m.[39maction[33m,[39m
+ [90m 73 |[39m         keyCode[33m:[39m kb[33m.[39mkeyCode[33m,[39m
+ [90m 74 |[39m         category[33m:[39m kb[33m.[39mcategory [36mas[39m any[33m,[39m[0m
+Next.js build worker exited with code: 1 and signal: null
+ ELIFECYCLE  Command failed with exit code 1.

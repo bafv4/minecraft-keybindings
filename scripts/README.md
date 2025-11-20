@@ -1,99 +1,113 @@
-# Device Data Fetching Script
+# Database Branch Management Scripts
 
-このディレクトリには、楽天APIを使用してゲーミングマウスとキーボードのデータを取得するスクリプトが含まれています。
+デプロイ時に自動作成されるNeonブランチに、`preview/New-Schema`からデータをコピーするためのスクリプト集です。
 
-## セットアップ
+## 前提条件
 
-### 1. 楽天APIアプリケーションIDの取得
+- `jq` (JSON processor) - オプション1で必要
+- PostgreSQL client tools (`pg_dump`, `psql`) - オプション2で必要
+- Neon API Key
+- Neon Project ID
 
-1. [楽天ウェブサービス](https://webservice.rakuten.co.jp/)にアクセス
-2. アカウントを作成またはログイン
-3. 「アプリID発行」から新しいアプリケーションを作成
-4. 発行されたアプリケーションIDをコピー
+## オプション1: Neon API経由でブランチをリセット
 
-### 2. 環境変数の設定
+Neon APIを使用してブランチを`preview/New-Schema`の状態にリセットします。
 
-`.env.local`ファイルに以下を追加:
-
-```env
-RAKUTEN_APP_ID="your-application-id-here"
-```
-
-## 使用方法
-
-### データの取得
+### 使用方法
 
 ```bash
-pnpm fetch-devices
+# 環境変数を設定
+export NEON_API_KEY="napi_xxx..."
+export NEON_PROJECT_ID="your-project-id"
+
+# スクリプトを実行
+./scripts/reset-branch-from-new-schema.sh "preview/branch-name"
 ```
 
-このコマンドは以下を実行します:
+### 取得方法
 
-1. 楽天APIから複数のキーワードでゲーミングマウス・キーボードを検索
-2. 商品情報（名前、型番、URL、メーカー）を抽出
-3. 重複を削除
-4. `data/devices.json`に保存
+**NEON_API_KEY**:
+- [Neon Console](https://console.neon.tech/) → Account settings → API keys
 
-### 検索キーワード
+**NEON_PROJECT_ID**:
+- [Neon Console](https://console.neon.tech/) → Projects
+- プロジェクト名の下に表示されているID (例: `cool-fire-12345678`)
 
-**マウス:**
-- ゲーミングマウス Logicool
-- ゲーミングマウス Razer
-- ゲーミングマウス ZOWIE
-- ゲーミングマウス Glorious
+## オプション2: pg_dump/psqlでデータをコピー
 
-**キーボード:**
-- ゲーミングキーボード Logicool
-- ゲーミングキーボード Razer
-- ゲーミングキーボード FILCO
-- ゲーミングキーボード Ducky
+PostgreSQLの標準ツールを使用してデータをコピーします。より確実な方法です。
 
-キーワードを追加・変更する場合は、`fetch-devices.js`の`mouseKeywords`と`keyboardKeywords`配列を編集してください。
+### 使用方法
 
-## データ構造
+```bash
+# ソースデータベースURLを環境変数に設定
+export SOURCE_DB_URL="postgresql://user:pass@ep-xxx.aws.neon.tech/neondb?sslmode=require"
 
-`data/devices.json`:
-
-```json
-{
-  "mice": [
-    {
-      "name": "商品名",
-      "model": "型番",
-      "url": "https://...",
-      "maker": "メーカー/ショップ名"
-    }
-  ],
-  "keyboards": [...],
-  "lastUpdated": "2024-01-01T00:00:00.000Z"
-}
+# スクリプトを実行（ターゲットDBのURLを引数で渡す）
+./scripts/copy-data-from-new-schema.sh "postgresql://user:pass@ep-yyy.aws.neon.tech/neondb?sslmode=require"
 ```
 
-## 注意事項
+### データベースURLの取得方法
 
-- 楽天APIには1秒あたりのリクエスト制限があるため、スクリプトには1秒のディレイを入れています
-- 型番の抽出は正規表現による推測のため、完全ではない可能性があります
-- 定期的に実行してデータを更新することを推奨します
+1. [Neon Console](https://console.neon.tech/) → Projects → プロジェクトを選択
+2. Branches タブ
+3. コピー元: `preview/New-Schema` を選択 → Connection string をコピー → `SOURCE_DB_URL`に設定
+4. コピー先: デプロイで作成されたブランチを選択 → Connection string をコピー → 引数で渡す
 
-## カスタマイズ
+## 推奨フロー
 
-### 取得件数の変更
+### Vercelデプロイ時
 
-`fetch-devices.js`の`hits`パラメータを変更:
+1. **デプロイ実行**
+   - Vercelが自動的にGitブランチに対応するNeonブランチを作成
+   - この時点ではmainブランチから作成される（データが古い）
 
-```javascript
-hits: 30, // 1ページあたりの取得件数
+2. **データコピー実行**
+   ```bash
+   # Vercel環境変数から取得されたDATABASE_URLを使用
+   export SOURCE_DB_URL="<preview/New-SchemaのURL>"
+   ./scripts/copy-data-from-new-schema.sh "$DATABASE_URL"
+   ```
+
+3. **確認**
+   ```bash
+   psql "$DATABASE_URL" -c "SELECT COUNT(*) FROM \"User\";"
+   ```
+
+## トラブルシューティング
+
+### `jq: command not found`
+
+```bash
+# macOS
+brew install jq
+
+# Ubuntu/Debian
+sudo apt-get install jq
+
+# Alpine Linux
+apk add jq
 ```
 
-### ソート順の変更
+### `pg_dump: command not found`
 
-デフォルトは価格降順(`-itemPrice`)ですが、以下に変更可能:
+```bash
+# macOS
+brew install postgresql
 
-- `+itemPrice`: 価格昇順
-- `+reviewCount`: レビュー件数順
-- `+reviewAverage`: レビュー評価順
-- `-updateTimestamp`: 更新日時順
+# Ubuntu/Debian
+sudo apt-get install postgresql-client
 
-### 複数ページの取得
+# Alpine Linux
+apk add postgresql-client
+```
 
-`page`パラメータを使用してループ処理を追加すれば、より多くのデータを取得できます。
+### `Access denied` (Neon API)
+
+- APIキーが正しいか確認
+- APIキーの有効期限を確認
+- プロジェクトIDが正しいか確認
+
+### SSL/TLS エラー
+
+接続文字列に `?sslmode=require` が含まれているか確認してください。
