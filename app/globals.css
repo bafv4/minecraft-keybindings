@@ -123,20 +123,19 @@
   animation: fadeIn 0.3s ease-out;
 }
 
-/* Windows 11 style loading animation */
-@keyframes pulseFade {
-  0%, 100% {
-    opacity: 1;
-    transform: scale(1);
+/* Vuetify v-progress-circular style loading animation */
+@keyframes circularRotate {
+  0% {
+    transform: rotate(0deg);
   }
-  50% {
-    opacity: 0.2;
-    transform: scale(0.8);
+  100% {
+    transform: rotate(360deg);
   }
 }
 
-.animate-pulse-fade {
-  animation: pulseFade 1.2s ease-in-out infinite;
+.animate-circular-rotate {
+  animation: circularRotate 1.4s linear infinite;
+  transform-origin: center center;
 }
 
 /* ガラスモーフィズム効果（透かし + ブラー） */
