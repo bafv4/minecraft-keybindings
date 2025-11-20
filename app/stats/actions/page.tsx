@@ -18,7 +18,13 @@ export const metadata: Metadata = {
 
 export default async function ActionStatsPage() {
   // Fetch all users with their keybindings
+  // Only include users who have actually set at least one keybinding
   const users = await prisma.user.findMany({
+    where: {
+      keybindings: {
+        some: {},  // 少なくとも1つのkeybindingレコードが存在する
+      },
+    },
     select: {
       mcid: true,
       uuid: true,

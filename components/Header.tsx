@@ -24,11 +24,11 @@ export function Header({ session }: HeaderProps) {
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 border-b border-border/50 bg-card/80 backdrop-blur-xl shadow-sm">
-      <div className="container mx-auto px-4 lg:px-6">
-        <div className="flex items-center justify-between h-20">
+      <div className="container mx-auto px-3 sm:px-4 lg:px-6">
+        <div className="flex items-center justify-between h-14 md:h-20">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-3 group">
-            <div className="w-12 h-12 flex-shrink-0 transition-transform group-hover:scale-105">
+          <Link href="/" className="flex items-center gap-2 md:gap-3 group">
+            <div className="w-9 h-9 md:w-12 md:h-12 flex-shrink-0 transition-transform group-hover:scale-105">
               <Image
                 src="/icon.svg"
                 alt="MCSRer Hotkeys"
@@ -38,10 +38,10 @@ export function Header({ session }: HeaderProps) {
               />
             </div>
             <div className="hidden sm:block">
-              <h1 className="text-xl font-bold bg-gradient-to-r from-primary-light via-secondary to-[#64748b] bg-clip-text text-transparent leading-tight">
+              <h1 className="text-base md:text-xl font-bold bg-gradient-to-r from-primary-light via-secondary to-[#64748b] bg-clip-text text-transparent leading-tight">
                 MCSRer Hotkeys
               </h1>
-              <p className="text-xs text-muted-foreground mt-0.5 leading-tight">RTA勢の設定はこうなっている！</p>
+              <p className="text-xs text-muted-foreground mt-0.5 leading-tight hidden md:block">RTA勢の設定はこうなっている！</p>
             </div>
           </Link>
 
@@ -131,12 +131,12 @@ export function Header({ session }: HeaderProps) {
           {/* Mobile Menu Button */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-2 text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition-colors"
+            className="md:hidden p-1.5 text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition-colors"
           >
             {mobileMenuOpen ? (
-              <XMarkIcon className="w-6 h-6" />
+              <XMarkIcon className="w-5 h-5" />
             ) : (
-              <Bars3Icon className="w-6 h-6" />
+              <Bars3Icon className="w-5 h-5" />
             )}
           </button>
         </div>

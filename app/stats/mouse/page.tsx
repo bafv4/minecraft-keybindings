@@ -18,7 +18,16 @@ export const metadata: Metadata = {
 
 export default async function MouseStatsPage() {
   // Fetch all user settings with user information
+  // Only include users who have actually set at least one mouse setting
   const settings = await prisma.playerConfig.findMany({
+    where: {
+      OR: [
+        { mouseDpi: { not: null } },
+        { gameSensitivity: { not: null } },
+        { cm360: { not: null } },
+        { windowsSpeed: { not: null } },
+      ],
+    },
     select: {
       uuid: true,
       mouseDpi: true,

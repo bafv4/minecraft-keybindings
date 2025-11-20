@@ -123,6 +123,22 @@
   animation: fadeIn 0.3s ease-out;
 }
 
+/* Windows 11 style loading animation */
+@keyframes pulseFade {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.2;
+    transform: scale(0.8);
+  }
+}
+
+.animate-pulse-fade {
+  animation: pulseFade 1.2s ease-in-out infinite;
+}
+
 /* ガラスモーフィズム効果（透かし + ブラー） */
 .glass {
   background: rgba(255, 255, 255, 0.7);
@@ -137,13 +153,23 @@
 }
 
 .glass-card {
-  background: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.98);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
 }
 
 @media (prefers-color-scheme: dark) {
   .glass-card {
-    background: rgba(23, 23, 23, 0.85);
+    background: rgba(23, 23, 23, 0.98);
   }
+}
+
+/* スクロールバーを非表示 */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
 }

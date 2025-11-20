@@ -479,7 +479,7 @@ export function KeybindingModal({
             leaveFrom="opacity-100 scale-100"
             leaveTo="opacity-0 scale-95"
           >
-            <DialogPanel className="glass-card border border-[rgb(var(--border))]/50 rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col">
+            <DialogPanel className="glass-card border border-[rgb(var(--border))]/80 rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col">
               {/* ヘッダー */}
               <div className="flex items-center justify-between px-6 py-4 border-b border-[rgb(var(--border))] flex-shrink-0">
                 <DialogTitle className="text-xl font-semibold">

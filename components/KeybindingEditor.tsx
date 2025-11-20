@@ -1095,7 +1095,7 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <DialogPanel className="glass-card p-6 rounded-lg border border-[rgb(var(--border))]/50 max-w-md w-full shadow-xl">
+              <DialogPanel className="glass-card p-6 rounded-lg border border-[rgb(var(--border))]/80 max-w-md w-full shadow-xl">
                 <DialogTitle className="text-xl font-bold mb-4">設定を削除しますか？</DialogTitle>
                 <p className="text-[rgb(var(--muted-foreground))] mb-6">
                   この操作は取り消せません。すべてのキーバインド設定が削除されます。

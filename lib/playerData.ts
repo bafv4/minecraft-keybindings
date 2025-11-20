@@ -174,11 +174,15 @@ export async function getMouseStatsData() {
 
 /**
  * キーボード統計用のデータを取得
+ * 少なくとも1つのキーバインドを設定しているユーザーのみを返す
  */
 export async function getKeyboardStatsData() {
   const users = await prisma.user.findMany({
     where: {
       config: { isNot: null },
+      keybindings: {
+        some: {},  // 少なくとも1つのkeybindingレコードが存在する
+      },
     },
     include: {
       config: true,
