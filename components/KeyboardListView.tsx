@@ -60,18 +60,27 @@ export function KeyboardListView({ users }: KeyboardListViewProps) {
         case 'model':
           const modelA = a.settings?.keyboardModel || '';
           const modelB = b.settings?.keyboardModel || '';
+          // 値がない場合は最下部に配置
+          if (!modelA && modelB) return 1;
+          if (modelA && !modelB) return -1;
           compareValue = modelA.localeCompare(modelB);
           break;
 
         case 'layout':
           const layoutA = a.settings?.keyboardLayout || '';
           const layoutB = b.settings?.keyboardLayout || '';
+          // 値がない場合は最下部に配置
+          if (!layoutA && layoutB) return 1;
+          if (layoutA && !layoutB) return -1;
           compareValue = layoutA.localeCompare(layoutB);
           break;
 
         case 'language':
           const langA = a.settings?.gameLanguage || '';
           const langB = b.settings?.gameLanguage || '';
+          // 値がない場合は最下部に配置
+          if (!langA && langB) return 1;
+          if (langA && !langB) return -1;
           compareValue = langA.localeCompare(langB);
           break;
 
@@ -178,17 +187,17 @@ export function KeyboardListView({ users }: KeyboardListViewProps) {
               {filteredUsers.map((user) => (
                 <tr
                   key={user.uuid}
-                  className="border-b border-[rgb(var(--border))] last:border-b-0 hover:bg-[rgb(var(--muted))]/30 transition-colors"
+                  className="border-b border-[rgb(var(--border))] last:border-b-0 group"
                 >
                   {/* プレイヤー */}
                   <td className="px-4 py-3">
                     <Link
                       href={`/player/${user.mcid}`}
-                      className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+                      className="flex items-center gap-3 hover:bg-gradient-to-r hover:from-primary/5 hover:to-secondary/5 transition-all duration-200 -mx-4 -my-3 px-4 py-3"
                     >
                       <MinecraftAvatar uuid={user.uuid} mcid={user.mcid} size={32} />
                       <div>
-                        <div className="font-medium">
+                        <div className="font-medium group-hover:text-primary transition-colors">
                           {user.displayName && user.displayName.trim() !== '' ? user.displayName : user.mcid}
                         </div>
                         {user.displayName && user.displayName.trim() !== '' && user.displayName !== user.mcid && (

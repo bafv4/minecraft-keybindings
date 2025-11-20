@@ -54,13 +54,19 @@ export function MouseListView({ users }: MouseListViewProps) {
         case 'model':
           const modelA = a.settings?.mouseModel || '';
           const modelB = b.settings?.mouseModel || '';
+          // 値がない場合は最下部に配置
+          if (!modelA && modelB) return 1;
+          if (modelA && !modelB) return -1;
           compareValue = modelA.localeCompare(modelB);
           break;
 
         case 'dpi':
-          const dpiA = a.settings?.mouseDpi || 0;
-          const dpiB = b.settings?.mouseDpi || 0;
-          compareValue = dpiA - dpiB;
+          const dpiA = a.settings?.mouseDpi;
+          const dpiB = b.settings?.mouseDpi;
+          // 値がない場合は最下部に配置
+          if (!dpiA && dpiB) return 1;
+          if (dpiA && !dpiB) return -1;
+          compareValue = (dpiA || 0) - (dpiB || 0);
           break;
 
         case 'acceleration':
@@ -76,21 +82,38 @@ export function MouseListView({ users }: MouseListViewProps) {
           break;
 
         case 'cm360':
-          const cm360A = a.settings?.cm360 || 0;
-          const cm360B = b.settings?.cm360 || 0;
-          compareValue = cm360A - cm360B;
+          const cm360A = a.settings?.cm360;
+          const cm360B = b.settings?.cm360;
+          // 値がない場合は最下部に配置
+          if (!cm360A && cm360B) return 1;
+          if (cm360A && !cm360B) return -1;
+          compareValue = (cm360A || 0) - (cm360B || 0);
           break;
 
         case 'windowsSpeed':
-          const winSpeedA = a.settings?.windowsSpeed || 0;
-          const winSpeedB = b.settings?.windowsSpeed || 0;
-          compareValue = winSpeedA - winSpeedB;
+          const winSpeedA = a.settings?.windowsSpeed;
+          const winSpeedB = b.settings?.windowsSpeed;
+          // 値がない場合は最下部に配置
+          if (winSpeedA === null || winSpeedA === undefined) {
+            if (winSpeedB !== null && winSpeedB !== undefined) return 1;
+          }
+          if (winSpeedB === null || winSpeedB === undefined) {
+            if (winSpeedA !== null && winSpeedA !== undefined) return -1;
+          }
+          compareValue = (winSpeedA || 0) - (winSpeedB || 0);
           break;
 
         case 'sensitivity':
-          const sensA = a.settings?.gameSensitivity || 0;
-          const sensB = b.settings?.gameSensitivity || 0;
-          compareValue = sensA - sensB;
+          const sensA = a.settings?.gameSensitivity;
+          const sensB = b.settings?.gameSensitivity;
+          // 値がない場合は最下部に配置
+          if (sensA === null || sensA === undefined) {
+            if (sensB !== null && sensB !== undefined) return 1;
+          }
+          if (sensB === null || sensB === undefined) {
+            if (sensA !== null && sensA !== undefined) return -1;
+          }
+          compareValue = (sensA || 0) - (sensB || 0);
           break;
 
         case 'cursorSpeed':
@@ -110,6 +133,9 @@ export function MouseListView({ users }: MouseListViewProps) {
                 b.settings.mouseAcceleration ?? false
               ) || 0
             : 0;
+          // 値がない場合は最下部に配置
+          if (!cursorSpeedA && cursorSpeedB) return 1;
+          if (cursorSpeedA && !cursorSpeedB) return -1;
           compareValue = cursorSpeedA - cursorSpeedB;
           break;
       }
@@ -234,17 +260,17 @@ export function MouseListView({ users }: MouseListViewProps) {
               {filteredUsers.map((user) => (
                 <tr
                   key={user.uuid}
-                  className="border-b border-[rgb(var(--border))] last:border-b-0 hover:bg-[rgb(var(--muted))]/30 transition-colors"
+                  className="border-b border-[rgb(var(--border))] last:border-b-0 group"
                 >
                   {/* プレイヤー */}
                   <td className="px-4 py-3">
                     <Link
                       href={`/player/${user.mcid}`}
-                      className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+                      className="flex items-center gap-3 hover:bg-gradient-to-r hover:from-primary/5 hover:to-secondary/5 transition-all duration-200 -mx-4 -my-3 px-4 py-3"
                     >
                       <MinecraftAvatar uuid={user.uuid} mcid={user.mcid} size={32} />
                       <div>
-                        <div className="font-medium">
+                        <div className="font-medium group-hover:text-primary transition-colors">
                           {user.displayName && user.displayName.trim() !== '' ? user.displayName : user.mcid}
                         </div>
                         {user.displayName && user.displayName.trim() !== '' && user.displayName !== user.mcid && (
