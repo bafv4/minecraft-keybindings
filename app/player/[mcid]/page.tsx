@@ -6,11 +6,12 @@ import { getSegmentInfo } from '@/lib/segments';
 import { getPlayerData } from '@/lib/playerData';
 import dynamic from 'next/dynamic';
 import type { Metadata } from 'next';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
 const KeybindingDisplay = dynamic(() => import('@/components/KeybindingDisplay').then(mod => ({ default: mod.KeybindingDisplay })), {
   loading: () => (
     <div className="flex items-center justify-center py-12">
-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      <LoadingSpinner size="md" />
     </div>
   )
 });

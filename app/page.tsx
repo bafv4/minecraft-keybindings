@@ -2,6 +2,7 @@ import dynamic from 'next/dynamic';
 import type { User } from '@/types/player';
 import type { Metadata } from 'next';
 import { getPlayersList } from '@/lib/playerData';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
 export const metadata: Metadata = {
   title: 'プレイヤー一覧 | MCSRer Hotkeys',
@@ -19,7 +20,7 @@ export const metadata: Metadata = {
 
 const PlayerListView = dynamic(() => import('@/components/PlayerListView').then(mod => ({ default: mod.PlayerListView })), {
   ssr: true,
-  loading: () => <div className="flex items-center justify-center py-12"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div></div>
+  loading: () => <div className="flex items-center justify-center py-12"><LoadingSpinner size="md" /></div>
 });
 
 export default async function HomePage() {
