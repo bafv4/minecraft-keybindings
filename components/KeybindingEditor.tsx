@@ -3,6 +3,7 @@
 import { useState, Fragment, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Switch, Dialog, DialogPanel, DialogTitle, Transition, TransitionChild } from '@headlessui/react';
+import { TrashIcon } from '@heroicons/react/24/outline';
 import { calculateCm360, calculateCursorSpeed } from '@/lib/utils';
 import type { PlayerSettings, Finger, FingerAssignments, CustomKey } from '@/types/player';
 import { VirtualKeyboard } from './VirtualKeyboard';
@@ -676,7 +677,7 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-32">
       {/* ユーザー情報 */}
       <section className="bg-[rgb(var(--card))] p-6 rounded-lg border border-[rgb(var(--border))]">
         <h2 className="text-xl font-bold mb-4">プレイヤー情報</h2>
@@ -1048,32 +1049,37 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
 
       {/* リマップと外部ツールは仮想キーボードのモーダルから設定可能 */}
 
-      <div className="flex gap-4 justify-between">
-        <Button
-          onClick={() => setShowDeleteConfirm(true)}
-          disabled={deleting}
-          variant="danger"
-          size="lg"
-        >
-          設定を削除
-        </Button>
-        <div className="flex gap-4">
+      {/* 固定ボタンエリア */}
+      <div className="fixed bottom-0 left-0 right-0 bg-[rgb(var(--background))]/95 backdrop-blur-sm border-t border-[rgb(var(--border))] z-40">
+        <div className="max-w-7xl mx-auto px-4 py-4 flex gap-4 justify-between items-center">
           <Button
-            onClick={() => router.back()}
-            variant="ghost"
+            onClick={() => setShowDeleteConfirm(true)}
+            disabled={deleting}
+            variant="danger"
             size="lg"
+            className="p-3"
+            title="設定を削除"
           >
-            キャンセル
+            <TrashIcon className="h-5 w-5" />
           </Button>
-          <Button
-            onClick={handleSubmit}
-            disabled={saving}
-            size="lg"
-            className="flex items-center gap-2"
-          >
-            {saving && <LoadingSpinner size="sm" />}
-            {saving ? '保存中...' : '保存'}
-          </Button>
+          <div className="flex gap-4">
+            <Button
+              onClick={() => router.back()}
+              variant="ghost"
+              size="lg"
+            >
+              キャンセル
+            </Button>
+            <Button
+              onClick={handleSubmit}
+              disabled={saving}
+              size="lg"
+              className="flex items-center gap-2"
+            >
+              {saving && <LoadingSpinner size="sm" />}
+              {saving ? '保存中...' : '保存'}
+            </Button>
+          </div>
         </div>
       </div>
 
