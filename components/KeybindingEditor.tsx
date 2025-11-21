@@ -1055,7 +1055,7 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
           <Button
             onClick={() => setShowDeleteConfirm(true)}
             disabled={deleting}
-            variant="danger"
+            variant="danger-outline"
             size="lg"
             className="p-3"
             title="設定を削除"
@@ -1065,7 +1065,7 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
           <div className="flex gap-4">
             <Button
               onClick={() => router.back()}
-              variant="ghost"
+              variant="outline"
               size="lg"
             >
               キャンセル
