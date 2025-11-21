@@ -1,7 +1,18 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Dialog, DialogPanel, DialogTitle, Transition, TransitionChild } from '@headlessui/react';
+import {
+  Dialog,
+  DialogPanel,
+  DialogTitle,
+  Transition,
+  TransitionChild,
+  Tab,
+  TabGroup,
+  TabList,
+  TabPanel,
+  TabPanels
+} from '@headlessui/react';
 import { XMarkIcon, CheckIcon } from '@heroicons/react/24/outline';
 import type { Finger } from '@/types/player';
 import { formatKeyName } from '@/lib/utils';
@@ -106,7 +117,6 @@ export function KeybindingModal({
   onDeleteCustomKey,
 }: KeybindingModalProps) {
   // 状態管理
-  const [activeTab, setActiveTab] = useState<'action' | 'finger' | 'remap' | 'external' | 'custom'>('action');
   const [selectedActions, setSelectedActions] = useState<string[]>([]);
   const [selectedFingers, setSelectedFingers] = useState<Finger[]>([]);
   const [remapValue, setRemapValue] = useState('');
@@ -213,37 +223,36 @@ export function KeybindingModal({
                 </div>
               </div>
 
-              {/* タブナビゲーション */}
-              <div className="flex border-b border-border bg-muted/30">
-                {[
-                  { id: 'action' as const, label: '操作割り当て' },
-                  { id: 'finger' as const, label: '指の割り当て' },
-                  { id: 'remap' as const, label: 'リマップ' },
-                  { id: 'external' as const, label: '外部ツール' },
-                  ...(isCustomKey ? [{ id: 'custom' as const, label: 'カスタムキー' }] : []),
-                ].map(tab => (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`px-6 py-3 text-sm font-medium transition-colors relative ${
-                      activeTab === tab.id
-                        ? 'text-primary'
-                        : 'text-muted-foreground hover:text-foreground'
-                    }`}
-                  >
-                    {tab.label}
-                    {activeTab === tab.id && (
-                      <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />
-                    )}
-                  </button>
-                ))}
-              </div>
+              {/* タブナビゲーション & コンテンツ */}
+              <TabGroup>
+                <TabList className="flex border-b border-border bg-muted/30">
+                  <Tab className="px-6 py-3 text-sm font-medium transition-colors relative ui-selected:text-primary ui-not-selected:text-muted-foreground ui-not-selected:hover:text-foreground">
+                    操作割り当て
+                    <div className="ui-selected:block ui-not-selected:hidden absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />
+                  </Tab>
+                  <Tab className="px-6 py-3 text-sm font-medium transition-colors relative ui-selected:text-primary ui-not-selected:text-muted-foreground ui-not-selected:hover:text-foreground">
+                    指の割り当て
+                    <div className="ui-selected:block ui-not-selected:hidden absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />
+                  </Tab>
+                  <Tab className="px-6 py-3 text-sm font-medium transition-colors relative ui-selected:text-primary ui-not-selected:text-muted-foreground ui-not-selected:hover:text-foreground">
+                    リマップ
+                    <div className="ui-selected:block ui-not-selected:hidden absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />
+                  </Tab>
+                  <Tab className="px-6 py-3 text-sm font-medium transition-colors relative ui-selected:text-primary ui-not-selected:text-muted-foreground ui-not-selected:hover:text-foreground">
+                    外部ツール
+                    <div className="ui-selected:block ui-not-selected:hidden absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />
+                  </Tab>
+                  {isCustomKey && (
+                    <Tab className="px-6 py-3 text-sm font-medium transition-colors relative ui-selected:text-primary ui-not-selected:text-muted-foreground ui-not-selected:hover:text-foreground">
+                      カスタムキー
+                      <div className="ui-selected:block ui-not-selected:hidden absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />
+                    </Tab>
+                  )}
+                </TabList>
 
-              {/* タブコンテンツ */}
-              <div className="p-6 max-h-[60vh] overflow-y-auto">
-                {/* 操作割り当てタブ */}
-                {activeTab === 'action' && (
-                  <div className="space-y-6">
+                <TabPanels className="p-6 max-h-[60vh] overflow-y-auto">
+                  {/* 操作割り当てタブ */}
+                  <TabPanel className="space-y-6">
                     <p className="text-sm text-muted-foreground">
                       このキーに割り当てる操作を選択してください（複数選択可）
                     </p>
@@ -273,12 +282,10 @@ export function KeybindingModal({
                         </div>
                       </div>
                     ))}
-                  </div>
-                )}
+                  </TabPanel>
 
-                {/* 指の割り当てタブ */}
-                {activeTab === 'finger' && (
-                  <div className="space-y-6">
+                  {/* 指の割り当てタブ */}
+                  <TabPanel className="space-y-6">
                     <p className="text-sm text-muted-foreground">
                       このキーを押す指を選択してください（複数選択可）
                     </p>
@@ -301,12 +308,10 @@ export function KeybindingModal({
                         );
                       })}
                     </div>
-                  </div>
-                )}
+                  </TabPanel>
 
-                {/* リマップタブ */}
-                {activeTab === 'remap' && (
-                  <div className="space-y-4">
+                  {/* リマップタブ */}
+                  <TabPanel className="space-y-4">
                     <p className="text-sm text-muted-foreground">
                       物理的なキーを別のキーにリマップします（例: Caps Lock → Ctrl）
                     </p>
@@ -335,12 +340,10 @@ export function KeybindingModal({
                         className="w-full px-4 py-2 rounded-lg border border-border bg-background focus:border-primary focus:ring-1 focus:ring-primary outline-none transition"
                       />
                     </div>
-                  </div>
-                )}
+                  </TabPanel>
 
-                {/* 外部ツールタブ */}
-                {activeTab === 'external' && (
-                  <div className="space-y-4">
+                  {/* 外部ツールタブ */}
+                  <TabPanel className="space-y-4">
                     <p className="text-sm text-muted-foreground">
                       外部ツールやModの機能を割り当てます
                     </p>
@@ -372,41 +375,41 @@ export function KeybindingModal({
                         className="w-full px-4 py-2 rounded-lg border border-border bg-background focus:border-primary focus:ring-1 focus:ring-primary outline-none transition"
                       />
                     </div>
-                  </div>
-                )}
+                  </TabPanel>
 
-                {/* カスタムキータブ */}
-                {activeTab === 'custom' && isCustomKey && (
-                  <div className="space-y-4">
-                    <p className="text-sm text-muted-foreground">
-                      カスタムキーの表示名を編集します
-                    </p>
-                    <div>
-                      <label className="block text-sm font-medium mb-2">表示名</label>
-                      <input
-                        type="text"
-                        value={customLabel}
-                        onChange={(e) => setCustomLabel(e.target.value)}
-                        placeholder="例: G1ボタン、サイドボタン上"
-                        className="w-full px-4 py-2 rounded-lg border border-border bg-background focus:border-primary focus:ring-1 focus:ring-primary outline-none transition"
-                      />
-                    </div>
-                    {onDeleteCustomKey && (
-                      <button
-                        onClick={() => {
-                          if (confirm('このカスタムキーを削除しますか？')) {
-                            onDeleteCustomKey();
-                            onClose();
-                          }
-                        }}
-                        className="w-full px-4 py-2 bg-red-500/10 text-red-500 hover:bg-red-500/20 rounded-lg border border-red-500/20 transition"
-                      >
-                        カスタムキーを削除
-                      </button>
-                    )}
-                  </div>
-                )}
-              </div>
+                  {/* カスタムキータブ */}
+                  {isCustomKey && (
+                    <TabPanel className="space-y-4">
+                      <p className="text-sm text-muted-foreground">
+                        カスタムキーの表示名を編集します
+                      </p>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">表示名</label>
+                        <input
+                          type="text"
+                          value={customLabel}
+                          onChange={(e) => setCustomLabel(e.target.value)}
+                          placeholder="例: G1ボタン、サイドボタン上"
+                          className="w-full px-4 py-2 rounded-lg border border-border bg-background focus:border-primary focus:ring-1 focus:ring-primary outline-none transition"
+                        />
+                      </div>
+                      {onDeleteCustomKey && (
+                        <button
+                          onClick={() => {
+                            if (confirm('このカスタムキーを削除しますか？')) {
+                              onDeleteCustomKey();
+                              onClose();
+                            }
+                          }}
+                          className="w-full px-4 py-2 bg-red-500/10 text-red-500 hover:bg-red-500/20 rounded-lg border border-red-500/20 transition"
+                        >
+                          カスタムキーを削除
+                        </button>
+                      )}
+                    </TabPanel>
+                  )}
+                </TabPanels>
+              </TabGroup>
 
               {/* フッター */}
               <div className="px-6 py-4 border-t border-border bg-muted/30 flex items-center justify-between">
