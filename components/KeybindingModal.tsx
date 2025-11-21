@@ -129,6 +129,7 @@ export function KeybindingModal({
   const [externalTool, setExternalTool] = useState('');
   const [externalToolQuery, setExternalToolQuery] = useState('');
   const [customLabel, setCustomLabel] = useState('');
+  const [selectedTabIndex, setSelectedTabIndex] = useState(0);
 
   // モーダルが開いたら初期化
   useEffect(() => {
@@ -172,6 +173,15 @@ export function KeybindingModal({
 
     onClose();
   };
+
+  // タブ定義
+  const tabs = [
+    { id: 'action', label: '操作割り当て' },
+    { id: 'finger', label: '指の割り当て' },
+    { id: 'remap', label: 'リマップ' },
+    { id: 'external', label: '外部ツール' },
+    ...(isCustomKey ? [{ id: 'custom', label: 'カスタムキー' }] : []),
+  ];
 
   // カテゴリ別にアクションをグループ化
   const groupedActions = ACTIONS.reduce((acc, action) => {
@@ -245,25 +255,36 @@ export function KeybindingModal({
               </div>
 
               {/* タブナビゲーション & コンテンツ */}
-              <TabGroup>
-                <TabList className="flex gap-2 p-2 bg-muted/30">
-                  <Tab className="px-4 py-2 text-sm font-medium rounded-lg transition-all focus:outline-none ui-selected:bg-accent ui-selected:text-foreground ui-selected:shadow ui-not-selected:text-muted-foreground ui-not-selected:hover:bg-accent/50 ui-not-selected:hover:text-foreground">
-                    操作割り当て
-                  </Tab>
-                  <Tab className="px-4 py-2 text-sm font-medium rounded-lg transition-all focus:outline-none ui-selected:bg-accent ui-selected:text-foreground ui-selected:shadow ui-not-selected:text-muted-foreground ui-not-selected:hover:bg-accent/50 ui-not-selected:hover:text-foreground">
-                    指の割り当て
-                  </Tab>
-                  <Tab className="px-4 py-2 text-sm font-medium rounded-lg transition-all focus:outline-none ui-selected:bg-accent ui-selected:text-foreground ui-selected:shadow ui-not-selected:text-muted-foreground ui-not-selected:hover:bg-accent/50 ui-not-selected:hover:text-foreground">
-                    リマップ
-                  </Tab>
-                  <Tab className="px-4 py-2 text-sm font-medium rounded-lg transition-all focus:outline-none ui-selected:bg-accent ui-selected:text-foreground ui-selected:shadow ui-not-selected:text-muted-foreground ui-not-selected:hover:bg-accent/50 ui-not-selected:hover:text-foreground">
-                    外部ツール
-                  </Tab>
-                  {isCustomKey && (
-                    <Tab className="px-4 py-2 text-sm font-medium rounded-lg transition-all focus:outline-none ui-selected:bg-accent ui-selected:text-foreground ui-selected:shadow ui-not-selected:text-muted-foreground ui-not-selected:hover:bg-accent/50 ui-not-selected:hover:text-foreground">
-                      カスタムキー
+              <TabGroup selectedIndex={selectedTabIndex} onChange={setSelectedTabIndex}>
+                {/* モバイル用ドロップダウン */}
+                <div className="md:hidden p-2 bg-muted/30">
+                  <select
+                    value={selectedTabIndex}
+                    onChange={(e) => setSelectedTabIndex(Number(e.target.value))}
+                    className="w-full px-4 py-2 rounded-lg border border-border bg-background focus:border-primary focus:ring-1 focus:ring-primary outline-none transition"
+                  >
+                    {tabs.map((tab, index) => (
+                      <option key={tab.id} value={index}>
+                        {tab.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* デスクトップ用タブ */}
+                <TabList className="hidden md:flex gap-2 p-2 bg-muted/30">
+                  {tabs.map((tab, index) => (
+                    <Tab
+                      key={tab.id}
+                      className={`px-4 py-2 text-sm font-medium rounded-lg transition-all focus:outline-none ${
+                        selectedTabIndex === index
+                          ? 'bg-accent text-foreground shadow'
+                          : 'text-muted-foreground hover:bg-accent/50 hover:text-foreground'
+                      }`}
+                    >
+                      {tab.label}
                     </Tab>
-                  )}
+                  ))}
                 </TabList>
 
                 <TabPanels className="p-6 max-h-[60vh] overflow-y-auto">
@@ -354,7 +375,7 @@ export function KeybindingModal({
                           <ComboboxButton className="absolute inset-y-0 right-0 flex items-center pr-2">
                             <ChevronUpDownIcon className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
                           </ComboboxButton>
-                          <ComboboxOptions className="absolute z-10 mt-1 w-full max-h-60 overflow-auto rounded-lg bg-popover border border-border shadow-lg focus:outline-none">
+                          <ComboboxOptions className="absolute z-[60] mt-1 w-full max-h-60 overflow-auto rounded-lg bg-popover border border-border shadow-lg focus:outline-none">
                             {filteredRemapKeys.length === 0 && remapQuery !== '' ? (
                               <div className="px-4 py-2 text-sm text-muted-foreground">
                                 カスタム値: "{remapQuery}"
@@ -400,7 +421,7 @@ export function KeybindingModal({
                           <ComboboxButton className="absolute inset-y-0 right-0 flex items-center pr-2">
                             <ChevronUpDownIcon className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
                           </ComboboxButton>
-                          <ComboboxOptions className="absolute z-10 mt-1 w-full max-h-60 overflow-auto rounded-lg bg-popover border border-border shadow-lg focus:outline-none">
+                          <ComboboxOptions className="absolute z-[60] mt-1 w-full max-h-60 overflow-auto rounded-lg bg-popover border border-border shadow-lg focus:outline-none">
                             {filteredExternalTools.length === 0 && externalToolQuery !== '' ? (
                               <div className="px-4 py-2 text-sm text-muted-foreground">
                                 カスタム値: "{externalToolQuery}"
