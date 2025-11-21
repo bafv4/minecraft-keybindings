@@ -11,9 +11,14 @@ import {
   TabGroup,
   TabList,
   TabPanel,
-  TabPanels
+  TabPanels,
+  Combobox,
+  ComboboxInput,
+  ComboboxButton,
+  ComboboxOptions,
+  ComboboxOption,
 } from '@headlessui/react';
-import { XMarkIcon, CheckIcon } from '@heroicons/react/24/outline';
+import { XMarkIcon, CheckIcon, ChevronUpDownIcon } from '@heroicons/react/24/outline';
 import type { Finger } from '@/types/player';
 import { formatKeyName } from '@/lib/utils';
 
@@ -120,7 +125,9 @@ export function KeybindingModal({
   const [selectedActions, setSelectedActions] = useState<string[]>([]);
   const [selectedFingers, setSelectedFingers] = useState<Finger[]>([]);
   const [remapValue, setRemapValue] = useState('');
+  const [remapQuery, setRemapQuery] = useState('');
   const [externalTool, setExternalTool] = useState('');
+  const [externalToolQuery, setExternalToolQuery] = useState('');
   const [customLabel, setCustomLabel] = useState('');
 
   // モーダルが開いたら初期化
@@ -172,6 +179,20 @@ export function KeybindingModal({
     acc[action.category].push(action);
     return acc;
   }, {} as Record<string, typeof ACTIONS>);
+
+  // リマップキーのフィルタリング
+  const filteredRemapKeys = remapQuery === ''
+    ? REMAP_KEYS
+    : REMAP_KEYS.filter((key) =>
+        key.label.toLowerCase().includes(remapQuery.toLowerCase())
+      );
+
+  // 外部ツールのフィルタリング
+  const filteredExternalTools = externalToolQuery === ''
+    ? EXTERNAL_TOOLS
+    : EXTERNAL_TOOLS.filter((tool) =>
+        tool.toLowerCase().includes(externalToolQuery.toLowerCase())
+      );
 
   return (
     <Transition show={isOpen} as={React.Fragment}>
@@ -225,27 +246,22 @@ export function KeybindingModal({
 
               {/* タブナビゲーション & コンテンツ */}
               <TabGroup>
-                <TabList className="flex border-b border-border bg-muted/30">
-                  <Tab className="px-6 py-3 text-sm font-medium transition-colors relative ui-selected:text-primary ui-not-selected:text-muted-foreground ui-not-selected:hover:text-foreground">
+                <TabList className="flex gap-2 p-2 bg-muted/30">
+                  <Tab className="px-4 py-2 text-sm font-medium rounded-lg transition-all focus:outline-none ui-selected:bg-primary ui-selected:text-primary-foreground ui-selected:shadow ui-not-selected:text-muted-foreground ui-not-selected:hover:bg-accent ui-not-selected:hover:text-foreground">
                     操作割り当て
-                    <div className="ui-selected:block ui-not-selected:hidden absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />
                   </Tab>
-                  <Tab className="px-6 py-3 text-sm font-medium transition-colors relative ui-selected:text-primary ui-not-selected:text-muted-foreground ui-not-selected:hover:text-foreground">
+                  <Tab className="px-4 py-2 text-sm font-medium rounded-lg transition-all focus:outline-none ui-selected:bg-primary ui-selected:text-primary-foreground ui-selected:shadow ui-not-selected:text-muted-foreground ui-not-selected:hover:bg-accent ui-not-selected:hover:text-foreground">
                     指の割り当て
-                    <div className="ui-selected:block ui-not-selected:hidden absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />
                   </Tab>
-                  <Tab className="px-6 py-3 text-sm font-medium transition-colors relative ui-selected:text-primary ui-not-selected:text-muted-foreground ui-not-selected:hover:text-foreground">
+                  <Tab className="px-4 py-2 text-sm font-medium rounded-lg transition-all focus:outline-none ui-selected:bg-primary ui-selected:text-primary-foreground ui-selected:shadow ui-not-selected:text-muted-foreground ui-not-selected:hover:bg-accent ui-not-selected:hover:text-foreground">
                     リマップ
-                    <div className="ui-selected:block ui-not-selected:hidden absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />
                   </Tab>
-                  <Tab className="px-6 py-3 text-sm font-medium transition-colors relative ui-selected:text-primary ui-not-selected:text-muted-foreground ui-not-selected:hover:text-foreground">
+                  <Tab className="px-4 py-2 text-sm font-medium rounded-lg transition-all focus:outline-none ui-selected:bg-primary ui-selected:text-primary-foreground ui-selected:shadow ui-not-selected:text-muted-foreground ui-not-selected:hover:bg-accent ui-not-selected:hover:text-foreground">
                     外部ツール
-                    <div className="ui-selected:block ui-not-selected:hidden absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />
                   </Tab>
                   {isCustomKey && (
-                    <Tab className="px-6 py-3 text-sm font-medium transition-colors relative ui-selected:text-primary ui-not-selected:text-muted-foreground ui-not-selected:hover:text-foreground">
+                    <Tab className="px-4 py-2 text-sm font-medium rounded-lg transition-all focus:outline-none ui-selected:bg-primary ui-selected:text-primary-foreground ui-selected:shadow ui-not-selected:text-muted-foreground ui-not-selected:hover:bg-accent ui-not-selected:hover:text-foreground">
                       カスタムキー
-                      <div className="ui-selected:block ui-not-selected:hidden absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />
                     </Tab>
                   )}
                 </TabList>
@@ -315,30 +331,41 @@ export function KeybindingModal({
                     <p className="text-sm text-muted-foreground">
                       物理的なキーを別のキーにリマップします（例: Caps Lock → Ctrl）
                     </p>
-                    <div className="space-y-2">
-                      {REMAP_KEYS.map(key => (
-                        <button
-                          key={key.value}
-                          onClick={() => setRemapValue(key.value)}
-                          className={`w-full px-4 py-3 rounded-lg border text-left transition-all ${
-                            remapValue === key.value
-                              ? 'border-primary bg-primary/10 text-primary'
-                              : 'border-border hover:bg-accent'
-                          }`}
-                        >
-                          {key.label}
-                        </button>
-                      ))}
-                    </div>
-                    <div className="mt-4">
-                      <label className="block text-sm font-medium mb-2">カスタムリマップ先</label>
-                      <input
-                        type="text"
-                        value={remapValue}
-                        onChange={(e) => setRemapValue(e.target.value)}
-                        placeholder="key.keyboard.xxx"
-                        className="w-full px-4 py-2 rounded-lg border border-border bg-background focus:border-primary focus:ring-1 focus:ring-primary outline-none transition"
-                      />
+                    <div>
+                      <label className="block text-sm font-medium mb-2">リマップ先を選択</label>
+                      <Combobox value={remapValue} onChange={setRemapValue}>
+                        <div className="relative">
+                          <ComboboxInput
+                            className="w-full px-4 py-2 pr-10 rounded-lg border border-border bg-background focus:border-primary focus:ring-1 focus:ring-primary outline-none transition"
+                            displayValue={(value: string) => {
+                              const key = REMAP_KEYS.find(k => k.value === value);
+                              return key ? key.label : value;
+                            }}
+                            onChange={(event) => setRemapQuery(event.target.value)}
+                            placeholder="リマップ先を選択または入力"
+                          />
+                          <ComboboxButton className="absolute inset-y-0 right-0 flex items-center pr-2">
+                            <ChevronUpDownIcon className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
+                          </ComboboxButton>
+                          <ComboboxOptions className="absolute z-10 mt-1 w-full max-h-60 overflow-auto rounded-lg bg-popover border border-border shadow-lg focus:outline-none">
+                            {filteredRemapKeys.length === 0 && remapQuery !== '' ? (
+                              <div className="px-4 py-2 text-sm text-muted-foreground">
+                                見つかりません。カスタム値として "{remapQuery}" を入力できます。
+                              </div>
+                            ) : (
+                              filteredRemapKeys.map((key) => (
+                                <ComboboxOption
+                                  key={key.value}
+                                  value={key.value}
+                                  className="px-4 py-2 text-sm cursor-pointer ui-active:bg-accent ui-selected:bg-primary/10 ui-selected:text-primary"
+                                >
+                                  {key.label}
+                                </ComboboxOption>
+                              ))
+                            )}
+                          </ComboboxOptions>
+                        </div>
+                      </Combobox>
                     </div>
                   </TabPanel>
 
@@ -347,33 +374,37 @@ export function KeybindingModal({
                     <p className="text-sm text-muted-foreground">
                       外部ツールやModの機能を割り当てます
                     </p>
-                    <div className="space-y-2">
-                      <label className="block text-sm font-medium mb-2">プリセット</label>
-                      <div className="grid grid-cols-2 gap-2">
-                        {EXTERNAL_TOOLS.map(tool => (
-                          <button
-                            key={tool}
-                            onClick={() => setExternalTool(tool)}
-                            className={`px-4 py-2 rounded-lg border text-sm transition-all ${
-                              externalTool === tool
-                                ? 'border-primary bg-primary/10 text-primary'
-                                : 'border-border hover:bg-accent'
-                            }`}
-                          >
-                            {tool}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
                     <div>
-                      <label className="block text-sm font-medium mb-2">カスタム入力</label>
-                      <input
-                        type="text"
-                        value={externalTool}
-                        onChange={(e) => setExternalTool(e.target.value)}
-                        placeholder="ツール名やアクション名を入力"
-                        className="w-full px-4 py-2 rounded-lg border border-border bg-background focus:border-primary focus:ring-1 focus:ring-primary outline-none transition"
-                      />
+                      <label className="block text-sm font-medium mb-2">外部ツールを選択</label>
+                      <Combobox value={externalTool} onChange={setExternalTool}>
+                        <div className="relative">
+                          <ComboboxInput
+                            className="w-full px-4 py-2 pr-10 rounded-lg border border-border bg-background focus:border-primary focus:ring-1 focus:ring-primary outline-none transition"
+                            onChange={(event) => setExternalToolQuery(event.target.value)}
+                            placeholder="外部ツールを選択または入力"
+                          />
+                          <ComboboxButton className="absolute inset-y-0 right-0 flex items-center pr-2">
+                            <ChevronUpDownIcon className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
+                          </ComboboxButton>
+                          <ComboboxOptions className="absolute z-10 mt-1 w-full max-h-60 overflow-auto rounded-lg bg-popover border border-border shadow-lg focus:outline-none">
+                            {filteredExternalTools.length === 0 && externalToolQuery !== '' ? (
+                              <div className="px-4 py-2 text-sm text-muted-foreground">
+                                見つかりません。カスタム値として "{externalToolQuery}" を入力できます。
+                              </div>
+                            ) : (
+                              filteredExternalTools.map((tool) => (
+                                <ComboboxOption
+                                  key={tool}
+                                  value={tool}
+                                  className="px-4 py-2 text-sm cursor-pointer ui-active:bg-accent ui-selected:bg-primary/10 ui-selected:text-primary"
+                                >
+                                  {tool}
+                                </ComboboxOption>
+                              ))
+                            )}
+                          </ComboboxOptions>
+                        </div>
+                      </Combobox>
                     </div>
                   </TabPanel>
 
