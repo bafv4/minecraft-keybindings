@@ -247,20 +247,20 @@ export function KeybindingModal({
               {/* タブナビゲーション & コンテンツ */}
               <TabGroup>
                 <TabList className="flex gap-2 p-2 bg-muted/30">
-                  <Tab className="px-4 py-2 text-sm font-medium rounded-lg transition-all focus:outline-none ui-selected:bg-primary ui-selected:text-primary-foreground ui-selected:shadow ui-not-selected:text-muted-foreground ui-not-selected:hover:bg-accent ui-not-selected:hover:text-foreground">
+                  <Tab className="px-4 py-2 text-sm font-medium rounded-lg transition-all focus:outline-none ui-selected:bg-accent ui-selected:text-foreground ui-selected:shadow ui-not-selected:text-muted-foreground ui-not-selected:hover:bg-accent/50 ui-not-selected:hover:text-foreground">
                     操作割り当て
                   </Tab>
-                  <Tab className="px-4 py-2 text-sm font-medium rounded-lg transition-all focus:outline-none ui-selected:bg-primary ui-selected:text-primary-foreground ui-selected:shadow ui-not-selected:text-muted-foreground ui-not-selected:hover:bg-accent ui-not-selected:hover:text-foreground">
+                  <Tab className="px-4 py-2 text-sm font-medium rounded-lg transition-all focus:outline-none ui-selected:bg-accent ui-selected:text-foreground ui-selected:shadow ui-not-selected:text-muted-foreground ui-not-selected:hover:bg-accent/50 ui-not-selected:hover:text-foreground">
                     指の割り当て
                   </Tab>
-                  <Tab className="px-4 py-2 text-sm font-medium rounded-lg transition-all focus:outline-none ui-selected:bg-primary ui-selected:text-primary-foreground ui-selected:shadow ui-not-selected:text-muted-foreground ui-not-selected:hover:bg-accent ui-not-selected:hover:text-foreground">
+                  <Tab className="px-4 py-2 text-sm font-medium rounded-lg transition-all focus:outline-none ui-selected:bg-accent ui-selected:text-foreground ui-selected:shadow ui-not-selected:text-muted-foreground ui-not-selected:hover:bg-accent/50 ui-not-selected:hover:text-foreground">
                     リマップ
                   </Tab>
-                  <Tab className="px-4 py-2 text-sm font-medium rounded-lg transition-all focus:outline-none ui-selected:bg-primary ui-selected:text-primary-foreground ui-selected:shadow ui-not-selected:text-muted-foreground ui-not-selected:hover:bg-accent ui-not-selected:hover:text-foreground">
+                  <Tab className="px-4 py-2 text-sm font-medium rounded-lg transition-all focus:outline-none ui-selected:bg-accent ui-selected:text-foreground ui-selected:shadow ui-not-selected:text-muted-foreground ui-not-selected:hover:bg-accent/50 ui-not-selected:hover:text-foreground">
                     外部ツール
                   </Tab>
                   {isCustomKey && (
-                    <Tab className="px-4 py-2 text-sm font-medium rounded-lg transition-all focus:outline-none ui-selected:bg-primary ui-selected:text-primary-foreground ui-selected:shadow ui-not-selected:text-muted-foreground ui-not-selected:hover:bg-accent ui-not-selected:hover:text-foreground">
+                    <Tab className="px-4 py-2 text-sm font-medium rounded-lg transition-all focus:outline-none ui-selected:bg-accent ui-selected:text-foreground ui-selected:shadow ui-not-selected:text-muted-foreground ui-not-selected:hover:bg-accent/50 ui-not-selected:hover:text-foreground">
                       カスタムキー
                     </Tab>
                   )}
@@ -284,8 +284,8 @@ export function KeybindingModal({
                                 onClick={() => toggleAction(action.id)}
                                 className={`px-3 py-2 rounded-lg border text-sm transition-all ${
                                   isSelected
-                                    ? 'border-primary bg-primary/10 text-primary font-medium'
-                                    : 'border-border hover:bg-accent hover:border-primary/50'
+                                    ? 'border-foreground/20 bg-accent text-foreground font-medium'
+                                    : 'border-border hover:bg-accent/50 hover:border-foreground/10'
                                 }`}
                               >
                                 <div className="flex items-center gap-2">
@@ -314,8 +314,8 @@ export function KeybindingModal({
                             onClick={() => toggleFinger(finger.value)}
                             className={`p-4 rounded-lg border transition-all ${
                               isSelected
-                                ? 'border-primary bg-primary/10'
-                                : 'border-border hover:bg-accent'
+                                ? 'border-foreground/20 bg-accent'
+                                : 'border-border hover:bg-accent/50'
                             }`}
                           >
                             <div className={`w-8 h-8 rounded-full ${finger.color} mx-auto mb-2`} />
@@ -357,7 +357,7 @@ export function KeybindingModal({
                                 <ComboboxOption
                                   key={key.value}
                                   value={key.value}
-                                  className="px-4 py-2 text-sm cursor-pointer ui-active:bg-accent ui-selected:bg-primary/10 ui-selected:text-primary"
+                                  className="px-4 py-2 text-sm cursor-pointer ui-active:bg-accent ui-selected:bg-accent ui-selected:font-medium"
                                 >
                                   {key.label}
                                 </ComboboxOption>
@@ -396,7 +396,7 @@ export function KeybindingModal({
                                 <ComboboxOption
                                   key={tool}
                                   value={tool}
-                                  className="px-4 py-2 text-sm cursor-pointer ui-active:bg-accent ui-selected:bg-primary/10 ui-selected:text-primary"
+                                  className="px-4 py-2 text-sm cursor-pointer ui-active:bg-accent ui-selected:bg-accent ui-selected:font-medium"
                                 >
                                   {tool}
                                 </ComboboxOption>
