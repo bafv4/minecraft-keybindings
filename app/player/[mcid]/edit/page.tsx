@@ -6,16 +6,10 @@ import type { PlayerSettings } from '@/types/player';
 import type { Metadata } from 'next';
 import { normalizeKeyCode } from '@/lib/keyConversion';
 import { KeybindingEditorSkeleton } from '@/components/KeybindingEditorSkeleton';
-import { ItemLayoutEditorSkeleton } from '@/components/ItemLayoutEditorSkeleton';
 
 const KeybindingEditor = dynamic(() => import('@/components/KeybindingEditor').then(mod => ({ default: mod.KeybindingEditor })), {
   ssr: true,
   loading: () => <KeybindingEditorSkeleton />
-});
-
-const ItemLayoutEditor = dynamic(() => import('@/components/ItemLayoutEditor').then(mod => ({ default: mod.ItemLayoutEditor })), {
-  ssr: true,
-  loading: () => <ItemLayoutEditorSkeleton />
 });
 
 interface EditPageProps {
@@ -203,24 +197,12 @@ export default async function EditPage({ params }: EditPageProps) {
         </p>
       </div>
 
-      {/* キーバインド設定 */}
-      <div className="mb-12">
-        <h2 className="text-2xl font-bold mb-6">キーバインド設定</h2>
-        <KeybindingEditor
-          initialSettings={settings}
-          uuid={user.uuid}
-          mcid={user.mcid}
-          displayName={user.displayName || ''}
-        />
-      </div>
-
-      {/* アイテム配置設定 */}
-      <div className="border-t border-gray-700 pt-12">
-        <h2 className="text-2xl font-bold mb-6">アイテム配置設定</h2>
-        <div className="bg-[rgb(var(--muted))] rounded-lg p-6">
-          <ItemLayoutEditor uuid={user.uuid} />
-        </div>
-      </div>
+      <KeybindingEditor
+        initialSettings={settings}
+        uuid={user.uuid}
+        mcid={user.mcid}
+        displayName={user.displayName || ''}
+      />
     </div>
   );
 }

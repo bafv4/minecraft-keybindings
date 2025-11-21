@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, Fragment } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogPanel,
@@ -11,18 +11,16 @@ import {
   TabGroup,
   TabList,
   TabPanel,
-  TabPanels
+  TabPanels,
+  Combobox,
+  ComboboxInput,
+  ComboboxButton,
+  ComboboxOptions,
+  ComboboxOption,
 } from '@headlessui/react';
-import { XMarkIcon } from '@heroicons/react/24/outline';
+import { XMarkIcon, CheckIcon, ChevronUpDownIcon } from '@heroicons/react/24/outline';
 import type { Finger } from '@/types/player';
-import {
-  ActionTabContent,
-  FingerTabContent,
-  RemapTabContent,
-  ExternalToolTabContent,
-  CustomKeyTabContent
-} from './KeybindingModal/TabContents';
-import { formatKeyLabel } from './KeybindingModal/utils';
+import { formatKeyName } from '@/lib/utils';
 
 interface KeybindingModalProps {
   isOpen: boolean;
@@ -44,15 +42,122 @@ interface KeybindingModalProps {
   onDeleteCustomKey?: () => void;
 }
 
-type TabType = 'action' | 'finger' | 'remap' | 'external' | 'custom';
+// アクション定義
+const ACTIONS = [
+  { id: 'forward', label: '前進', category: '移動' },
+  { id: 'back', label: '後退', category: '移動' },
+  { id: 'left', label: '左移動', category: '移動' },
+  { id: 'right', label: '右移動', category: '移動' },
+  { id: 'jump', label: 'ジャンプ', category: '移動' },
+  { id: 'sneak', label: 'スニーク', category: '移動' },
+  { id: 'sprint', label: 'ダッシュ', category: '移動' },
+  { id: 'attack', label: '攻撃', category: '操作' },
+  { id: 'use', label: '使用', category: '操作' },
+  { id: 'pickBlock', label: 'ブロック選択', category: '操作' },
+  { id: 'drop', label: 'ドロップ', category: '操作' },
+  { id: 'swapHands', label: 'オフハンド持ち替え', category: '操作' },
+  { id: 'inventory', label: 'インベントリ', category: 'UI' },
+  { id: 'chat', label: 'チャット', category: 'UI' },
+  { id: 'command', label: 'コマンド', category: 'UI' },
+  { id: 'playerList', label: 'プレイヤーリスト', category: 'UI' },
+  { id: 'togglePerspective', label: '視点変更', category: 'UI' },
+  { id: 'fullscreen', label: 'フルスクリーン', category: 'UI' },
+  { id: 'toggleHud', label: 'HUD非表示', category: 'UI' },
+  ...Array.from({ length: 9 }, (_, i) => ({
+    id: `hotbar${i + 1}`,
+    label: `ホットバー${i + 1}`,
+    category: 'ホットバー',
+  })),
+  { id: 'reset', label: 'リセット', category: 'その他' },
+];
 
-const TAB_LABELS: Record<TabType, string> = {
-  action: '操作割り当て',
-  finger: '指の割り当て',
-  remap: 'リマップ',
-  external: '外部ツール・Mod',
-  custom: 'カスタムキー'
-};
+// 指の選択肢
+const FINGER_OPTIONS: { value: Finger; label: string; color: string }[] = [
+  { value: 'left-pinky', label: '左小指', color: 'bg-pink-400' },
+  { value: 'left-ring', label: '左薬指', color: 'bg-purple-400' },
+  { value: 'left-middle', label: '左中指', color: 'bg-blue-400' },
+  { value: 'left-index', label: '左人差', color: 'bg-green-400' },
+  { value: 'left-thumb', label: '左親指', color: 'bg-yellow-400' },
+  { value: 'right-thumb', label: '右親指', color: 'bg-orange-400' },
+  { value: 'right-index', label: '右人差', color: 'bg-red-400' },
+  { value: 'right-middle', label: '右中指', color: 'bg-rose-400' },
+  { value: 'right-ring', label: '右薬指', color: 'bg-indigo-400' },
+  { value: 'right-pinky', label: '右小指', color: 'bg-cyan-400' },
+];
+
+// リマップ可能なキー（拡張版）
+const REMAP_KEYS = [
+  { value: '', label: 'リマップなし' },
+  { value: 'key.keyboard.disabled', label: '無効化' },
+  // 修飾キー
+  { value: 'key.keyboard.left.shift', label: '左Shift' },
+  { value: 'key.keyboard.right.shift', label: '右Shift' },
+  { value: 'key.keyboard.left.control', label: '左Ctrl' },
+  { value: 'key.keyboard.right.control', label: '右Ctrl' },
+  { value: 'key.keyboard.left.alt', label: '左Alt' },
+  { value: 'key.keyboard.right.alt', label: '右Alt' },
+  { value: 'key.keyboard.caps.lock', label: 'Caps Lock' },
+  // 特殊キー
+  { value: 'key.keyboard.space', label: 'Space' },
+  { value: 'key.keyboard.tab', label: 'Tab' },
+  { value: 'key.keyboard.enter', label: 'Enter' },
+  { value: 'key.keyboard.backspace', label: 'Backspace' },
+  { value: 'key.keyboard.escape', label: 'Escape' },
+  { value: 'key.keyboard.insert', label: 'Insert' },
+  { value: 'key.keyboard.delete', label: 'Delete' },
+  { value: 'key.keyboard.home', label: 'Home' },
+  { value: 'key.keyboard.end', label: 'End' },
+  { value: 'key.keyboard.page.up', label: 'Page Up' },
+  { value: 'key.keyboard.page.down', label: 'Page Down' },
+  // 矢印キー
+  { value: 'key.keyboard.up', label: '↑' },
+  { value: 'key.keyboard.down', label: '↓' },
+  { value: 'key.keyboard.left', label: '←' },
+  { value: 'key.keyboard.right', label: '→' },
+  // ファンクションキー
+  ...Array.from({ length: 12 }, (_, i) => ({
+    value: `key.keyboard.f${i + 1}`,
+    label: `F${i + 1}`,
+  })),
+  // 数字キー
+  ...Array.from({ length: 10 }, (_, i) => ({
+    value: `key.keyboard.${i}`,
+    label: `${i}`,
+  })),
+  // アルファベットキー
+  ...'abcdefghijklmnopqrstuvwxyz'.split('').map(char => ({
+    value: `key.keyboard.${char}`,
+    label: char.toUpperCase(),
+  })),
+  // 記号キー
+  { value: 'key.keyboard.minus', label: '-' },
+  { value: 'key.keyboard.equal', label: '=' },
+  { value: 'key.keyboard.left.bracket', label: '[' },
+  { value: 'key.keyboard.right.bracket', label: ']' },
+  { value: 'key.keyboard.backslash', label: '\\' },
+  { value: 'key.keyboard.semicolon', label: ';' },
+  { value: 'key.keyboard.apostrophe', label: "'" },
+  { value: 'key.keyboard.grave.accent', label: '`' },
+  { value: 'key.keyboard.comma', label: ',' },
+  { value: 'key.keyboard.period', label: '.' },
+  { value: 'key.keyboard.slash', label: '/' },
+  // マウスボタン
+  { value: 'key.mouse.left', label: 'マウス左' },
+  { value: 'key.mouse.right', label: 'マウス右' },
+  { value: 'key.mouse.middle', label: 'マウス中央' },
+  { value: 'key.mouse.4', label: 'マウス4' },
+  { value: 'key.mouse.5', label: 'マウス5' },
+];
+
+// 外部ツールプリセット
+const EXTERNAL_TOOLS = [
+  'リセット',
+  'Ninb: リセット',
+  'SeedQueue: Reset All',
+  'マウス感度切替',
+  'Zoom',
+  'Wide',
+];
 
 export function KeybindingModal({
   isOpen,
@@ -68,92 +173,95 @@ export function KeybindingModal({
   onUpdateCustomKey,
   onDeleteCustomKey,
 }: KeybindingModalProps) {
-  const [selectedActions, setSelectedActions] = useState<string[]>(() => {
-    if (!currentAction) return [];
-    return Array.isArray(currentAction) ? currentAction : [currentAction];
-  });
-  const [remapInput, setRemapInput] = useState<string>(currentRemap || '');
-  const [externalToolAction, setExternalToolAction] = useState<string>(currentExternalTool || '');
-  const [selectedFingers, setSelectedFingers] = useState<Finger[]>(currentFinger || []);
-  const [editedLabel, setEditedLabel] = useState(customKeyLabel);
+  // 状態管理
+  const [selectedActions, setSelectedActions] = useState<string[]>([]);
+  const [selectedFingers, setSelectedFingers] = useState<Finger[]>([]);
+  const [remapValue, setRemapValue] = useState('');
+  const [remapQuery, setRemapQuery] = useState('');
+  const [externalTool, setExternalTool] = useState('');
+  const [externalToolQuery, setExternalToolQuery] = useState('');
+  const [customLabel, setCustomLabel] = useState('');
+  const [selectedTabIndex, setSelectedTabIndex] = useState(0);
 
-  // タブ構成
-  const tabs: TabType[] = ['action', 'finger', 'remap', 'external'];
-  if (isCustomKey) tabs.push('custom');
-
-  // モーダルが開くたびに状態をリセット
+  // モーダルが開いたら初期化
   useEffect(() => {
     if (isOpen) {
-      setSelectedActions(() => {
-        if (!currentAction) return [];
-        return Array.isArray(currentAction) ? currentAction : [currentAction];
-      });
-      setRemapInput(currentRemap || '');
-      setExternalToolAction(currentExternalTool || '');
+      setSelectedActions(currentAction ? (Array.isArray(currentAction) ? currentAction : [currentAction]) : []);
       setSelectedFingers(currentFinger || []);
-      setEditedLabel(customKeyLabel);
+      setRemapValue(currentRemap || '');
+      setExternalTool(currentExternalTool || '');
+      setCustomLabel(customKeyLabel);
     }
-  }, [isOpen, currentAction, currentRemap, currentExternalTool, currentFinger, customKeyLabel]);
+  }, [isOpen, currentAction, currentFinger, currentRemap, currentExternalTool, customKeyLabel]);
 
+  // アクションのトグル
+  const toggleAction = (actionId: string) => {
+    setSelectedActions(prev =>
+      prev.includes(actionId) ? prev.filter(a => a !== actionId) : [...prev, actionId]
+    );
+  };
+
+  // 指のトグル
+  const toggleFinger = (finger: Finger) => {
+    setSelectedFingers(prev =>
+      prev.includes(finger) ? prev.filter(f => f !== finger) : [...prev, finger]
+    );
+  };
+
+  // 保存処理
   const handleSave = () => {
-    // カスタムキーのラベル更新
-    if (isCustomKey && onUpdateCustomKey && editedLabel !== customKeyLabel) {
-      onUpdateCustomKey(editedLabel);
+    // カスタムキーラベルの更新
+    if (isCustomKey && onUpdateCustomKey && customLabel !== customKeyLabel) {
+      onUpdateCustomKey(customLabel);
     }
 
-    const config = {
+    // 設定を保存
+    onSave({
       actions: selectedActions.length > 0 ? selectedActions : undefined,
-      remap: remapInput.trim() || undefined,
-      externalTool: externalToolAction.trim() || undefined,
       finger: selectedFingers.length > 0 ? selectedFingers : undefined,
-    };
+      remap: remapValue || undefined,
+      externalTool: externalTool || undefined,
+    });
 
-    console.log('KeybindingModal saving:', { selectedKey, config });
-    onSave(config);
     onClose();
   };
 
-  const clearCurrentTab = (activeTab: number) => {
-    const tab = tabs[activeTab];
-    switch (tab) {
-      case 'action':
-        setSelectedActions([]);
-        break;
-      case 'finger':
-        setSelectedFingers([]);
-        break;
-      case 'remap':
-        setRemapInput('');
-        break;
-      case 'external':
-        setExternalToolAction('');
-        break;
-    }
-  };
+  // タブ定義
+  const tabs = [
+    { id: 'action', label: '操作割り当て' },
+    { id: 'finger', label: '指の割り当て' },
+    { id: 'remap', label: 'リマップ' },
+    { id: 'external', label: '外部ツール' },
+    ...(isCustomKey ? [{ id: 'custom', label: 'カスタムキー' }] : []),
+  ];
 
-  const hasClearableContent = (activeTab: number): boolean => {
-    const tab = tabs[activeTab];
-    switch (tab) {
-      case 'action':
-        return selectedActions.length > 0;
-      case 'finger':
-        return selectedFingers.length > 0;
-      case 'remap':
-        return remapInput.trim() !== '';
-      case 'external':
-        return externalToolAction.trim() !== '';
-      default:
-        return false;
-    }
-  };
+  // カテゴリ別にアクションをグループ化
+  const groupedActions = ACTIONS.reduce((acc, action) => {
+    if (!acc[action.category]) acc[action.category] = [];
+    acc[action.category].push(action);
+    return acc;
+  }, {} as Record<string, typeof ACTIONS>);
 
-  if (!isOpen) return null;
+  // リマップキーのフィルタリング
+  const filteredRemapKeys = remapQuery === ''
+    ? REMAP_KEYS
+    : REMAP_KEYS.filter((key) =>
+        key.label.toLowerCase().includes(remapQuery.toLowerCase())
+      );
+
+  // 外部ツールのフィルタリング
+  const filteredExternalTools = externalToolQuery === ''
+    ? EXTERNAL_TOOLS
+    : EXTERNAL_TOOLS.filter((tool) =>
+        tool.toLowerCase().includes(externalToolQuery.toLowerCase())
+      );
 
   return (
-    <Transition show={isOpen} as={Fragment}>
+    <Transition show={isOpen} as={React.Fragment}>
       <Dialog onClose={onClose} className="relative z-50">
+        {/* 背景オーバーレイ */}
         <TransitionChild
-          as={Fragment}
+          as={React.Fragment}
           enter="ease-out duration-300"
           enterFrom="opacity-0"
           enterTo="opacity-100"
@@ -161,12 +269,13 @@ export function KeybindingModal({
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" aria-hidden="true" />
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" aria-hidden="true" />
         </TransitionChild>
 
+        {/* モーダル本体 */}
         <div className="fixed inset-0 flex items-center justify-center p-4">
           <TransitionChild
-            as={Fragment}
+            as={React.Fragment}
             enter="ease-out duration-300"
             enterFrom="opacity-0 scale-95"
             enterTo="opacity-100 scale-100"
@@ -174,126 +283,282 @@ export function KeybindingModal({
             leaveFrom="opacity-100 scale-100"
             leaveTo="opacity-0 scale-95"
           >
-            <DialogPanel className="bg-gradient-to-r from-primary/5 via-secondary/5 to-transparent border border-border rounded-2xl shadow-lg w-full max-w-2xl max-h-[90vh] flex flex-col">
+            <DialogPanel className="w-full max-w-3xl bg-card rounded-2xl shadow-2xl border border-border overflow-hidden">
               {/* ヘッダー */}
-              <div className="flex items-center justify-between px-6 py-4 border-b border-border flex-shrink-0">
-                <DialogTitle className="text-xl font-semibold">
-                  キー設定: {formatKeyLabel(selectedKey)}
-                </DialogTitle>
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className="text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  <XMarkIcon className="w-6 h-6" />
-                </button>
+              <div className="bg-gradient-to-r from-primary/10 via-secondary/10 to-transparent px-6 py-4 border-b border-border">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <DialogTitle className="text-xl font-bold text-foreground">
+                      キー設定
+                    </DialogTitle>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      <kbd className="bg-muted border border-border rounded px-2 py-0.5 text-xs font-mono">
+                        {formatKeyName(selectedKey)}
+                      </kbd>
+                    </p>
+                  </div>
+                  <button
+                    onClick={onClose}
+                    className="p-2 hover:bg-accent rounded-lg transition-colors"
+                  >
+                    <XMarkIcon className="w-5 h-5" />
+                  </button>
+                </div>
               </div>
 
-              {/* タブとコンテンツ */}
-              <TabGroup>
-                {({ selectedIndex }) => (
-                  <>
-                    <TabList className="flex border-b border-border flex-shrink-0">
-                      {tabs.map((tab) => (
-                        <Tab
-                          key={tab}
-                          className={({ selected }) =>
-                            `flex-1 px-4 py-3 font-medium transition-colors text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset ${
-                              selected
-                                ? 'border-b-2 border-primary text-primary'
-                                : 'text-muted-foreground hover:text-foreground'
-                            }`
-                          }
-                        >
-                          {TAB_LABELS[tab]}
-                        </Tab>
-                      ))}
-                    </TabList>
+              {/* タブナビゲーション & コンテンツ */}
+              <TabGroup selectedIndex={selectedTabIndex} onChange={setSelectedTabIndex}>
+                {/* モバイル用ドロップダウン */}
+                <div className="md:hidden p-2 bg-muted/30">
+                  <select
+                    value={selectedTabIndex}
+                    onChange={(e) => setSelectedTabIndex(Number(e.target.value))}
+                    className="w-full px-4 py-2 rounded-lg border border-border bg-background focus:border-primary focus:ring-1 focus:ring-primary outline-none transition"
+                  >
+                    {tabs.map((tab, index) => (
+                      <option key={tab.id} value={index}>
+                        {tab.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
-                    <TabPanels className="overflow-y-auto flex-1 px-6 py-4">
-                      <TabPanel className="focus:outline-none">
-                        <ActionTabContent
-                          selectedActions={selectedActions}
-                          onToggleAction={(actionId) => {
-                            setSelectedActions(prev =>
-                              prev.includes(actionId)
-                                ? prev.filter(id => id !== actionId)
-                                : [...prev, actionId]
+                {/* デスクトップ用タブ */}
+                <TabList className="hidden md:flex gap-2 p-2 bg-muted/30">
+                  {tabs.map((tab, index) => (
+                    <Tab
+                      key={tab.id}
+                      className={`px-4 py-2 text-sm font-medium rounded-lg transition-all focus:outline-none ${
+                        selectedTabIndex === index
+                          ? 'bg-accent text-foreground shadow'
+                          : 'text-muted-foreground hover:bg-accent/50 hover:text-foreground'
+                      }`}
+                    >
+                      {tab.label}
+                    </Tab>
+                  ))}
+                </TabList>
+
+                <TabPanels className="p-6 max-h-[60vh] overflow-y-auto">
+                  {/* 操作割り当てタブ */}
+                  <TabPanel className="space-y-6">
+                    <p className="text-sm text-muted-foreground">
+                      このキーに割り当てる操作を選択してください（複数選択可）
+                    </p>
+                    {Object.entries(groupedActions).map(([category, actions]) => (
+                      <div key={category}>
+                        <h3 className="text-sm font-semibold mb-3 text-muted-foreground">{category}</h3>
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                          {actions.map(action => {
+                            const isSelected = selectedActions.includes(action.id);
+                            return (
+                              <button
+                                key={action.id}
+                                onClick={() => toggleAction(action.id)}
+                                className={`px-3 py-2 rounded-lg border text-sm transition-all ${
+                                  isSelected
+                                    ? 'border-foreground/20 bg-accent text-foreground font-medium'
+                                    : 'border-border hover:bg-accent/50 hover:border-foreground/10'
+                                }`}
+                              >
+                                <div className="flex items-center gap-2">
+                                  {isSelected && <CheckIcon className="w-4 h-4 flex-shrink-0" />}
+                                  <span className="truncate">{action.label}</span>
+                                </div>
+                              </button>
                             );
-                          }}
-                        />
-                      </TabPanel>
+                          })}
+                        </div>
+                      </div>
+                    ))}
+                  </TabPanel>
 
-                      <TabPanel className="focus:outline-none">
-                        <FingerTabContent
-                          selectedFingers={selectedFingers}
-                          onToggleFinger={(finger) => {
-                            setSelectedFingers(prev =>
-                              prev.includes(finger)
-                                ? prev.filter(f => f !== finger)
-                                : [...prev, finger]
-                            );
-                          }}
-                        />
-                      </TabPanel>
-
-                      <TabPanel className="focus:outline-none">
-                        <RemapTabContent
-                          selectedKey={selectedKey}
-                          remapInput={remapInput}
-                          onRemapChange={setRemapInput}
-                        />
-                      </TabPanel>
-
-                      <TabPanel className="focus:outline-none">
-                        <ExternalToolTabContent
-                          externalToolAction={externalToolAction}
-                          onExternalToolChange={setExternalToolAction}
-                        />
-                      </TabPanel>
-
-                      {isCustomKey && (
-                        <TabPanel className="focus:outline-none">
-                          <CustomKeyTabContent
-                            editedLabel={editedLabel}
-                            onLabelChange={setEditedLabel}
-                            onDeleteCustomKey={onDeleteCustomKey}
-                          />
-                        </TabPanel>
-                      )}
-                    </TabPanels>
-
-                    {/* フッター */}
-                    <div className="flex items-center justify-between px-6 py-4 border-t border-border flex-shrink-0">
-                      <div>
-                        {hasClearableContent(selectedIndex) && (
+                  {/* 指の割り当てタブ */}
+                  <TabPanel className="space-y-6">
+                    <p className="text-sm text-muted-foreground">
+                      このキーを押す指を選択してください（複数選択可）
+                    </p>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 sm:gap-3">
+                      {FINGER_OPTIONS.map(finger => {
+                        const isSelected = selectedFingers.includes(finger.value);
+                        return (
                           <button
-                            onClick={() => clearCurrentTab(selectedIndex)}
-                            className="px-4 py-2 text-sm text-red-600 hover:text-red-700 border border-red-500 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
+                            key={finger.value}
+                            onClick={() => toggleFinger(finger.value)}
+                            className={`p-3 sm:p-4 rounded-lg border transition-all ${
+                              isSelected
+                                ? 'border-foreground/20 bg-accent'
+                                : 'border-border hover:bg-accent/50'
+                            }`}
                           >
-                            クリア
+                            <div className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full ${finger.color} mx-auto mb-1 sm:mb-2`} />
+                            <div className="text-[10px] sm:text-xs font-medium text-center leading-tight">{finger.label}</div>
                           </button>
-                        )}
-                      </div>
-
-                      <div className="flex items-center gap-3">
-                        <button
-                          onClick={onClose}
-                          className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-                        >
-                          キャンセル
-                        </button>
-                        <button
-                          onClick={handleSave}
-                          className="px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-primary/90 transition-colors"
-                        >
-                          保存
-                        </button>
-                      </div>
+                        );
+                      })}
                     </div>
-                  </>
-                )}
+                  </TabPanel>
+
+                  {/* リマップタブ */}
+                  <TabPanel className="space-y-4">
+                    <p className="text-sm text-muted-foreground">
+                      物理的なキーを別のキーにリマップします（例: Caps Lock → Ctrl）
+                    </p>
+                    <div>
+                      <label className="block text-sm font-medium mb-2">リマップ先を選択</label>
+                      <Combobox
+                        value={remapValue}
+                        onChange={(value) => setRemapValue(value || '')}
+                        immediate
+                      >
+                        <div className="relative">
+                          <ComboboxInput
+                            className="w-full px-4 py-2 pr-10 rounded-lg border border-border bg-background focus:border-primary focus:ring-1 focus:ring-primary outline-none transition"
+                            displayValue={(value: string) => {
+                              const key = REMAP_KEYS.find(k => k.value === value);
+                              return key ? key.label : value;
+                            }}
+                            onChange={(event) => {
+                              setRemapQuery(event.target.value);
+                              setRemapValue(event.target.value);
+                            }}
+                            placeholder="リマップ先を選択または入力"
+                          />
+                          <ComboboxButton className="absolute inset-y-0 right-0 flex items-center pr-2">
+                            <ChevronUpDownIcon className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
+                          </ComboboxButton>
+                          <ComboboxOptions
+                            anchor="bottom start"
+                            portal
+                            className="z-[100] w-[var(--input-width)] max-h-60 overflow-auto rounded-lg bg-[rgb(var(--card))] border border-border shadow-lg focus:outline-none"
+                          >
+                            {filteredRemapKeys.length === 0 && remapQuery !== '' ? (
+                              <div className="px-4 py-2 text-sm text-muted-foreground">
+                                カスタム値: "{remapQuery}"
+                              </div>
+                            ) : (
+                              filteredRemapKeys.map((key) => (
+                                <ComboboxOption
+                                  key={key.value}
+                                  value={key.value}
+                                  className="px-4 py-2 text-sm cursor-pointer ui-active:bg-accent ui-selected:bg-accent ui-selected:font-medium"
+                                >
+                                  {key.label}
+                                </ComboboxOption>
+                              ))
+                            )}
+                          </ComboboxOptions>
+                        </div>
+                      </Combobox>
+                    </div>
+                  </TabPanel>
+
+                  {/* 外部ツールタブ */}
+                  <TabPanel className="space-y-4">
+                    <p className="text-sm text-muted-foreground">
+                      外部ツールやModの機能を割り当てます
+                    </p>
+                    <div>
+                      <label className="block text-sm font-medium mb-2">外部ツールを選択</label>
+                      <Combobox
+                        value={externalTool}
+                        onChange={(value) => setExternalTool(value || '')}
+                        immediate
+                      >
+                        <div className="relative">
+                          <ComboboxInput
+                            className="w-full px-4 py-2 pr-10 rounded-lg border border-border bg-background focus:border-primary focus:ring-1 focus:ring-primary outline-none transition"
+                            onChange={(event) => {
+                              setExternalToolQuery(event.target.value);
+                              setExternalTool(event.target.value);
+                            }}
+                            placeholder="外部ツールを選択または入力"
+                          />
+                          <ComboboxButton className="absolute inset-y-0 right-0 flex items-center pr-2">
+                            <ChevronUpDownIcon className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
+                          </ComboboxButton>
+                          <ComboboxOptions
+                            anchor="bottom start"
+                            portal
+                            className="z-[100] w-[var(--input-width)] max-h-60 overflow-auto rounded-lg bg-[rgb(var(--card))] border border-border shadow-lg focus:outline-none"
+                          >
+                            {filteredExternalTools.length === 0 && externalToolQuery !== '' ? (
+                              <div className="px-4 py-2 text-sm text-muted-foreground">
+                                カスタム値: "{externalToolQuery}"
+                              </div>
+                            ) : (
+                              filteredExternalTools.map((tool) => (
+                                <ComboboxOption
+                                  key={tool}
+                                  value={tool}
+                                  className="px-4 py-2 text-sm cursor-pointer ui-active:bg-accent ui-selected:bg-accent ui-selected:font-medium"
+                                >
+                                  {tool}
+                                </ComboboxOption>
+                              ))
+                            )}
+                          </ComboboxOptions>
+                        </div>
+                      </Combobox>
+                    </div>
+                  </TabPanel>
+
+                  {/* カスタムキータブ */}
+                  {isCustomKey && (
+                    <TabPanel className="space-y-4">
+                      <p className="text-sm text-muted-foreground">
+                        カスタムキーの表示名を編集します
+                      </p>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">表示名</label>
+                        <input
+                          type="text"
+                          value={customLabel}
+                          onChange={(e) => setCustomLabel(e.target.value)}
+                          placeholder="例: G1ボタン、サイドボタン上"
+                          className="w-full px-4 py-2 rounded-lg border border-border bg-background focus:border-primary focus:ring-1 focus:ring-primary outline-none transition"
+                        />
+                      </div>
+                      {onDeleteCustomKey && (
+                        <button
+                          onClick={() => {
+                            if (confirm('このカスタムキーを削除しますか？')) {
+                              onDeleteCustomKey();
+                              onClose();
+                            }
+                          }}
+                          className="w-full px-4 py-2 bg-red-500/10 text-red-500 hover:bg-red-500/20 rounded-lg border border-red-500/20 transition"
+                        >
+                          カスタムキーを削除
+                        </button>
+                      )}
+                    </TabPanel>
+                  )}
+                </TabPanels>
               </TabGroup>
+
+              {/* フッター */}
+              <div className="px-6 py-4 border-t border-border bg-muted/30 flex items-center justify-between">
+                <div className="text-sm text-muted-foreground">
+                  {selectedActions.length > 0 && `${selectedActions.length}個の操作`}
+                  {selectedActions.length > 0 && selectedFingers.length > 0 && ' · '}
+                  {selectedFingers.length > 0 && `${selectedFingers.length}本の指`}
+                </div>
+                <div className="flex gap-3">
+                  <button
+                    onClick={onClose}
+                    className="px-4 py-2 rounded-lg border border-border hover:bg-accent transition"
+                  >
+                    キャンセル
+                  </button>
+                  <button
+                    onClick={handleSave}
+                    className="px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition font-medium"
+                  >
+                    保存
+                  </button>
+                </div>
+              </div>
             </DialogPanel>
           </TransitionChild>
         </div>

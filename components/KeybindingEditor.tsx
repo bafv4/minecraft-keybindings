@@ -1,11 +1,13 @@
 'use client';
 
-import { useState, Fragment } from 'react';
+import { useState, Fragment, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Switch, Dialog, DialogPanel, DialogTitle, Transition, TransitionChild } from '@headlessui/react';
+import { TrashIcon } from '@heroicons/react/24/outline';
 import { calculateCm360, calculateCursorSpeed } from '@/lib/utils';
 import type { PlayerSettings, Finger, FingerAssignments, CustomKey } from '@/types/player';
 import { VirtualKeyboard } from './VirtualKeyboard';
+import { ItemLayoutEditor } from './ItemLayoutEditor';
 import { Input, Textarea, Button } from '@/components/ui';
 import { Combobox } from '@/components/ui/Combobox';
 import { RadioGroup } from '@/components/ui/RadioGroup';
@@ -159,6 +161,7 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [selectedAction, setSelectedAction] = useState<string | null>(null);
   const [syncingMcid, setSyncingMcid] = useState(false);
+  const itemLayoutEditorRef = useRef<{ save: () => Promise<boolean> }>(null);
 
   // ユーザー情報
   const [displayName, setDisplayName] = useState(initialDisplayName);
@@ -630,6 +633,14 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
         throw new Error('Failed to save settings');
       }
 
+      // アイテム配置設定も保存
+      if (itemLayoutEditorRef.current) {
+        const itemLayoutSaved = await itemLayoutEditorRef.current.save();
+        if (!itemLayoutSaved) {
+          throw new Error('Failed to save item layouts');
+        }
+      }
+
       // 現在のMCIDでリダイレクト
       router.push(`/player/${currentMcid}`);
       router.refresh();
@@ -666,50 +677,93 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-32">
       {/* ユーザー情報 */}
       <section className="bg-[rgb(var(--card))] p-6 rounded-lg border border-[rgb(var(--border))]">
-        <h2 className="text-xl font-bold mb-4">ユーザー情報</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Input
-            label="表示名"
-            type="text"
-            value={displayName}
-            onChange={(e) => setDisplayName(e.target.value)}
-            placeholder="表示名を入力"
-          />
-          <div className="flex flex-col gap-1">
-            <label className="font-semibold">MCID</label>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={currentMcid}
-                readOnly
-                className="flex-1 min-w-0 px-3 py-2 border rounded bg-[rgb(var(--muted))] text-[rgb(var(--muted-foreground))] cursor-not-allowed"
-              />
-              <Button
-                onClick={handleSyncMcid}
-                disabled={syncingMcid}
-                size="sm"
-                className="whitespace-nowrap flex-shrink-0"
-                title="Mojang APIから最新のMCIDを取得"
-              >
-                {syncingMcid ? '同期中...' : '同期'}
-              </Button>
+        <h2 className="text-xl font-bold mb-4">プレイヤー情報</h2>
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Input
+              label="表示名"
+              type="text"
+              value={displayName}
+              onChange={(e) => setDisplayName(e.target.value)}
+              placeholder="表示名を入力"
+            />
+            <div className="flex flex-col gap-1">
+              <label className="font-semibold">MCID</label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={currentMcid}
+                  readOnly
+                  className="flex-1 min-w-0 px-3 py-2 border rounded bg-[rgb(var(--muted))] text-[rgb(var(--muted-foreground))] cursor-not-allowed"
+                />
+                <Button
+                  onClick={handleSyncMcid}
+                  disabled={syncingMcid}
+                  size="sm"
+                  className="whitespace-nowrap flex-shrink-0"
+                  title="Mojang APIから最新のMCIDを取得"
+                >
+                  {syncingMcid ? '同期中...' : '同期'}
+                </Button>
+              </div>
+              <p className="text-xs text-[rgb(var(--muted-foreground))] mt-1">
+                MinecraftでIDを変更した場合は同期ボタンで更新できます
+              </p>
             </div>
-            <p className="text-xs text-[rgb(var(--muted-foreground))] mt-1">
-              MinecraftでIDを変更した場合は同期ボタンで更新できます
-            </p>
           </div>
+
+          {/* ゲーム内の言語 */}
+          <Combobox
+            label="ゲーム内の言語"
+            value={gameLanguage}
+            onChange={setGameLanguage}
+            options={MINECRAFT_LANGUAGES}
+            placeholder="言語を選択または入力"
+            allowCustomValue={true}
+            helpText={gameLanguage ? `現在の選択: ${MINECRAFT_LANGUAGES.find(l => l.value === gameLanguage)?.label || gameLanguage}` : undefined}
+          />
+
+          {/* デバイス情報 */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="mouseModel" className="font-semibold text-base mb-2 block">マウス</label>
+              <input
+                id="mouseModel"
+                type="text"
+                value={mouseModel}
+                onChange={(e) => setMouseModel(e.target.value)}
+                placeholder="例: Logicool G Pro X Superlight"
+                className="w-full px-3 py-2 text-base border border-[rgb(var(--border))] rounded bg-[rgb(var(--background))]"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="keyboardModel" className="font-semibold text-base mb-2 block">キーボード</label>
+              <input
+                id="keyboardModel"
+                type="text"
+                value={keyboardModel}
+                onChange={(e) => setKeyboardModel(e.target.value)}
+                placeholder="例: Keychron K8 Pro"
+                className="w-full px-3 py-2 text-base border border-[rgb(var(--border))] rounded bg-[rgb(var(--background))]"
+              />
+            </div>
+          </div>
+
+          {/* 自由使用欄 */}
+          <Textarea
+            id="notes"
+            label="コメント"
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            placeholder="その他のメモや補足情報など"
+            rows={4}
+            className="resize-y"
+          />
         </div>
-        <RadioGroup
-          label="キーボードレイアウト"
-          value={keyboardLayout}
-          onChange={(value) => setKeyboardLayout(value as 'JIS' | 'JIS-TKL' | 'US' | 'US-TKL')}
-          options={KEYBOARD_LAYOUT_OPTIONS}
-          orientation="horizontal"
-          className="mt-4"
-        />
       </section>
 
       {/* 仮想キーボード */}
@@ -733,6 +787,15 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
             </Switch>
           </div>
         </div>
+
+        <RadioGroup
+          label="キーボードレイアウト"
+          value={keyboardLayout}
+          onChange={(value) => setKeyboardLayout(value as 'JIS' | 'JIS-TKL' | 'US' | 'US-TKL')}
+          options={KEYBOARD_LAYOUT_OPTIONS}
+          orientation="horizontal"
+          className="mb-4"
+        />
         <p className="text-sm text-[rgb(var(--muted-foreground))] mb-4">
           キーをクリックして、操作の割り当て・指の割り当て・リマップ・外部ツールの設定を行えます
         </p>
@@ -978,89 +1041,45 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
         </div>
       </section>
 
-      {/* プレイヤー環境設定 */}
+      {/* アイテム配置設定 */}
       <section className="bg-[rgb(var(--card))] p-6 rounded-lg border border-[rgb(var(--border))]">
-        <h2 className="text-xl font-bold mb-4">プレイヤー環境設定</h2>
-
-        <div className="space-y-4">
-          {/* ゲーム内の言語 */}
-          <Combobox
-            label="ゲーム内の言語"
-            value={gameLanguage}
-            onChange={setGameLanguage}
-            options={MINECRAFT_LANGUAGES}
-            placeholder="言語を選択または入力"
-            allowCustomValue={true}
-            helpText={gameLanguage ? `現在の選択: ${MINECRAFT_LANGUAGES.find(l => l.value === gameLanguage)?.label || gameLanguage}` : undefined}
-          />
-
-          {/* マウス */}
-          <div>
-            <label htmlFor="mouseModel" className="font-semibold text-base mb-2 block">マウス</label>
-            <input
-              id="mouseModel"
-              type="text"
-              value={mouseModel}
-              onChange={(e) => setMouseModel(e.target.value)}
-              placeholder="例: Logicool G Pro X Superlight"
-              className="w-full px-3 py-2 text-base border border-[rgb(var(--border))] rounded bg-[rgb(var(--background))]"
-            />
-          </div>
-
-          {/* キーボード */}
-          <div>
-            <label htmlFor="keyboardModel" className="font-semibold text-base mb-2 block">キーボード</label>
-            <input
-              id="keyboardModel"
-              type="text"
-              value={keyboardModel}
-              onChange={(e) => setKeyboardModel(e.target.value)}
-              placeholder="例: Keychron K8 Pro"
-              className="w-full px-3 py-2 text-base border border-[rgb(var(--border))] rounded bg-[rgb(var(--background))]"
-            />
-          </div>
-
-          {/* 自由使用欄 */}
-          <Textarea
-            id="notes"
-            label="コメント"
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            placeholder="その他のメモや補足情報など"
-            rows={4}
-            className="resize-y"
-          />
-        </div>
+        <h2 className="text-xl font-bold mb-4">アイテム配置設定</h2>
+        <ItemLayoutEditor uuid={uuid} ref={itemLayoutEditorRef} hideSaveButton />
       </section>
 
       {/* リマップと外部ツールは仮想キーボードのモーダルから設定可能 */}
 
-      <div className="flex gap-4 justify-between">
-        <Button
-          onClick={() => setShowDeleteConfirm(true)}
-          disabled={deleting}
-          variant="danger"
-          size="lg"
-        >
-          設定を削除
-        </Button>
-        <div className="flex gap-4">
+      {/* 固定ボタンエリア */}
+      <div className="fixed bottom-0 left-0 right-0 bg-[rgb(var(--background))]/95 backdrop-blur-sm border-t border-[rgb(var(--border))] z-40">
+        <div className="max-w-7xl mx-auto px-4 py-4 flex gap-4 justify-between items-center">
           <Button
-            onClick={() => router.back()}
-            variant="secondary"
+            onClick={() => setShowDeleteConfirm(true)}
+            disabled={deleting}
+            variant="danger-outline"
             size="lg"
+            className="p-3"
+            title="設定を削除"
           >
-            キャンセル
+            <TrashIcon className="h-5 w-5" />
           </Button>
-          <Button
-            onClick={handleSubmit}
-            disabled={saving}
-            size="lg"
-            className="flex items-center gap-2"
-          >
-            {saving && <LoadingSpinner size="sm" />}
-            {saving ? '保存中...' : '保存'}
-          </Button>
+          <div className="flex gap-4">
+            <Button
+              onClick={() => router.back()}
+              variant="outline"
+              size="lg"
+            >
+              キャンセル
+            </Button>
+            <Button
+              onClick={handleSubmit}
+              disabled={saving}
+              size="lg"
+              className="flex items-center gap-2"
+            >
+              {saving && <LoadingSpinner size="sm" />}
+              {saving ? '保存中...' : '保存'}
+            </Button>
+          </div>
         </div>
       </div>
 
