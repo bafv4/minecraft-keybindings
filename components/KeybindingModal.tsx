@@ -430,7 +430,7 @@ export function KeybindingModal({
                           <ComboboxOptions
                             anchor="bottom start"
                             portal
-                            className="z-[100] w-[var(--input-width)] max-h-60 overflow-auto rounded-lg bg-popover border border-border shadow-lg focus:outline-none"
+                            className="z-[100] w-[var(--input-width)] max-h-60 overflow-auto rounded-lg bg-[rgb(var(--card))] border border-border shadow-lg focus:outline-none"
                           >
                             {filteredRemapKeys.length === 0 && remapQuery !== '' ? (
                               <div className="px-4 py-2 text-sm text-muted-foreground">
@@ -480,7 +480,7 @@ export function KeybindingModal({
                           <ComboboxOptions
                             anchor="bottom start"
                             portal
-                            className="z-[100] w-[var(--input-width)] max-h-60 overflow-auto rounded-lg bg-popover border border-border shadow-lg focus:outline-none"
+                            className="z-[100] w-[var(--input-width)] max-h-60 overflow-auto rounded-lg bg-[rgb(var(--card))] border border-border shadow-lg focus:outline-none"
                           >
                             {filteredExternalTools.length === 0 && externalToolQuery !== '' ? (
                               <div className="px-4 py-2 text-sm text-muted-foreground">
