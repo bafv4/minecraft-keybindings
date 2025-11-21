@@ -73,16 +73,16 @@ const ACTIONS = [
 
 // 指の選択肢
 const FINGER_OPTIONS: { value: Finger; label: string; color: string }[] = [
-  { value: 'left-pinky', label: '左小指', color: 'bg-pink-500' },
-  { value: 'left-ring', label: '左薬指', color: 'bg-purple-500' },
-  { value: 'left-middle', label: '左中指', color: 'bg-blue-500' },
-  { value: 'left-index', label: '左人差', color: 'bg-green-500' },
-  { value: 'left-thumb', label: '左親指', color: 'bg-yellow-500' },
-  { value: 'right-thumb', label: '右親指', color: 'bg-yellow-500' },
-  { value: 'right-index', label: '右人差', color: 'bg-green-500' },
-  { value: 'right-middle', label: '右中指', color: 'bg-blue-500' },
-  { value: 'right-ring', label: '右薬指', color: 'bg-purple-500' },
-  { value: 'right-pinky', label: '右小指', color: 'bg-pink-500' },
+  { value: 'left-pinky', label: '左小指', color: 'bg-pink-400' },
+  { value: 'left-ring', label: '左薬指', color: 'bg-purple-400' },
+  { value: 'left-middle', label: '左中指', color: 'bg-blue-400' },
+  { value: 'left-index', label: '左人差', color: 'bg-green-400' },
+  { value: 'left-thumb', label: '左親指', color: 'bg-yellow-400' },
+  { value: 'right-thumb', label: '右親指', color: 'bg-orange-400' },
+  { value: 'right-index', label: '右人差', color: 'bg-red-400' },
+  { value: 'right-middle', label: '右中指', color: 'bg-rose-400' },
+  { value: 'right-ring', label: '右薬指', color: 'bg-indigo-400' },
+  { value: 'right-pinky', label: '右小指', color: 'bg-cyan-400' },
 ];
 
 // リマップ可能なキー（簡略版）
@@ -326,21 +326,21 @@ export function KeybindingModal({
                     <p className="text-sm text-muted-foreground">
                       このキーを押す指を選択してください（複数選択可）
                     </p>
-                    <div className="grid grid-cols-5 gap-3">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 sm:gap-3">
                       {FINGER_OPTIONS.map(finger => {
                         const isSelected = selectedFingers.includes(finger.value);
                         return (
                           <button
                             key={finger.value}
                             onClick={() => toggleFinger(finger.value)}
-                            className={`p-4 rounded-lg border transition-all ${
+                            className={`p-3 sm:p-4 rounded-lg border transition-all ${
                               isSelected
                                 ? 'border-foreground/20 bg-accent'
                                 : 'border-border hover:bg-accent/50'
                             }`}
                           >
-                            <div className={`w-8 h-8 rounded-full ${finger.color} mx-auto mb-2`} />
-                            <div className="text-xs font-medium text-center">{finger.label}</div>
+                            <div className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full ${finger.color} mx-auto mb-1 sm:mb-2`} />
+                            <div className="text-[10px] sm:text-xs font-medium text-center leading-tight">{finger.label}</div>
                           </button>
                         );
                       })}
