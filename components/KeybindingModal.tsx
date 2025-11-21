@@ -333,7 +333,11 @@ export function KeybindingModal({
                     </p>
                     <div>
                       <label className="block text-sm font-medium mb-2">リマップ先を選択</label>
-                      <Combobox value={remapValue} onChange={setRemapValue}>
+                      <Combobox
+                        value={remapValue}
+                        onChange={(value) => setRemapValue(value || '')}
+                        immediate
+                      >
                         <div className="relative">
                           <ComboboxInput
                             className="w-full px-4 py-2 pr-10 rounded-lg border border-border bg-background focus:border-primary focus:ring-1 focus:ring-primary outline-none transition"
@@ -341,7 +345,10 @@ export function KeybindingModal({
                               const key = REMAP_KEYS.find(k => k.value === value);
                               return key ? key.label : value;
                             }}
-                            onChange={(event) => setRemapQuery(event.target.value)}
+                            onChange={(event) => {
+                              setRemapQuery(event.target.value);
+                              setRemapValue(event.target.value);
+                            }}
                             placeholder="リマップ先を選択または入力"
                           />
                           <ComboboxButton className="absolute inset-y-0 right-0 flex items-center pr-2">
@@ -350,7 +357,7 @@ export function KeybindingModal({
                           <ComboboxOptions className="absolute z-10 mt-1 w-full max-h-60 overflow-auto rounded-lg bg-popover border border-border shadow-lg focus:outline-none">
                             {filteredRemapKeys.length === 0 && remapQuery !== '' ? (
                               <div className="px-4 py-2 text-sm text-muted-foreground">
-                                見つかりません。カスタム値として "{remapQuery}" を入力できます。
+                                カスタム値: "{remapQuery}"
                               </div>
                             ) : (
                               filteredRemapKeys.map((key) => (
@@ -376,11 +383,18 @@ export function KeybindingModal({
                     </p>
                     <div>
                       <label className="block text-sm font-medium mb-2">外部ツールを選択</label>
-                      <Combobox value={externalTool} onChange={setExternalTool}>
+                      <Combobox
+                        value={externalTool}
+                        onChange={(value) => setExternalTool(value || '')}
+                        immediate
+                      >
                         <div className="relative">
                           <ComboboxInput
                             className="w-full px-4 py-2 pr-10 rounded-lg border border-border bg-background focus:border-primary focus:ring-1 focus:ring-primary outline-none transition"
-                            onChange={(event) => setExternalToolQuery(event.target.value)}
+                            onChange={(event) => {
+                              setExternalToolQuery(event.target.value);
+                              setExternalTool(event.target.value);
+                            }}
                             placeholder="外部ツールを選択または入力"
                           />
                           <ComboboxButton className="absolute inset-y-0 right-0 flex items-center pr-2">
@@ -389,7 +403,7 @@ export function KeybindingModal({
                           <ComboboxOptions className="absolute z-10 mt-1 w-full max-h-60 overflow-auto rounded-lg bg-popover border border-border shadow-lg focus:outline-none">
                             {filteredExternalTools.length === 0 && externalToolQuery !== '' ? (
                               <div className="px-4 py-2 text-sm text-muted-foreground">
-                                見つかりません。カスタム値として "{externalToolQuery}" を入力できます。
+                                カスタム値: "{externalToolQuery}"
                               </div>
                             ) : (
                               filteredExternalTools.map((tool) => (
