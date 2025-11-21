@@ -85,16 +85,68 @@ const FINGER_OPTIONS: { value: Finger; label: string; color: string }[] = [
   { value: 'right-pinky', label: '右小指', color: 'bg-cyan-400' },
 ];
 
-// リマップ可能なキー（簡略版）
+// リマップ可能なキー（拡張版）
 const REMAP_KEYS = [
   { value: '', label: 'リマップなし' },
   { value: 'key.keyboard.disabled', label: '無効化' },
+  // 修飾キー
   { value: 'key.keyboard.left.shift', label: '左Shift' },
+  { value: 'key.keyboard.right.shift', label: '右Shift' },
   { value: 'key.keyboard.left.control', label: '左Ctrl' },
+  { value: 'key.keyboard.right.control', label: '右Ctrl' },
   { value: 'key.keyboard.left.alt', label: '左Alt' },
+  { value: 'key.keyboard.right.alt', label: '右Alt' },
   { value: 'key.keyboard.caps.lock', label: 'Caps Lock' },
+  // 特殊キー
   { value: 'key.keyboard.space', label: 'Space' },
   { value: 'key.keyboard.tab', label: 'Tab' },
+  { value: 'key.keyboard.enter', label: 'Enter' },
+  { value: 'key.keyboard.backspace', label: 'Backspace' },
+  { value: 'key.keyboard.escape', label: 'Escape' },
+  { value: 'key.keyboard.insert', label: 'Insert' },
+  { value: 'key.keyboard.delete', label: 'Delete' },
+  { value: 'key.keyboard.home', label: 'Home' },
+  { value: 'key.keyboard.end', label: 'End' },
+  { value: 'key.keyboard.page.up', label: 'Page Up' },
+  { value: 'key.keyboard.page.down', label: 'Page Down' },
+  // 矢印キー
+  { value: 'key.keyboard.up', label: '↑' },
+  { value: 'key.keyboard.down', label: '↓' },
+  { value: 'key.keyboard.left', label: '←' },
+  { value: 'key.keyboard.right', label: '→' },
+  // ファンクションキー
+  ...Array.from({ length: 12 }, (_, i) => ({
+    value: `key.keyboard.f${i + 1}`,
+    label: `F${i + 1}`,
+  })),
+  // 数字キー
+  ...Array.from({ length: 10 }, (_, i) => ({
+    value: `key.keyboard.${i}`,
+    label: `${i}`,
+  })),
+  // アルファベットキー
+  ...'abcdefghijklmnopqrstuvwxyz'.split('').map(char => ({
+    value: `key.keyboard.${char}`,
+    label: char.toUpperCase(),
+  })),
+  // 記号キー
+  { value: 'key.keyboard.minus', label: '-' },
+  { value: 'key.keyboard.equal', label: '=' },
+  { value: 'key.keyboard.left.bracket', label: '[' },
+  { value: 'key.keyboard.right.bracket', label: ']' },
+  { value: 'key.keyboard.backslash', label: '\\' },
+  { value: 'key.keyboard.semicolon', label: ';' },
+  { value: 'key.keyboard.apostrophe', label: "'" },
+  { value: 'key.keyboard.grave.accent', label: '`' },
+  { value: 'key.keyboard.comma', label: ',' },
+  { value: 'key.keyboard.period', label: '.' },
+  { value: 'key.keyboard.slash', label: '/' },
+  // マウスボタン
+  { value: 'key.mouse.left', label: 'マウス左' },
+  { value: 'key.mouse.right', label: 'マウス右' },
+  { value: 'key.mouse.middle', label: 'マウス中央' },
+  { value: 'key.mouse.4', label: 'マウス4' },
+  { value: 'key.mouse.5', label: 'マウス5' },
 ];
 
 // 外部ツールプリセット
@@ -375,7 +427,11 @@ export function KeybindingModal({
                           <ComboboxButton className="absolute inset-y-0 right-0 flex items-center pr-2">
                             <ChevronUpDownIcon className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
                           </ComboboxButton>
-                          <ComboboxOptions className="absolute z-[60] mt-1 w-full max-h-60 overflow-auto rounded-lg bg-popover border border-border shadow-lg focus:outline-none">
+                          <ComboboxOptions
+                            anchor="bottom start"
+                            portal
+                            className="z-[100] w-[var(--input-width)] max-h-60 overflow-auto rounded-lg bg-popover border border-border shadow-lg focus:outline-none"
+                          >
                             {filteredRemapKeys.length === 0 && remapQuery !== '' ? (
                               <div className="px-4 py-2 text-sm text-muted-foreground">
                                 カスタム値: "{remapQuery}"
@@ -421,7 +477,11 @@ export function KeybindingModal({
                           <ComboboxButton className="absolute inset-y-0 right-0 flex items-center pr-2">
                             <ChevronUpDownIcon className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
                           </ComboboxButton>
-                          <ComboboxOptions className="absolute z-[60] mt-1 w-full max-h-60 overflow-auto rounded-lg bg-popover border border-border shadow-lg focus:outline-none">
+                          <ComboboxOptions
+                            anchor="bottom start"
+                            portal
+                            className="z-[100] w-[var(--input-width)] max-h-60 overflow-auto rounded-lg bg-popover border border-border shadow-lg focus:outline-none"
+                          >
                             {filteredExternalTools.length === 0 && externalToolQuery !== '' ? (
                               <div className="px-4 py-2 text-sm text-muted-foreground">
                                 カスタム値: "{externalToolQuery}"
