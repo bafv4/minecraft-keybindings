@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import { Disclosure, Transition } from '@headlessui/react';
 import { ChevronDownIcon } from '@heroicons/react/24/outline';
-import { formatKeyName, formatKeyNameShort, calculateCursorSpeed } from '@/lib/utils';
+import { formatKeyName, formatKeyNameShort, calculateCursorSpeed, CustomKeyInfo } from '@/lib/utils';
+import { getLanguageName } from '@/lib/languages';
 import type { PlayerSettings, FingerAssignments, CustomKey } from '@/types/player';
 import { VirtualKeyboard } from './VirtualKeyboard';
 
@@ -15,61 +16,13 @@ interface KeybindingDisplayProps {
   externalTools?: Array<{ triggerKey: string; toolName: string; actionName: string; description?: string | null }>;
 }
 
-// 言語コードを言語名に変換する関数
-function getLanguageName(languageCode: string): string {
-  const languageNames: { [key: string]: string } = {
-    'ja_jp': '日本語',
-    'en_us': 'English (US)',
-    'en_gb': 'English (UK)',
-    'de_de': 'Deutsch',
-    'es_es': 'Español (España)',
-    'es_mx': 'Español (México)',
-    'fr_fr': 'Français',
-    'it_it': 'Italiano',
-    'ko_kr': '한국어',
-    'pt_br': 'Português (Brasil)',
-    'pt_pt': 'Português (Portugal)',
-    'ru_ru': 'Русский',
-    'zh_cn': '简体中文',
-    'zh_tw': '繁體中文',
-    'nl_nl': 'Nederlands',
-    'pl_pl': 'Polski',
-    'sv_se': 'Svenska',
-    'da_dk': 'Dansk',
-    'fi_fi': 'Suomi',
-    'no_no': 'Norsk',
-    'cs_cz': 'Čeština',
-    'el_gr': 'Ελληνικά',
-    'hu_hu': 'Magyar',
-    'ro_ro': 'Română',
-    'tr_tr': 'Türkçe',
-    'ar_sa': 'العربية',
-    'he_il': 'עברית',
-    'th_th': 'ภาษาไทย',
-    'vi_vn': 'Tiếng Việt',
-    'id_id': 'Bahasa Indonesia',
-    'uk_ua': 'Українська',
-    'bg_bg': 'Български',
-    'ca_es': 'Català',
-    'hr_hr': 'Hrvatski',
-    'et_ee': 'Eesti',
-    'lv_lv': 'Latviešu',
-    'lt_lt': 'Lietuvių',
-    'sk_sk': 'Slovenčina',
-    'sl_si': 'Slovenščina',
-    'sr_sp': 'Српски',
-  };
-
-  return languageNames[languageCode.toLowerCase()] || languageCode;
-}
-
 // キー表示用のヘルパー関数（Web標準形式とMinecraft形式の両方に対応）
-function formatKey(keyCode: string | string[] | undefined): string {
+function formatKey(keyCode: string | string[] | undefined, customKeys?: CustomKeyInfo[]): string {
   if (!keyCode) return '-';
   if (Array.isArray(keyCode)) {
-    return keyCode.map(k => formatKeyName(k)).join(', ');
+    return keyCode.map(k => formatKeyName(k, customKeys)).join(', ');
   }
-  return formatKeyName(keyCode);
+  return formatKeyName(keyCode, customKeys);
 }
 
 export function KeybindingDisplay({
@@ -184,7 +137,7 @@ export function KeybindingDisplay({
     settings.hotbar7,
     settings.hotbar8,
     settings.hotbar9,
-  ].map(formatKey);
+  ].map(k => formatKey(k, customKeys));
 
   return (
     <div className="space-y-6">
@@ -199,49 +152,49 @@ export function KeybindingDisplay({
               <div className="flex flex-col gap-1 flex-1 min-w-[110px]">
                 <span className="text-xs text-muted-foreground font-medium">前進</span>
                 <kbd className="px-3 py-2 text-center bg-[rgb(var(--card))] border border-[rgb(var(--border))] rounded-lg font-mono font-semibold text-sm truncate shadow-sm">
-                  {formatKey(settings.forward)}
+                  {formatKey(settings.forward, customKeys)}
                 </kbd>
               </div>
               <div className="flex flex-col gap-1 flex-1 min-w-[110px]">
                 <span className="text-xs text-muted-foreground font-medium">後退</span>
                 <kbd className="px-3 py-2 text-center bg-[rgb(var(--card))] border border-[rgb(var(--border))] rounded-lg font-mono font-semibold text-sm truncate shadow-sm">
-                  {formatKey(settings.back)}
+                  {formatKey(settings.back, customKeys)}
                 </kbd>
               </div>
               <div className="flex flex-col gap-1 flex-1 min-w-[110px]">
                 <span className="text-xs text-muted-foreground font-medium">左</span>
                 <kbd className="px-3 py-2 text-center bg-[rgb(var(--card))] border border-[rgb(var(--border))] rounded-lg font-mono font-semibold text-sm truncate shadow-sm">
-                  {formatKey(settings.left)}
+                  {formatKey(settings.left, customKeys)}
                 </kbd>
               </div>
               <div className="flex flex-col gap-1 flex-1 min-w-[110px]">
                 <span className="text-xs text-muted-foreground font-medium">右</span>
                 <kbd className="px-3 py-2 text-center bg-[rgb(var(--card))] border border-[rgb(var(--border))] rounded-lg font-mono font-semibold text-sm truncate shadow-sm">
-                  {formatKey(settings.right)}
+                  {formatKey(settings.right, customKeys)}
                 </kbd>
               </div>
               <div className="flex flex-col gap-1 flex-1 min-w-[110px]">
                 <span className="text-xs text-muted-foreground font-medium">ジャンプ</span>
                 <kbd className="px-3 py-2 text-center bg-[rgb(var(--card))] border border-[rgb(var(--border))] rounded-lg font-mono font-semibold text-sm truncate shadow-sm">
-                  {formatKey(settings.jump)}
+                  {formatKey(settings.jump, customKeys)}
                 </kbd>
               </div>
               <div className="flex flex-col gap-1 flex-1 min-w-[110px]">
                 <span className="text-xs text-muted-foreground font-medium">スニーク</span>
                 <kbd className="px-3 py-2 text-center bg-[rgb(var(--card))] border border-[rgb(var(--border))] rounded-lg font-mono font-semibold text-sm truncate shadow-sm">
-                  {formatKey(settings.sneak)}
+                  {formatKey(settings.sneak, customKeys)}
                 </kbd>
               </div>
               <div className="flex flex-col gap-1 flex-1 min-w-[110px]">
                 <span className="text-xs text-muted-foreground font-medium">ダッシュ</span>
                 <kbd className="px-3 py-2 text-center bg-[rgb(var(--card))] border border-[rgb(var(--border))] rounded-lg font-mono font-semibold text-sm truncate shadow-sm">
-                  {formatKey(settings.sprint)}
+                  {formatKey(settings.sprint, customKeys)}
                 </kbd>
               </div>
               <div className="flex flex-col gap-1 flex-1 min-w-[110px]">
                 <span className="text-xs text-muted-foreground font-medium">視点変更</span>
                 <kbd className="px-3 py-2 text-center bg-[rgb(var(--card))] border border-[rgb(var(--border))] rounded-lg font-mono font-semibold text-sm truncate shadow-sm">
-                  {formatKey(settings.togglePerspective)}
+                  {formatKey(settings.togglePerspective, customKeys)}
                 </kbd>
               </div>
               <div className="flex flex-col gap-1 flex-1 min-w-[110px]">
@@ -300,7 +253,7 @@ export function KeybindingDisplay({
                   {hotbarKeys.map((key, i) => (
                     <div key={i} className="flex flex-col gap-1 items-center">
                       <span className="text-xs text-muted-foreground font-semibold">{i + 1}</span>
-                      <kbd className="px-3 py-2 text-base bg-[rgb(var(--card))] border-2 border-[rgb(var(--border))] rounded-lg font-mono font-bold shadow-sm min-w-[2.5rem] max-w-[4rem] text-center truncate">
+                      <kbd className="px-3 py-2 text-base bg-[rgb(var(--card))] border-2 border-[rgb(var(--border))] rounded-lg font-mono font-bold shadow-sm min-w-[2.5rem] text-center whitespace-nowrap">
                         {key}
                       </kbd>
                     </div>
@@ -312,19 +265,19 @@ export function KeybindingDisplay({
                 <div className="flex flex-col gap-1 flex-1 min-w-[110px]">
                   <span className="text-xs text-muted-foreground font-medium">オフハンド</span>
                   <kbd className="px-3 py-2 text-center bg-[rgb(var(--card))] border border-[rgb(var(--border))] rounded-lg font-mono font-semibold text-sm truncate shadow-sm">
-                    {formatKey(settings.swapHands)}
+                    {formatKey(settings.swapHands, customKeys)}
                   </kbd>
                 </div>
                 <div className="flex flex-col gap-1 flex-1 min-w-[110px]">
                   <span className="text-xs text-muted-foreground font-medium">インベントリ</span>
                   <kbd className="px-3 py-2 text-center bg-[rgb(var(--card))] border border-[rgb(var(--border))] rounded-lg font-mono font-semibold text-sm truncate shadow-sm">
-                    {formatKey(settings.inventory)}
+                    {formatKey(settings.inventory, customKeys)}
                   </kbd>
                 </div>
                 <div className="flex flex-col gap-1 flex-1 min-w-[110px]">
                   <span className="text-xs text-muted-foreground font-medium">ドロップ</span>
                   <kbd className="px-3 py-2 text-center bg-[rgb(var(--card))] border border-[rgb(var(--border))] rounded-lg font-mono font-semibold text-sm truncate shadow-sm">
-                    {formatKey(settings.drop)}
+                    {formatKey(settings.drop, customKeys)}
                   </kbd>
                 </div>
               </div>
@@ -438,8 +391,8 @@ export function KeybindingDisplay({
       {Object.keys(remappingsData).length > 0 && (
         <Disclosure>
           {({ open }) => (
-            <section className="bg-[rgb(var(--card))] rounded-xl border border-[rgb(var(--border))] shadow-sm">
-              <Disclosure.Button className="flex w-full items-center justify-between p-6 text-left hover:bg-accent/50 transition-colors rounded-xl">
+            <section className="bg-gradient-to-r from-primary/5 via-secondary/5 to-transparent rounded-xl border border-[rgb(var(--border))] shadow-sm overflow-hidden">
+              <Disclosure.Button className="flex w-full items-center justify-between p-6 text-left hover:bg-[rgb(var(--muted))]/30 transition-colors">
                 <div>
                   <h2 className="text-xl font-bold">リマップ設定</h2>
                   <p className="text-sm text-[rgb(var(--muted-foreground))] mt-1">
@@ -467,7 +420,7 @@ export function KeybindingDisplay({
                         <div className="flex-1 min-w-0">
                           <div className="text-xs text-[rgb(var(--muted-foreground))] mb-1">物理キー</div>
                           <code className="px-2 py-1 bg-[rgb(var(--background))] border border-[rgb(var(--border))] rounded font-mono text-sm break-all">
-                            {formatKeyNameShort(from)}
+                            {formatKeyNameShort(from, customKeys)}
                           </code>
                         </div>
                         <svg className="w-5 h-5 flex-shrink-0 text-[rgb(var(--muted-foreground))]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -476,7 +429,7 @@ export function KeybindingDisplay({
                         <div className="flex-1 min-w-0">
                           <div className="text-xs text-[rgb(var(--muted-foreground))] mb-1">リマップ先</div>
                           <code className="px-2 py-1 bg-blue-500/10 border border-blue-500 rounded font-mono text-sm font-semibold break-all">
-                            {formatKeyNameShort(to)}
+                            {formatKeyNameShort(to, customKeys)}
                           </code>
                         </div>
                       </div>
@@ -493,8 +446,8 @@ export function KeybindingDisplay({
       {Object.keys(flattenedExternalTools).length > 0 && (
         <Disclosure>
           {({ open }) => (
-            <section className="bg-[rgb(var(--card))] rounded-xl border border-[rgb(var(--border))] shadow-sm">
-              <Disclosure.Button className="flex w-full items-center justify-between p-6 text-left hover:bg-accent/50 transition-colors rounded-xl">
+            <section className="bg-gradient-to-r from-primary/5 via-secondary/5 to-transparent rounded-xl border border-[rgb(var(--border))] shadow-sm overflow-hidden">
+              <Disclosure.Button className="flex w-full items-center justify-between p-6 text-left hover:bg-[rgb(var(--muted))]/30 transition-colors">
                 <div>
                   <h2 className="text-xl font-bold">外部ツール・Modキー設定</h2>
                   <p className="text-sm text-[rgb(var(--muted-foreground))] mt-1">
@@ -523,7 +476,7 @@ export function KeybindingDisplay({
                           <div className="flex-shrink-0">
                             <div className="text-xs text-[rgb(var(--muted-foreground))] mb-1">トリガーキー</div>
                             <code className="px-2 py-1 bg-[rgb(var(--muted))] border border-[rgb(var(--border))] rounded font-mono text-sm">
-                              {formatKeyName(keyCode)}
+                              {formatKeyName(keyCode, customKeys)}
                             </code>
                           </div>
                           <svg className="w-4 h-4 text-[rgb(var(--muted-foreground))] mt-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">

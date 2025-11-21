@@ -1,9 +1,10 @@
 'use client';
 
-import { Disclosure, Transition } from '@headlessui/react';
+import { Disclosure, Transition, Tab, TabGroup, TabList, TabPanel, TabPanels } from '@headlessui/react';
 import { ChevronDownIcon } from '@heroicons/react/24/outline';
-import { HotbarDisplay } from './HotbarDisplay';
+import { HotbarRow } from './HotbarSlot';
 import { getSegmentInfo } from '@/lib/segments';
+import type { CustomKeyInfo } from '@/lib/utils';
 
 interface ItemLayout {
   segment: string;
@@ -20,76 +21,112 @@ interface ItemLayout {
   notes?: string | null;
 }
 
-interface ItemLayoutsDisplayProps {
-  itemLayouts: ItemLayout[];
+interface Keybinds {
+  hotbar1?: string | string[];
+  hotbar2?: string | string[];
+  hotbar3?: string | string[];
+  hotbar4?: string | string[];
+  hotbar5?: string | string[];
+  hotbar6?: string | string[];
+  hotbar7?: string | string[];
+  hotbar8?: string | string[];
+  hotbar9?: string | string[];
+  swapHands?: string | string[];
 }
 
-export function ItemLayoutsDisplay({ itemLayouts }: ItemLayoutsDisplayProps) {
+interface ItemLayoutsDisplayProps {
+  itemLayouts: ItemLayout[];
+  keybinds?: Keybinds;
+  customKeys?: CustomKeyInfo[];
+}
+
+export function ItemLayoutsDisplay({ itemLayouts, keybinds, customKeys }: ItemLayoutsDisplayProps) {
   if (!itemLayouts || itemLayouts.length === 0) {
     return null;
   }
 
   return (
-    <div className="space-y-6">
-      <h2 className="text-2xl font-bold">アイテム配置</h2>
-      <div className="space-y-4">
-        {itemLayouts.map((layout) => {
-          const segmentInfo = getSegmentInfo(layout.segment);
-          return (
-            <Disclosure key={layout.segment}>
-              {({ open }) => (
-                <div className="bg-card border border-border rounded-2xl shadow-sm">
-                  <Disclosure.Button className="flex w-full items-center justify-between p-6 text-left hover:bg-accent/50 transition-colors rounded-2xl">
-                    <div>
-                      <h3 className="text-xl font-semibold">
+    <Disclosure defaultOpen>
+      {({ open }) => (
+        <section className="bg-gradient-to-r from-primary/5 via-secondary/5 to-transparent rounded-xl border border-border shadow-sm">
+          <Disclosure.Button className="flex w-full items-center justify-between p-6 text-left hover:bg-[rgb(var(--muted))]/30 transition-colors">
+            <div>
+              <h2 className="text-xl font-bold">アイテム配置</h2>
+              <p className="text-sm text-muted-foreground mt-1">
+                セグメントごとのホットバー配置
+              </p>
+            </div>
+            <ChevronDownIcon
+              className={`${
+                open ? 'rotate-180 transform' : ''
+              } h-6 w-6 text-muted-foreground transition-transform duration-200`}
+            />
+          </Disclosure.Button>
+          <Transition
+            enter="transition duration-100 ease-out"
+            enterFrom="transform scale-95 opacity-0"
+            enterTo="transform scale-100 opacity-100"
+            leave="transition duration-75 ease-out"
+            leaveFrom="transform scale-100 opacity-100"
+            leaveTo="transform scale-95 opacity-0"
+          >
+            <Disclosure.Panel className="px-6 pb-6">
+              <TabGroup>
+                <TabList className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin">
+                  {itemLayouts.map((layout) => {
+                    const segmentInfo = getSegmentInfo(layout.segment);
+                    return (
+                      <Tab
+                        key={layout.segment}
+                        className={({ selected }) =>
+                          `px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
+                            selected
+                              ? 'bg-primary text-primary-foreground'
+                              : 'bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground'
+                          }`
+                        }
+                      >
                         {segmentInfo?.label || layout.segment}
-                      </h3>
-                      {segmentInfo?.description && (
-                        <p className="text-sm text-muted-foreground mt-1">
-                          {segmentInfo.description}
-                        </p>
-                      )}
-                    </div>
-                    <ChevronDownIcon
-                      className={`${
-                        open ? 'rotate-180 transform' : ''
-                      } h-6 w-6 text-muted-foreground transition-transform duration-200`}
-                    />
-                  </Disclosure.Button>
-                  <Transition
-                    enter="transition duration-100 ease-out"
-                    enterFrom="transform scale-95 opacity-0"
-                    enterTo="transform scale-100 opacity-100"
-                    leave="transition duration-75 ease-out"
-                    leaveFrom="transform scale-100 opacity-100"
-                    leaveTo="transform scale-95 opacity-0"
-                  >
-                    <Disclosure.Panel className="px-6 pb-6 space-y-4">
-                      <HotbarDisplay
-                        slot1={layout.slot1}
-                        slot2={layout.slot2}
-                        slot3={layout.slot3}
-                        slot4={layout.slot4}
-                        slot5={layout.slot5}
-                        slot6={layout.slot6}
-                        slot7={layout.slot7}
-                        slot8={layout.slot8}
-                        slot9={layout.slot9}
-                        offhand={layout.offhand}
-                      />
-                      {layout.notes && (
-                        <div className="p-4 bg-muted/50 rounded-xl border border-border">
-                          <p className="text-sm">{layout.notes}</p>
-                        </div>
-                      )}
-                    </Disclosure.Panel>
-                  </Transition>
-                </div>
-              )}
-            </Disclosure>
-          );
-        })}
-      </div>
-    </div>
+                      </Tab>
+                    );
+                  })}
+                </TabList>
+                <TabPanels className="mt-4">
+                  {itemLayouts.map((layout) => {
+                    const segmentInfo = getSegmentInfo(layout.segment);
+                    const slots = [
+                      { items: layout.slot1, num: 1 },
+                      { items: layout.slot2, num: 2 },
+                      { items: layout.slot3, num: 3 },
+                      { items: layout.slot4, num: 4 },
+                      { items: layout.slot5, num: 5 },
+                      { items: layout.slot6, num: 6 },
+                      { items: layout.slot7, num: 7 },
+                      { items: layout.slot8, num: 8 },
+                      { items: layout.slot9, num: 9 },
+                    ];
+                    return (
+                      <TabPanel key={layout.segment}>
+                        {segmentInfo?.description && (
+                          <p className="text-sm text-muted-foreground mb-4">
+                            {segmentInfo.description}
+                          </p>
+                        )}
+                        <HotbarRow slots={slots} offhand={layout.offhand} keybinds={keybinds} customKeys={customKeys} />
+                        {layout.notes && (
+                          <div className="mt-4 p-4 bg-muted/50 rounded-xl border border-border">
+                            <p className="text-sm">{layout.notes}</p>
+                          </div>
+                        )}
+                      </TabPanel>
+                    );
+                  })}
+                </TabPanels>
+              </TabGroup>
+            </Disclosure.Panel>
+          </Transition>
+        </section>
+      )}
+    </Disclosure>
   );
 }

@@ -51,7 +51,9 @@
       "Bash(pnpm tsx:*)",
       "Bash(chmod:*)",
       "Bash(tasklist:*)",
-      "Bash(findstr:*)"
+      "Bash(findstr:*)",
+      "Bash(node:*)",
+      "Bash(cd:*)"
     ],
     "deny": [],
     "ask": []

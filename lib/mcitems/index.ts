@@ -40,23 +40,16 @@ export function searchItems(query: string): string[] {
 }
 
 export function formatItemName(itemId: string): string {
-  console.log(`[formatItemName] called with: ${itemId}`);
-
   // Try Japanese translation first
   const jaName = getItemNameJa(itemId);
-  console.log(`[formatItemName] translation result: ${jaName}`);
-
   if (jaName) {
     return jaName;
   }
 
   // Fallback to English formatted name
-  const fallback = itemId
+  return itemId
     .replace('minecraft:', '')
     .split('_')
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ');
-
-  console.log(`[formatItemName] using fallback: ${fallback}`);
-  return fallback;
 }

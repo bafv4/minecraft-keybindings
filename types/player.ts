@@ -127,4 +127,5 @@ export interface User {
   createdAt: Date;
   updatedAt: Date;
   settings?: PlayerSettings | null;
+  customKeys?: Array<{ keyCode: string; keyName: string }>;
 }

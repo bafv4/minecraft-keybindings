@@ -90,7 +90,7 @@ export function PlayerListView({ users }: PlayerListViewProps) {
       ) : (
         <div className="flex-1 bg-card rounded-xl md:rounded-2xl border border-border shadow-sm overflow-hidden flex flex-col min-h-0">
           {/* テーブルヘッダー（デスクトップ） - 固定 */}
-          <div className="hidden lg:grid lg:grid-cols-[180px_240px_repeat(8,minmax(60px,1fr))] gap-3 px-6 py-3 border-b border-border bg-muted/50 text-xs font-semibold sticky top-0 z-10 backdrop-blur-sm">
+          <div className="hidden lg:grid lg:grid-cols-[180px_240px_repeat(8,minmax(60px,1fr))] gap-3 px-4 py-3 border-b border-border bg-card text-xs font-semibold sticky top-0 z-10 relative before:absolute before:inset-0 before:bg-gradient-to-r before:from-primary/5 before:via-secondary/5 before:to-transparent before:pointer-events-none">
             <div>プレイヤー</div>
             <div>ホットバー</div>
             <div className="text-center">オフハンド</div>
@@ -104,14 +104,8 @@ export function PlayerListView({ users }: PlayerListViewProps) {
           </div>
 
           {/* テーブルヘッダー（モバイル/タブレット） - 固定 */}
-          <div className="lg:hidden px-3 py-2 border-b border-border bg-muted/50 text-xs font-semibold sticky top-0 z-10 backdrop-blur-sm">
-            <div className="flex items-center justify-between">
-              <div>プレイヤー</div>
-              <div className="flex items-center gap-2 text-[10px]">
-                <div>感度</div>
-                <div>振り向き</div>
-              </div>
-            </div>
+          <div className="lg:hidden px-3 py-2 border-b border-border bg-card text-xs font-semibold sticky top-0 z-10 relative before:absolute before:inset-0 before:bg-gradient-to-r before:from-primary/5 before:via-secondary/5 before:to-transparent before:pointer-events-none">
+            <div>プレイヤー</div>
           </div>
 
           {/* プレイヤー行 - スクロール可能 */}

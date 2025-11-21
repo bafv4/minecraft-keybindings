@@ -4,6 +4,9 @@ import type { Metadata } from 'next';
 import { getPlayersList } from '@/lib/playerData';
 import { PlayerListSkeleton } from '@/components/PlayerListSkeleton';
 
+// ISR: 5分ごとに再生成
+export const revalidate = 300;
+
 export const metadata: Metadata = {
   title: 'プレイヤー一覧 | MCSRer Hotkeys',
   description: 'RTA勢の設定はこうなっている！',

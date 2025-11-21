@@ -219,10 +219,10 @@ export function MouseListView({ users }: MouseListViewProps) {
         <div className="flex-1 bg-[rgb(var(--card))] rounded-xl md:rounded-2xl border border-[rgb(var(--border))] shadow-sm overflow-hidden flex flex-col min-h-0">
           <div className="flex-1 overflow-x-auto min-h-0">
             <table className="w-full text-sm relative">
-              <thead className="bg-[rgb(var(--muted))] border-b border-[rgb(var(--border))] sticky top-0 z-20">
+              <thead className="bg-[rgb(var(--card))] border-b border-[rgb(var(--border))] sticky top-0 z-20 relative before:absolute before:inset-0 before:bg-gradient-to-r before:from-primary/10 before:via-secondary/5 before:to-transparent before:pointer-events-none">
               <tr>
                 <th
-                  className="sticky left-0 z-30 bg-[rgb(var(--muted))] px-4 py-3 text-left font-semibold cursor-pointer hover:bg-[rgb(var(--muted))]/80 transition-colors whitespace-nowrap border-r border-[rgb(var(--border))] shadow-[2px_0_4px_-2px_rgba(0,0,0,0.1)]"
+                  className="sticky left-0 z-30 bg-[rgb(var(--card))] px-4 py-3 text-left font-semibold cursor-pointer hover:bg-[rgb(var(--muted))] transition-colors whitespace-nowrap border-r border-[rgb(var(--border))] shadow-[2px_0_4px_-2px_rgba(0,0,0,0.1)] relative before:absolute before:inset-0 before:bg-gradient-to-r before:from-primary/10 before:to-primary/5 before:pointer-events-none"
                   onClick={() => handleSort('player')}
                 >
                   プレイヤー <SortIcon columnKey="player" />

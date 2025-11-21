@@ -1,14 +1,15 @@
+import { memo } from 'react';
 import Link from 'next/link';
 import { MinecraftAvatar } from './MinecraftAvatar';
-import { formatKeyName } from '@/lib/utils';
+import { formatKeyName, type CustomKeyInfo } from '@/lib/utils';
 import type { User } from '@/types/player';
 
 interface PlayerListItemProps {
   user: User;
 }
 
-export function PlayerListItem({ user }: PlayerListItemProps) {
-  const { mcid, uuid, displayName, settings } = user;
+export const PlayerListItem = memo(function PlayerListItem({ user }: PlayerListItemProps) {
+  const { mcid, uuid, displayName, settings, customKeys } = user;
   const showDisplayName = displayName && displayName.trim() !== '';
 
   return (
@@ -46,38 +47,38 @@ export function PlayerListItem({ user }: PlayerListItemProps) {
             settings?.hotbar8 || 'key.keyboard.8',
             settings?.hotbar9 || 'key.keyboard.9',
           ].map((keyName, i) => (
-            <KeyBadge key={i} keyName={keyName} />
+            <KeyBadge key={i} keyName={keyName} customKeys={customKeys} />
           ))}
         </div>
 
         {/* オフハンド */}
         <div className="text-center">
-          <KeyBadge keyName={settings?.swapHands || 'key.keyboard.f'} />
+          <KeyBadge keyName={settings?.swapHands || 'key.keyboard.f'} customKeys={customKeys} />
         </div>
 
         {/* スニーク */}
         <div className="text-center">
-          <KeyBadge keyName={settings?.sneak || 'key.keyboard.left.shift'} />
+          <KeyBadge keyName={settings?.sneak || 'key.keyboard.left.shift'} customKeys={customKeys} />
         </div>
 
         {/* ダッシュ */}
         <div className="text-center">
-          <KeyBadge keyName={settings?.sprint || 'key.keyboard.left.control'} />
+          <KeyBadge keyName={settings?.sprint || 'key.keyboard.left.control'} customKeys={customKeys} />
         </div>
 
         {/* ジャンプ */}
         <div className="text-center">
-          <KeyBadge keyName={settings?.jump || 'key.keyboard.space'} />
+          <KeyBadge keyName={settings?.jump || 'key.keyboard.space'} customKeys={customKeys} />
         </div>
 
         {/* インベントリ */}
         <div className="text-center">
-          <KeyBadge keyName={settings?.inventory || 'key.keyboard.e'} />
+          <KeyBadge keyName={settings?.inventory || 'key.keyboard.e'} customKeys={customKeys} />
         </div>
 
         {/* ドロップ */}
         <div className="text-center">
-          <KeyBadge keyName={settings?.drop || 'key.keyboard.q'} />
+          <KeyBadge keyName={settings?.drop || 'key.keyboard.q'} customKeys={customKeys} />
         </div>
 
         {/* 感度 */}
@@ -132,7 +133,7 @@ export function PlayerListItem({ user }: PlayerListItemProps) {
         <div className="space-y-1">
           {/* ホットバー */}
           <div className="flex items-center gap-1.5">
-            <span className="text-[10px] text-muted-foreground w-12 flex-shrink-0">ホットバー</span>
+            <span className="text-[10px] text-muted-foreground flex-shrink-0 whitespace-nowrap">ホットバー</span>
             <div className="flex gap-0.5 overflow-x-auto flex-1 scrollbar-hide">
               {[
                 settings?.hotbar1 || 'key.keyboard.1',
@@ -145,33 +146,32 @@ export function PlayerListItem({ user }: PlayerListItemProps) {
                 settings?.hotbar8 || 'key.keyboard.8',
                 settings?.hotbar9 || 'key.keyboard.9',
               ].map((keyName, i) => (
-                <KeyBadge key={i} keyName={keyName} size="xs" />
+                <KeyBadge key={i} keyName={keyName} size="xs" customKeys={customKeys} />
               ))}
             </div>
           </div>
 
           {/* その他のキー */}
           <div className="flex items-center gap-1.5">
-            <span className="text-[10px] text-muted-foreground w-12 flex-shrink-0">その他</span>
-            <div className="flex gap-1 flex-wrap flex-1">
-              <KeyBadgeWithLabel keyName={settings?.swapHands || 'key.keyboard.f'} label="オフハンド" />
-              <KeyBadgeWithLabel keyName={settings?.sneak || 'key.keyboard.left.shift'} label="スニーク" />
-              <KeyBadgeWithLabel keyName={settings?.sprint || 'key.keyboard.left.control'} label="ダッシュ" />
-              <KeyBadgeWithLabel keyName={settings?.jump || 'key.keyboard.space'} label="ジャンプ" />
-              <KeyBadgeWithLabel keyName={settings?.inventory || 'key.keyboard.e'} label="ｲﾝﾍﾞ" />
-              <KeyBadgeWithLabel keyName={settings?.drop || 'key.keyboard.q'} label="ドロップ" />
+            <div className="flex gap-2 flex-wrap flex-1">
+              <KeyBadgeWithLabel keyName={settings?.swapHands || 'key.keyboard.f'} label="オフハンド" customKeys={customKeys} />
+              <KeyBadgeWithLabel keyName={settings?.sneak || 'key.keyboard.left.shift'} label="スニーク" customKeys={customKeys} />
+              <KeyBadgeWithLabel keyName={settings?.sprint || 'key.keyboard.left.control'} label="ダッシュ" customKeys={customKeys} />
+              <KeyBadgeWithLabel keyName={settings?.jump || 'key.keyboard.space'} label="ジャンプ" customKeys={customKeys} />
+              <KeyBadgeWithLabel keyName={settings?.inventory || 'key.keyboard.e'} label="インベントリ" customKeys={customKeys} />
+              <KeyBadgeWithLabel keyName={settings?.drop || 'key.keyboard.q'} label="ドロップ" customKeys={customKeys} />
             </div>
           </div>
         </div>
       </div>
     </Link>
   );
-}
+});
 
-function KeyBadge({ keyName, size = 'sm' }: { keyName: string | string[]; size?: 'xs' | 'sm' }) {
+function KeyBadge({ keyName, size = 'sm', customKeys }: { keyName: string | string[]; size?: 'xs' | 'sm'; customKeys?: CustomKeyInfo[] }) {
   const formattedKey = Array.isArray(keyName)
-    ? keyName.map(k => formatKeyName(k)).join(', ')
-    : formatKeyName(keyName);
+    ? keyName.map(k => formatKeyName(k, customKeys)).join(', ')
+    : formatKeyName(keyName, customKeys);
 
   return (
     <kbd
@@ -186,15 +186,15 @@ function KeyBadge({ keyName, size = 'sm' }: { keyName: string | string[]; size?:
   );
 }
 
-function KeyBadgeWithLabel({ keyName, label }: { keyName: string | string[]; label: string }) {
+function KeyBadgeWithLabel({ keyName, label, customKeys }: { keyName: string | string[]; label: string; customKeys?: CustomKeyInfo[] }) {
   const formattedKey = Array.isArray(keyName)
-    ? keyName.map(k => formatKeyName(k)).join(', ')
-    : formatKeyName(keyName);
+    ? keyName.map(k => formatKeyName(k, customKeys)).join(', ')
+    : formatKeyName(keyName, customKeys);
 
   return (
     <div className="inline-flex items-center gap-1">
       <span className="text-[9px] text-muted-foreground font-sans">{label}</span>
-      <kbd className="bg-muted border border-border rounded-md px-1.5 py-0.5 text-[9px] font-mono font-medium">
+      <kbd className="bg-muted border border-border rounded-md px-1.5 py-0.5 text-[9px] font-mono font-medium shadow-sm group-hover:border-primary/30 group-hover:bg-primary/5 transition-colors">
         {formattedKey}
       </kbd>
     </div>

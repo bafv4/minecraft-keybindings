@@ -13,6 +13,7 @@ import { Combobox } from '@/components/ui/Combobox';
 import { RadioGroup } from '@/components/ui/RadioGroup';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { minecraftToWeb } from '@/lib/keyConversion';
+import { MINECRAFT_LANGUAGES } from '@/lib/languages';
 
 // キーボードレイアウトオプション
 const KEYBOARD_LAYOUT_OPTIONS = [
@@ -20,131 +21,6 @@ const KEYBOARD_LAYOUT_OPTIONS = [
   { value: 'US', label: 'US', description: '英語配列フルサイズ' },
   { value: 'JIS-TKL', label: 'JIS (TKL)', description: '日本語配列テンキーレス' },
   { value: 'US-TKL', label: 'US (TKL)', description: '英語配列テンキーレス' },
-];
-
-// Minecraft言語リスト（全言語）
-const MINECRAFT_LANGUAGES = [
-  { value: 'af_za', label: 'Afrikaans (Suid-Afrika)' },
-  { value: 'ar_sa', label: 'العربية (السعودية)' },
-  { value: 'ast_es', label: 'Asturianu (España)' },
-  { value: 'az_az', label: 'Azərbaycanca (Azərbaycan)' },
-  { value: 'ba_ru', label: 'Башҡортса (Россия)' },
-  { value: 'bar', label: 'Bairisch' },
-  { value: 'be_by', label: 'Беларуская (Беларусь)' },
-  { value: 'bg_bg', label: 'Български (България)' },
-  { value: 'br_fr', label: 'Brezhoneg (Frañs)' },
-  { value: 'brb', label: 'Barbadian' },
-  { value: 'bs_ba', label: 'Bosanski (Bosna i Hercegovina)' },
-  { value: 'ca_es', label: 'Català (Espanya)' },
-  { value: 'cs_cz', label: 'Čeština (Česko)' },
-  { value: 'cy_gb', label: 'Cymraeg (Y Deyrnas Unedig)' },
-  { value: 'da_dk', label: 'Dansk (Danmark)' },
-  { value: 'de_at', label: 'Deutsch (Österreich)' },
-  { value: 'de_ch', label: 'Deutsch (Schweiz)' },
-  { value: 'de_de', label: 'Deutsch (Deutschland)' },
-  { value: 'el_gr', label: 'Ελληνικά (Ελλάδα)' },
-  { value: 'en_au', label: 'English (Australia)' },
-  { value: 'en_ca', label: 'English (Canada)' },
-  { value: 'en_gb', label: 'English (United Kingdom)' },
-  { value: 'en_nz', label: 'English (New Zealand)' },
-  { value: 'en_pt', label: 'English (Pirate Speak)' },
-  { value: 'en_ud', label: 'English (Upside Down)' },
-  { value: 'en_us', label: 'English (United States)' },
-  { value: 'enp', label: 'English (Anglish)' },
-  { value: 'enws', label: 'English (Early Modern)' },
-  { value: 'eo_uy', label: 'Esperanto (Urugvajo)' },
-  { value: 'es_ar', label: 'Español (Argentina)' },
-  { value: 'es_cl', label: 'Español (Chile)' },
-  { value: 'es_ec', label: 'Español (Ecuador)' },
-  { value: 'es_es', label: 'Español (España)' },
-  { value: 'es_mx', label: 'Español (México)' },
-  { value: 'es_uy', label: 'Español (Uruguay)' },
-  { value: 'es_ve', label: 'Español (Venezuela)' },
-  { value: 'et_ee', label: 'Eesti (Eesti)' },
-  { value: 'eu_es', label: 'Euskara (Espainia)' },
-  { value: 'fa_ir', label: 'فارسی (ایران)' },
-  { value: 'fi_fi', label: 'Suomi (Suomi)' },
-  { value: 'fil_ph', label: 'Filipino (Pilipinas)' },
-  { value: 'fo_fo', label: 'Føroyskt (Føroyar)' },
-  { value: 'fr_ca', label: 'Français (Canada)' },
-  { value: 'fr_fr', label: 'Français (France)' },
-  { value: 'fra_de', label: 'Fränkisch (Deutschland)' },
-  { value: 'fur_it', label: 'Furlan (Italie)' },
-  { value: 'fy_nl', label: 'Frysk (Nederlân)' },
-  { value: 'ga_ie', label: 'Gaeilge (Éire)' },
-  { value: 'gd_gb', label: 'Gàidhlig (An Rìoghachd Aonaichte)' },
-  { value: 'gl_es', label: 'Galego (España)' },
-  { value: 'haw_us', label: 'ʻŌlelo Hawaiʻi (ʻAmelika Hui Pū ʻIa)' },
-  { value: 'he_il', label: 'עברית (ישראל)' },
-  { value: 'hi_in', label: 'हिन्दी (भारत)' },
-  { value: 'hr_hr', label: 'Hrvatski (Hrvatska)' },
-  { value: 'hu_hu', label: 'Magyar (Magyarország)' },
-  { value: 'hy_am', label: 'Հայերեն (Հայաստան)' },
-  { value: 'id_id', label: 'Bahasa Indonesia (Indonesia)' },
-  { value: 'ig_ng', label: 'Igbo (Naịjịrịa)' },
-  { value: 'io_en', label: 'Ido (Anglia)' },
-  { value: 'is_is', label: 'Íslenska (Ísland)' },
-  { value: 'isv', label: 'Interslavic' },
-  { value: 'it_it', label: 'Italiano (Italia)' },
-  { value: 'ja_jp', label: '日本語 (日本)' },
-  { value: 'jbo_en', label: 'la .lojban. (lb\'anglia)' },
-  { value: 'ka_ge', label: 'ქართული (საქართველო)' },
-  { value: 'kk_kz', label: 'Қазақша (Қазақстан)' },
-  { value: 'kn_in', label: 'ಕನ್ನಡ (ಭಾರತ)' },
-  { value: 'ko_kr', label: '한국어 (대한민국)' },
-  { value: 'ksh', label: 'Kölsch' },
-  { value: 'kw_gb', label: 'Kernewek (Rywvaneth Unys)' },
-  { value: 'la_la', label: 'Latina (Imperium Romanum)' },
-  { value: 'lb_lu', label: 'Lëtzebuergesch (Lëtzebuerg)' },
-  { value: 'li_li', label: 'Limburgs (Limburg)' },
-  { value: 'lmo', label: 'Lombard' },
-  { value: 'lt_lt', label: 'Lietuvių (Lietuva)' },
-  { value: 'lv_lv', label: 'Latviešu (Latvija)' },
-  { value: 'lzh', label: '文言 (華夏)' },
-  { value: 'mk_mk', label: 'Македонски (Македонија)' },
-  { value: 'mn_mn', label: 'Монгол (Монгол Улс)' },
-  { value: 'ms_my', label: 'Bahasa Melayu (Malaysia)' },
-  { value: 'mt_mt', label: 'Malti (Malta)' },
-  { value: 'nds_de', label: 'Plattdüütsch (Düütschland)' },
-  { value: 'nl_be', label: 'Nederlands (België)' },
-  { value: 'nl_nl', label: 'Nederlands (Nederland)' },
-  { value: 'nn_no', label: 'Norsk nynorsk (Noreg)' },
-  { value: 'no_no', label: 'Norsk bokmål (Norge)' },
-  { value: 'oc_fr', label: 'Occitan (França)' },
-  { value: 'ovd', label: 'Övdalsk' },
-  { value: 'pl_pl', label: 'Polski (Polska)' },
-  { value: 'pt_br', label: 'Português (Brasil)' },
-  { value: 'pt_pt', label: 'Português (Portugal)' },
-  { value: 'qya_aa', label: 'Quenya (Arda)' },
-  { value: 'ro_ro', label: 'Română (România)' },
-  { value: 'rpr', label: 'Ripoarisch' },
-  { value: 'ru_ru', label: 'Русский (Россия)' },
-  { value: 'se_no', label: 'Davvisámegiella (Norga)' },
-  { value: 'sk_sk', label: 'Slovenčina (Slovensko)' },
-  { value: 'sl_si', label: 'Slovenščina (Slovenija)' },
-  { value: 'so_so', label: 'Soomaaliga (Soomaaliya)' },
-  { value: 'sq_al', label: 'Shqip (Shqipëri)' },
-  { value: 'sr_sp', label: 'Српски (Србија)' },
-  { value: 'sv_se', label: 'Svenska (Sverige)' },
-  { value: 'sxu', label: 'Saksisch' },
-  { value: 'szl', label: 'Ślōnskŏ gŏdka' },
-  { value: 'ta_in', label: 'தமிழ் (இந்தியா)' },
-  { value: 'th_th', label: 'ไทย (ประเทศไทย)' },
-  { value: 'tl_ph', label: 'Tagalog (Pilipinas)' },
-  { value: 'tlh_aa', label: 'tlhIngan Hol (tlhIngan wo\')' },
-  { value: 'tok', label: 'toki pona' },
-  { value: 'tr_tr', label: 'Türkçe (Türkiye)' },
-  { value: 'tt_ru', label: 'Татарча (Россия)' },
-  { value: 'uk_ua', label: 'Українська (Україна)' },
-  { value: 'val_es', label: 'Valencià (Espanya)' },
-  { value: 'vec_it', label: 'Vèneto (Itàlia)' },
-  { value: 'vi_vn', label: 'Tiếng Việt (Việt Nam)' },
-  { value: 'yi_de', label: 'ייִדיש (דײַטשלאַנד)' },
-  { value: 'yo_ng', label: 'Yorùbá (Nàìjíríà)' },
-  { value: 'zh_cn', label: '简体中文 (中国大陆)' },
-  { value: 'zh_hk', label: '繁體中文 (香港)' },
-  { value: 'zh_tw', label: '繁體中文 (台灣)' },
-  { value: 'zlm_arab', label: 'بهاس ملايو (مليسيا)' },
 ];
 
 interface KeybindingEditorProps {
@@ -380,8 +256,6 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
     externalTool?: string;
     finger?: Finger[];
   }) => {
-    console.log('handleUpdateConfig called:', { keyCode, config });
-
     // Helper function to add a key to an action's binding
     const addKeyToAction = (currentValue: string | string[], keyToAdd: string): string | string[] => {
       if (Array.isArray(currentValue)) {
@@ -621,8 +495,6 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
         })) : undefined,
       };
 
-      console.log('Saving keybindings:', data);
-
       const response = await fetch('/api/keybindings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -775,8 +647,8 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
             <Switch
               checked={showFingerColors}
               onChange={setShowFingerColors}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
-                showFingerColors ? 'bg-blue-600' : 'bg-[rgb(var(--border))]'
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
+                showFingerColors ? 'bg-primary' : 'bg-[rgb(var(--border))]'
               }`}
             >
               <span
@@ -926,8 +798,8 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
             <Switch
               checked={rawInput}
               onChange={setRawInput}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
-                rawInput ? 'bg-blue-600' : 'bg-[rgb(var(--border))]'
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
+                rawInput ? 'bg-primary' : 'bg-[rgb(var(--border))]'
               }`}
             >
               <span
@@ -974,8 +846,8 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
             <Switch
               checked={mouseAcceleration}
               onChange={setMouseAcceleration}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
-                mouseAcceleration ? 'bg-blue-600' : 'bg-[rgb(var(--border))]'
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
+                mouseAcceleration ? 'bg-primary' : 'bg-[rgb(var(--border))]'
               }`}
             >
               <span
@@ -988,7 +860,7 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
         </div>
 
         {/* 振り向き計算結果（常時表示） */}
-        <div className="mt-4 p-4 bg-blue-500/10 rounded-lg border border-blue-500/20">
+        <div className="mt-4 p-4 bg-primary/10 rounded-lg border border-primary/20">
           <div className="flex items-center justify-between">
             <span className="font-semibold text-base">振り向き（cm/180°）</span>
             <span className="text-xl font-bold">
@@ -1051,7 +923,7 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
 
       {/* 固定ボタンエリア */}
       <div className="fixed bottom-0 left-0 right-0 bg-[rgb(var(--background))]/95 backdrop-blur-sm border-t border-[rgb(var(--border))] z-40">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex gap-4 justify-between items-center">
+        <div className="container mx-auto px-4 py-4 flex gap-4 justify-between items-center">
           <Button
             onClick={() => setShowDeleteConfirm(true)}
             disabled={deleting}
@@ -1074,9 +946,9 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
               onClick={handleSubmit}
               disabled={saving}
               size="lg"
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 min-w-32"
             >
-              {saving && <LoadingSpinner size="sm" />}
+              {saving && <LoadingSpinner size="sm" variant="light" />}
               {saving ? '保存中...' : '保存'}
             </Button>
           </div>
@@ -1133,7 +1005,7 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
                     size="lg"
                     className="flex items-center gap-2"
                   >
-                    {deleting && <LoadingSpinner size="sm" />}
+                    {deleting && <LoadingSpinner size="sm" variant="light" />}
                     {deleting ? '削除中...' : '削除する'}
                   </Button>
                 </div>

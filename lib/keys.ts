@@ -158,7 +158,7 @@ export const KEYS: Record<string, KeyDefinition> = {
   Pause: { code: 'Pause', name: 'Pause', category: 'special', minecraft: 'key.keyboard.pause' },
 
   // 記号キー
-  Backquote: { code: 'Backquote', name: '`', category: 'symbol', position: { row: 0, col: 0 }, minecraft: 'key.keyboard.grave.accent' },
+  Backquote: { code: 'Backquote', name: '半角/全角', category: 'symbol', position: { row: 0, col: 0 }, minecraft: 'key.keyboard.grave.accent' },
   Minus: { code: 'Minus', name: '-', category: 'symbol', position: { row: 0, col: 11 }, minecraft: 'key.keyboard.minus' },
   Equal: { code: 'Equal', name: '=', category: 'symbol', position: { row: 0, col: 12 }, minecraft: 'key.keyboard.equal' },
   BracketLeft: { code: 'BracketLeft', name: '[', category: 'symbol', position: { row: 1, col: 11 }, minecraft: 'key.keyboard.left.bracket' },

@@ -3,6 +3,7 @@ import { prisma } from '@/lib/db';
 import { MinecraftAvatar } from '@/components/MinecraftAvatar';
 import { ItemLayoutsDisplay } from '@/components/ItemLayoutsDisplay';
 import { getPlayerData } from '@/lib/playerData';
+import { getLanguageName } from '@/lib/languages';
 import dynamic from 'next/dynamic';
 import type { Metadata } from 'next';
 import { KeybindingDisplaySkeleton } from '@/components/KeybindingDisplaySkeleton';
@@ -92,25 +93,6 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
     settings.keyboardModel ||
     settings.notes
   );
-
-  // 言語コードを言語名に変換
-  const getLanguageName = (code: string | null | undefined): string => {
-    if (!code) return '-';
-    const languageMap: Record<string, string> = {
-      'ja_jp': '日本語',
-      'en_us': 'English (US)',
-      'en_gb': 'English (UK)',
-      'zh_cn': '简体中文',
-      'zh_tw': '繁體中文',
-      'ko_kr': '한국어',
-      'fr_fr': 'Français',
-      'de_de': 'Deutsch',
-      'es_es': 'Español',
-      'pt_br': 'Português (Brasil)',
-      'ru_ru': 'Русский',
-    };
-    return languageMap[code.toLowerCase()] || code;
-  };
 
   return (
     <div className="pb-6 space-y-8">
@@ -218,7 +200,22 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
           />
 
           {/* アイテム配置表示 */}
-          <ItemLayoutsDisplay itemLayouts={itemLayouts} />
+          <ItemLayoutsDisplay
+            itemLayouts={itemLayouts}
+            keybinds={{
+              hotbar1: settings.hotbar1,
+              hotbar2: settings.hotbar2,
+              hotbar3: settings.hotbar3,
+              hotbar4: settings.hotbar4,
+              hotbar5: settings.hotbar5,
+              hotbar6: settings.hotbar6,
+              hotbar7: settings.hotbar7,
+              hotbar8: settings.hotbar8,
+              hotbar9: settings.hotbar9,
+              swapHands: settings.swapHands,
+            }}
+            customKeys={rawCustomKeys}
+          />
         </>
       ) : (
         <div className="text-center py-16 bg-card rounded-2xl border border-border shadow-sm">

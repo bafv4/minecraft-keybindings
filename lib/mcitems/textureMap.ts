@@ -2,6 +2,9 @@
 // Generated from textures in src/assets/textures/1.16.1/items/
 
 import texture_acacia_boat from './assets/textures/1.16.1/items/minecraft_acacia_boat.png';
+// Manual additions for block textures
+import texture_gold_block from './assets/textures/1.16.1/blocks/minecraft_gold_block.png';
+import texture_iron_bars from './assets/textures/1.16.1/blocks/minecraft_iron_bars.png';
 import texture_acacia_door from './assets/textures/1.16.1/items/minecraft_acacia_door.png';
 import texture_acacia_log from './assets/textures/1.16.1/items/minecraft_acacia_log.png';
 import texture_acacia_planks from './assets/textures/1.16.1/items/minecraft_acacia_planks.png';
@@ -886,6 +889,9 @@ export const TEXTURE_MAP: Record<string, StaticImageData> = {
   'wooden_sword': texture_wooden_sword,
   'yellow_bed': texture_yellow_bed,
   'yellow_shulker_box': texture_yellow_shulker_box,
+  // Manual additions for block textures
+  'gold_block': texture_gold_block,
+  'iron_bars': texture_iron_bars,
 };
 
 /**

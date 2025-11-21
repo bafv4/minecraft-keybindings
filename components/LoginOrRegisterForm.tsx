@@ -5,7 +5,11 @@ import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { Input, Button } from '@/components/ui';
 
-export function LoginOrRegisterForm() {
+interface LoginOrRegisterFormProps {
+  onSuccess?: () => void;
+}
+
+export function LoginOrRegisterForm({ onSuccess }: LoginOrRegisterFormProps = {}) {
   const router = useRouter();
   const [mcid, setMcid] = useState('');
   const [passphrase, setPassphrase] = useState('');
@@ -73,6 +77,7 @@ export function LoginOrRegisterForm() {
 
       // 編集画面にリダイレクト
       setTimeout(() => {
+        onSuccess?.();
         router.push(`/player/${mcid}/edit`);
         router.refresh();
       }, 1000);

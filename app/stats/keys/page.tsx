@@ -2,6 +2,9 @@ import { getKeyboardStatsData } from '@/lib/playerData';
 import { KeyStatsDisplay } from '@/components/KeyStatsDisplay';
 import type { Metadata } from 'next';
 
+// ISR: 10分ごとに再生成
+export const revalidate = 600;
+
 export const metadata: Metadata = {
   title: 'キー統計 | MCSRer Hotkeys',
   description: 'キーごとの操作割り当て統計',
@@ -28,7 +31,7 @@ export default async function KeyStatsPage() {
         mcid: user.mcid,
         uuid: user.uuid,
       },
-      keybindings: user.settings as unknown as Record<string, string>,
+      keybindings: user.settings as Record<string, string | string[]>,
     }));
 
   return (

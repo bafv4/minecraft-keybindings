@@ -76,7 +76,7 @@ export function RegisterForm() {
         label={<>パスフレーズ <span className="text-xs text-[rgb(var(--muted-foreground))]">(任意)</span></>}
         value={passphrase}
         onChange={(e) => setPassphrase(e.target.value)}
-        description="※ MCID変更時の認証に使用します（設定しない場合は誰でも変更可能）"
+        description="※ 設定更時の認証に使用します（設定しない場合は誰でも変更可能）"
       />
 
       {error && (

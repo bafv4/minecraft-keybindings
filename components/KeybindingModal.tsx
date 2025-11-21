@@ -1,12 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
-  Dialog,
-  DialogPanel,
-  DialogTitle,
-  Transition,
-  TransitionChild,
   Tab,
   TabGroup,
   TabList,
@@ -18,9 +13,10 @@ import {
   ComboboxOptions,
   ComboboxOption,
 } from '@headlessui/react';
-import { XMarkIcon, CheckIcon, ChevronUpDownIcon } from '@heroicons/react/24/outline';
+import { CheckIcon, ChevronUpDownIcon } from '@heroicons/react/24/outline';
 import type { Finger } from '@/types/player';
 import { formatKeyName } from '@/lib/utils';
+import { DraggableModal } from '@/components/ui/DraggableModal';
 
 interface KeybindingModalProps {
   isOpen: boolean;
@@ -257,57 +253,47 @@ export function KeybindingModal({
       );
 
   return (
-    <Transition show={isOpen} as={React.Fragment}>
-      <Dialog onClose={onClose} className="relative z-50">
-        {/* 背景オーバーレイ */}
-        <TransitionChild
-          as={React.Fragment}
-          enter="ease-out duration-300"
-          enterFrom="opacity-0"
-          enterTo="opacity-100"
-          leave="ease-in duration-200"
-          leaveFrom="opacity-100"
-          leaveTo="opacity-0"
-        >
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" aria-hidden="true" />
-        </TransitionChild>
-
-        {/* モーダル本体 */}
-        <div className="fixed inset-0 flex items-center justify-center p-4">
-          <TransitionChild
-            as={React.Fragment}
-            enter="ease-out duration-300"
-            enterFrom="opacity-0 scale-95"
-            enterTo="opacity-100 scale-100"
-            leave="ease-in duration-200"
-            leaveFrom="opacity-100 scale-100"
-            leaveTo="opacity-0 scale-95"
-          >
-            <DialogPanel className="w-full max-w-3xl bg-card rounded-2xl shadow-2xl border border-border overflow-hidden">
-              {/* ヘッダー */}
-              <div className="bg-gradient-to-r from-primary/10 via-secondary/10 to-transparent px-6 py-4 border-b border-border">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <DialogTitle className="text-xl font-bold text-foreground">
-                      キー設定
-                    </DialogTitle>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      <kbd className="bg-muted border border-border rounded px-2 py-0.5 text-xs font-mono">
-                        {formatKeyName(selectedKey)}
-                      </kbd>
-                    </p>
-                  </div>
-                  <button
-                    onClick={onClose}
-                    className="p-2 hover:bg-accent rounded-lg transition-colors"
-                  >
-                    <XMarkIcon className="w-5 h-5" />
-                  </button>
-                </div>
-              </div>
-
-              {/* タブナビゲーション & コンテンツ */}
-              <TabGroup selectedIndex={selectedTabIndex} onChange={setSelectedTabIndex}>
+    <DraggableModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="キー設定"
+      subtitle={
+        <kbd className="bg-muted border border-border rounded px-2 py-0.5 text-xs font-mono">
+          {formatKeyName(selectedKey)}
+        </kbd>
+      }
+      maxWidth="3xl"
+      panelClassName="w-full max-w-3xl bg-card rounded-2xl shadow-2xl border border-border overflow-hidden flex flex-col max-h-[85vh] select-none"
+      headerClassName="bg-gradient-to-r from-primary/10 via-secondary/10 to-transparent px-6 py-4 border-b border-border flex-shrink-0"
+      contentClassName="flex-1 flex flex-col overflow-hidden"
+      footerClassName="px-6 py-4 border-t border-[rgb(var(--border))] bg-muted/30 flex-shrink-0"
+      noScroll
+      footer={
+        <div className="flex items-center justify-between">
+          <div className="text-sm text-muted-foreground">
+            {selectedActions.length > 0 && `${selectedActions.length}個の操作`}
+            {selectedActions.length > 0 && selectedFingers.length > 0 && ' · '}
+            {selectedFingers.length > 0 && `${selectedFingers.length}本の指`}
+          </div>
+          <div className="flex gap-3">
+            <button
+              onClick={onClose}
+              className="px-4 py-2 rounded-lg border border-border hover:bg-accent transition"
+            >
+              キャンセル
+            </button>
+            <button
+              onClick={handleSave}
+              className="px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition font-medium"
+            >
+              保存
+            </button>
+          </div>
+        </div>
+      }
+    >
+      {/* タブナビゲーション & コンテンツ */}
+      <TabGroup selectedIndex={selectedTabIndex} onChange={setSelectedTabIndex} className="flex flex-col flex-1 overflow-hidden">
                 {/* モバイル用ドロップダウン */}
                 <div className="md:hidden p-2 bg-muted/30">
                   <select
@@ -534,35 +520,8 @@ export function KeybindingModal({
                       )}
                     </TabPanel>
                   )}
-                </TabPanels>
-              </TabGroup>
-
-              {/* フッター */}
-              <div className="px-6 py-4 border-t border-border bg-muted/30 flex items-center justify-between">
-                <div className="text-sm text-muted-foreground">
-                  {selectedActions.length > 0 && `${selectedActions.length}個の操作`}
-                  {selectedActions.length > 0 && selectedFingers.length > 0 && ' · '}
-                  {selectedFingers.length > 0 && `${selectedFingers.length}本の指`}
-                </div>
-                <div className="flex gap-3">
-                  <button
-                    onClick={onClose}
-                    className="px-4 py-2 rounded-lg border border-border hover:bg-accent transition"
-                  >
-                    キャンセル
-                  </button>
-                  <button
-                    onClick={handleSave}
-                    className="px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition font-medium"
-                  >
-                    保存
-                  </button>
-                </div>
-              </div>
-            </DialogPanel>
-          </TransitionChild>
-        </div>
-      </Dialog>
-    </Transition>
+        </TabPanels>
+      </TabGroup>
+    </DraggableModal>
   );
 }

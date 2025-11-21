@@ -61,11 +61,33 @@
     background-color: rgb(var(--background));
     color: rgb(var(--foreground));
     font-feature-settings: "rlig" 1, "calt" 1;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  /* テキスト入力系要素は選択可能に */
+  input,
+  textarea,
+  [contenteditable="true"] {
+    user-select: text;
+    -webkit-user-select: text;
   }
 
   /* スムーズなスクロール */
   html {
     scroll-behavior: smooth;
+  }
+
+  /* アニメーション削減設定（低スペックデバイス・アクセシビリティ対応） */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 }
 

@@ -24,31 +24,31 @@ export default function StatsPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Link
           href="/stats/keys"
-          className="bg-[rgb(var(--card))] p-6 rounded-lg border border-[rgb(var(--border))] hover:border-blue-500 transition-colors group"
+          className="bg-[rgb(var(--card))] p-6 rounded-lg border border-[rgb(var(--border))] hover:border-primary transition-colors group"
         >
           <div className="flex items-center gap-3">
-            <Squares2X2Icon className="w-6 h-6 text-blue-500" />
-            <h2 className="text-xl font-bold group-hover:text-blue-500 transition-colors">キー → 操作</h2>
+            <Squares2X2Icon className="w-6 h-6 text-primary" />
+            <h2 className="text-xl font-bold group-hover:text-primary transition-colors">キー → 操作</h2>
           </div>
         </Link>
 
         <Link
           href="/stats/actions"
-          className="bg-[rgb(var(--card))] p-6 rounded-lg border border-[rgb(var(--border))] hover:border-blue-500 transition-colors group"
+          className="bg-[rgb(var(--card))] p-6 rounded-lg border border-[rgb(var(--border))] hover:border-primary transition-colors group"
         >
           <div className="flex items-center gap-3">
-            <AdjustmentsHorizontalIcon className="w-6 h-6 text-blue-500" />
-            <h2 className="text-xl font-bold group-hover:text-blue-500 transition-colors">操作 → キー</h2>
+            <AdjustmentsHorizontalIcon className="w-6 h-6 text-primary" />
+            <h2 className="text-xl font-bold group-hover:text-primary transition-colors">操作 → キー</h2>
           </div>
         </Link>
 
         <Link
           href="/stats/mouse"
-          className="bg-[rgb(var(--card))] p-6 rounded-lg border border-[rgb(var(--border))] hover:border-blue-500 transition-colors group"
+          className="bg-[rgb(var(--card))] p-6 rounded-lg border border-[rgb(var(--border))] hover:border-primary transition-colors group"
         >
           <div className="flex items-center gap-3">
-            <CursorArrowRaysIcon className="w-6 h-6 text-blue-500" />
-            <h2 className="text-xl font-bold group-hover:text-blue-500 transition-colors">マウス設定</h2>
+            <CursorArrowRaysIcon className="w-6 h-6 text-primary" />
+            <h2 className="text-xl font-bold group-hover:text-primary transition-colors">マウス設定</h2>
           </div>
         </Link>
       </div>

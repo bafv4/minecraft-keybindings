@@ -164,12 +164,17 @@ export async function getPlayersList() {
     include: {
       config: true,
       keybindings: true,
+      customKeys: true,
     },
   });
 
   return users.map((user: any) => {
     const keybindingsMap = convertKeybindingsToObject(user.keybindings);
     const settings = user.config ? { ...user.config, ...keybindingsMap } : null;
+    const customKeys = user.customKeys?.map((ck: any) => ({
+      keyCode: ck.keyCode,
+      keyName: ck.keyName,
+    })) || [];
 
     return {
       uuid: user.uuid,
@@ -178,6 +183,7 @@ export async function getPlayersList() {
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
       settings,
+      customKeys,
     };
   });
 }

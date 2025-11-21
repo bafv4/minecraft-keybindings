@@ -9,3 +9,5 @@ export type { ButtonProps } from './Button';
 
 export { Checkbox } from './Checkbox';
 export type { CheckboxProps } from './Checkbox';
+
+export { DraggableModal } from './DraggableModal';

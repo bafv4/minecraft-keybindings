@@ -5,17 +5,6 @@
 
 import { KEYS } from './keys';
 
-// デバッグ用：KEYSオブジェクトの初期化確認
-let keysInitialized = false;
-function checkKeysInitialization() {
-  if (!keysInitialized) {
-    const keysCount = Object.keys(KEYS).length;
-    const keysWithMinecraft = Object.values(KEYS).filter(k => k.minecraft).length;
-    console.log(`[keyConversion] KEYS initialized: ${keysCount} keys, ${keysWithMinecraft} with minecraft mapping`);
-    keysInitialized = true;
-  }
-}
-
 /**
  * Minecraft形式 → Web標準形式
  * @param mcKey Minecraft形式（例: "key.keyboard.w", "key.mouse.left"）
@@ -23,9 +12,6 @@ function checkKeysInitialization() {
  */
 export function minecraftToWeb(mcKey: string): string {
   if (!mcKey) return mcKey;
-
-  // 初回のみKEYS初期化状態を確認
-  checkKeysInitialization();
 
   // 既にWeb標準形式の場合はそのまま返す
   if (!mcKey.startsWith('key.')) {
@@ -39,7 +25,6 @@ export function minecraftToWeb(mcKey: string): string {
   }
 
   // マッピングが見つからない場合の手動変換
-  console.warn(`[keyConversion] No mapping found for Minecraft key: ${mcKey}`);
 
   // カスタムキーの処理
   if (mcKey.startsWith('key.custom.')) {
@@ -70,7 +55,6 @@ export function webToMinecraft(webKey: string): string {
     return `key.custom.${webKey.replace('Custom', '').toLowerCase()}`;
   }
 
-  console.warn(`[keyConversion] No Minecraft mapping found for: ${webKey}`);
   return webKey;
 }
 
@@ -93,7 +77,6 @@ export function formatKeyCode(code: string): string {
   }
 
   // 見つからない場合はそのまま返す
-  console.warn(`[keyConversion] No key definition found for: ${code}`);
   return code;
 }
 

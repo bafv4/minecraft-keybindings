@@ -106,7 +106,7 @@ export function Combobox({
         <div className="relative">
           <div className="relative w-full">
             <ComboboxInput
-              className="w-full px-4 py-2 pr-10 border border-[rgb(var(--border))] rounded-lg bg-[rgb(var(--background))] text-[rgb(var(--foreground))] focus:outline-none focus:ring-2 focus:ring-primary transition-colors"
+              className="w-full px-4 py-2 pr-10 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-colors"
               displayValue={(val: string) => getDisplayValue(val)}
               onChange={(event) => {
                 setQuery(event.target.value);
@@ -118,7 +118,7 @@ export function Combobox({
             />
             <ComboboxButton className="absolute inset-y-0 right-0 flex items-center pr-2">
               <ChevronUpDownIcon
-                className="h-5 w-5 text-[rgb(var(--muted-foreground))]"
+                className="h-5 w-5 text-muted-foreground"
                 aria-hidden="true"
               />
             </ComboboxButton>
@@ -130,16 +130,16 @@ export function Combobox({
             leaveTo="opacity-0"
             afterLeave={() => setQuery('')}
           >
-            <ComboboxOptions className="absolute z-10 mt-1 max-h-64 w-full overflow-auto rounded-lg bg-[rgb(var(--card))] border border-[rgb(var(--border))] shadow-lg backdrop-blur-sm bg-[rgb(var(--card))]/95 focus:outline-none">
+            <ComboboxOptions className="absolute z-10 mt-1 max-h-64 w-full overflow-auto rounded-lg bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 shadow-lg focus:outline-none">
               {filteredOptions.length === 0 && query !== '' ? (
-                <div className="relative cursor-default select-none px-4 py-2 text-[rgb(var(--muted-foreground))]">
+                <div className="relative cursor-default select-none px-4 py-2 text-muted-foreground">
                   {allowCustomValue ? 'Enterで追加' : '検索結果なし'}
                 </div>
               ) : hasCategories ? (
                 // カテゴリ別表示
                 Object.entries(groupedOptions).map(([category, categoryOptions]) => (
                   <div key={category}>
-                    <div className="sticky top-0 bg-[rgb(var(--muted))] px-3 py-1 text-xs font-semibold text-[rgb(var(--muted-foreground))]">
+                    <div className="sticky top-0 bg-neutral-100 dark:bg-neutral-800 px-3 py-1 text-xs font-semibold text-neutral-500 dark:text-neutral-400">
                       {category}
                     </div>
                     {categoryOptions.map((option) => (
@@ -148,7 +148,7 @@ export function Combobox({
                         value={option.value}
                         className={({ focus, selected }) =>
                           `relative cursor-pointer select-none py-2 pl-10 pr-4 ${
-                            focus ? 'bg-primary/10 text-primary' : 'text-[rgb(var(--foreground))]'
+                            focus ? 'bg-primary/10 text-primary' : 'text-neutral-900 dark:text-neutral-100'
                           } ${selected ? 'font-semibold' : 'font-normal'}`
                         }
                       >
@@ -180,7 +180,7 @@ export function Combobox({
                     value={option.value}
                     className={({ focus, selected }) =>
                       `relative cursor-pointer select-none py-2 pl-10 pr-4 ${
-                        focus ? 'bg-primary/10 text-primary' : 'text-[rgb(var(--foreground))]'
+                        focus ? 'bg-primary/10 text-primary' : 'text-neutral-900 dark:text-neutral-100'
                       } ${selected ? 'font-semibold' : 'font-normal'}`
                     }
                   >
@@ -208,7 +208,7 @@ export function Combobox({
         </div>
       </HeadlessCombobox>
       {helpText && (
-        <p className="text-xs text-[rgb(var(--muted-foreground))] mt-2">
+        <p className="text-xs text-muted-foreground mt-2">
           {helpText}
         </p>
       )}

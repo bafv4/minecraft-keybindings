@@ -73,9 +73,9 @@ export function MouseStatsDisplay({ stats }: MouseStatsDisplayProps) {
           <button
             key={index}
             onClick={() => handleCategoryClick(category.title, category.data, category.totalLabel, category.isCm180)}
-            className="bg-[rgb(var(--card))] p-6 rounded-lg border border-[rgb(var(--border))] hover:border-blue-500 transition-colors text-left group"
+            className="bg-[rgb(var(--card))] p-6 rounded-lg border border-[rgb(var(--border))] hover:border-primary transition-colors text-left group"
           >
-            <h2 className="text-xl font-bold mb-2 group-hover:text-blue-500 transition-colors">
+            <h2 className="text-xl font-bold mb-2 group-hover:text-primary transition-colors">
               {category.title}
             </h2>
             <p className="text-sm text-[rgb(var(--muted-foreground))]">

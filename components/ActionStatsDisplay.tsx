@@ -99,8 +99,8 @@ export function ActionStatsDisplay({ allSettings }: ActionStatsDisplayProps) {
                   onClick={() => handleActionSelect(action)}
                   className={`p-3 rounded border text-left transition-all ${
                     selectedAction === action
-                      ? 'bg-blue-500 text-white border-blue-500'
-                      : 'bg-[rgb(var(--card))] border-[rgb(var(--border))] hover:border-blue-500'
+                      ? 'bg-primary text-primary-foreground border-primary'
+                      : 'bg-[rgb(var(--card))] border-[rgb(var(--border))] hover:border-primary'
                   }`}
                 >
                   <div className="font-medium">{ACTION_LABELS[action]}</div>

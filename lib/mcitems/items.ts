@@ -380,7 +380,7 @@ export function getItemsByCategory(category: ItemCategory): string[] {
 }
 
 // Category definitions for the UI (based on Minecraft 1.16 Creative Inventory tabs)
-export const ITEM_CATEGORIES = [
+export const ITEM_CATEGORIES: { id: ItemCategory; name: string }[] = [
   { id: 'all', name: 'すべて' },
   { id: 'building_blocks', name: '建築ブロック' },
   { id: 'decorations', name: '装飾ブロック' },
@@ -391,4 +391,4 @@ export const ITEM_CATEGORIES = [
   { id: 'tools', name: '道具' },
   { id: 'combat', name: '戦闘' },
   { id: 'brewing', name: '醸造' },
-] as const;
+];

@@ -22,11 +22,11 @@ export const Checkbox = forwardRef<HTMLButtonElement, CheckboxProps>(
         disabled={disabled}
         className={cn(
           'group relative flex h-5 w-5 items-center justify-center rounded border-2',
-          'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2',
+          'focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2',
           'transition-colors',
           checked
-            ? 'bg-blue-600 border-blue-600'
-            : 'bg-[rgb(var(--background))] border-[rgb(var(--border))] hover:border-blue-500',
+            ? 'bg-primary border-primary'
+            : 'bg-[rgb(var(--background))] border-[rgb(var(--border))] hover:border-primary',
           disabled && 'opacity-50 cursor-not-allowed',
           className
         )}

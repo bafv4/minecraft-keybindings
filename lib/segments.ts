@@ -2,46 +2,47 @@
  * Speedrunセグメント定義
  */
 
-import type { SegmentInfo, SpeedrunSegment } from '@/types/itemLayout';
+import type { SegmentInfo, PresetSegment } from '@/types/itemLayout';
 
 /**
  * プリセットセグメント一覧
  */
-export const SPEEDRUN_SEGMENTS: Record<SpeedrunSegment, SegmentInfo> = {
+export const SPEEDRUN_SEGMENTS: Record<PresetSegment, SegmentInfo> = {
+  Common: {
+    id: 'Common',
+    label: 'Common',
+  },
   Overworld: {
     id: 'Overworld',
-    label: 'オーバーワールド',
-    description: 'スポーン〜ネザーポータル到達まで',
+    label: 'Overworld',
   },
-  Nether: {
-    id: 'Nether',
-    label: 'ネザー',
-    description: 'ネザー探索全般',
+  EnterNether: {
+    id: 'EnterNether',
+    label: 'Enter Nether',
   },
   Bastion: {
     id: 'Bastion',
-    label: '砦の遺跡',
-    description: 'Bastionでのピグリン取引',
+    label: 'Bastion',
+  },
+  BastionToFort: {
+    id: 'BastionToFort',
+    label: 'Bastion → Fort',
   },
   Fortress: {
     id: 'Fortress',
-    label: 'ネザー要塞',
-    description: 'ブレイズロッド収集',
+    label: 'Fortress',
   },
   Stronghold: {
     id: 'Stronghold',
-    label: '要塞',
-    description: 'エンドポータル到達まで',
+    label: 'Blinded / Stronghold',
   },
-  End: {
-    id: 'End',
-    label: 'エンド',
-    description: 'エンダードラゴン討伐',
+  EnterEnd: {
+    id: 'EnterEnd',
+    label: 'Enter End',
   },
-  Custom: {
-    id: 'Custom',
-    label: 'カスタム',
-    description: 'ユーザー定義セグメント',
+  EnterEndZero: {
+    id: 'EnterEndZero',
+    label: 'Enter End (Zero)',
   },
 };
 
@@ -56,7 +57,7 @@ export function getSegmentList(): SegmentInfo[] {
  * セグメントIDからセグメント情報を取得
  */
 export function getSegmentInfo(segmentId: string): SegmentInfo | undefined {
-  return SPEEDRUN_SEGMENTS[segmentId as SpeedrunSegment];
+  return SPEEDRUN_SEGMENTS[segmentId as PresetSegment];
 }
 
 /**

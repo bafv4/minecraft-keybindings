@@ -66,7 +66,7 @@ export function List<T>({
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             {title && (
               <div>
-                <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-primary-light via-secondary to-[#64748b] bg-clip-text text-transparent">
+                <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-primary-light via-secondary to-slate-500 dark:to-slate-400 bg-clip-text text-transparent">
                   {title}
                 </h1>
                 {descriptionText && (

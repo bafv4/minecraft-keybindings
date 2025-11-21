@@ -31,22 +31,27 @@ export type ItemLayoutCreate = Omit<ItemLayout, 'createdAt' | 'updatedAt'>;
 export type ItemLayoutUpdate = Partial<Omit<ItemLayout, 'uuid' | 'segment' | 'createdAt' | 'updatedAt'>>;
 
 /**
- * Speedrunセグメントの型
+ * プリセットセグメントの型
  */
-export type SpeedrunSegment =
+export type PresetSegment =
+  | 'Common'
   | 'Overworld'
-  | 'Nether'
+  | 'EnterNether'
   | 'Bastion'
+  | 'BastionToFort'
   | 'Fortress'
-  | 'End'
   | 'Stronghold'
-  | 'Custom';
+  | 'EnterEnd'
+  | 'EnterEndZero';
 
 /**
- * セグメント情報
+ * セグメント情報（プリセット用）
  */
 export interface SegmentInfo {
-  id: SpeedrunSegment;
+  id: PresetSegment;
   label: string;
   description?: string;
 }
+
+// 後方互換性のため
+export type SpeedrunSegment = PresetSegment | string;

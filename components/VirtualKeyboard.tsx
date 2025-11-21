@@ -2,7 +2,6 @@
 
 import { useState, useEffect, memo } from 'react';
 import { KeybindingModal } from './KeybindingModal';
-import { KeyTooltip } from './KeyTooltip';
 import { EllipsisVerticalIcon, PlusIcon } from '@heroicons/react/24/outline';
 import type { Finger, FingerAssignments, CustomKey } from '@/types/player';
 import { minecraftToWeb } from '@/lib/keyConversion';
@@ -640,24 +639,13 @@ const VirtualKeyboardComponent = ({
     const externalTool = externalTools[webKeyCode];
     const assignedFingers = fingerAssignments[webKeyCode] || [];
 
-    // デバッグ: 外部ツール・リマップ・指が設定されているキーをログ出力
-    if (mode === 'display' && (hasRemap || hasExternalTool || assignedFingers.length > 0)) {
-      console.log(`[VirtualKeyboard] Key ${keyDef.key} (web: ${webKeyCode}):`, {
-        hasRemap,
-        hasExternalTool,
-        assignedFingers,
-        remapTarget,
-        externalTool,
-      });
-    }
-
     const handleClick = () => {
       if (mode === 'edit') {
         // 編集モードの場合はモーダルを開く
         handleOpenModal(keyDef.key);
       } else if (mode === 'display' && onKeyClick) {
-        // 表示モードでonKeyClickが指定されている場合は呼び出す
-        onKeyClick(keyDef.key);
+        // 表示モードでonKeyClickが指定されている場合は呼び出す（Web形式で返す）
+        onKeyClick(minecraftToWeb(keyDef.key));
       }
     };
 
@@ -704,11 +692,18 @@ const VirtualKeyboardComponent = ({
     // ただし、keyDef.heightが指定されている場合はそれを優先（Grid用のh-fullなど）
     const heightClass = keyDef.height || (keyDef.rowspan === 2 ? 'h-[168px]' : 'h-20');
 
-    const showTooltip = isHovered && mode === 'display';
+    // ツールチップ用のテキストを生成
+    const titleText = tooltipData ? [
+      tooltipData.remap ? `リマップ: ${tooltipData.remap.from} → ${tooltipData.remap.to}` : null,
+      tooltipData.actions?.length ? `操作: ${tooltipData.actions.join(', ')}` : null,
+      tooltipData.externalTool ? `外部ツール: ${tooltipData.externalTool}` : null,
+      tooltipData.fingers?.length ? `指: ${tooltipData.fingers.join(', ')}` : null,
+    ].filter(Boolean).join('\n') : undefined;
 
     return (
-      <KeyTooltip key={keyDef.key} content={tooltipData} show={showTooltip} keyLabel={keyDef.label}>
         <button
+          key={keyDef.key}
+          title={mode === 'display' ? titleText : undefined}
           type="button"
           onClick={handleClick}
           onMouseEnter={() => setHoveredKey(keyDef.key)}
@@ -773,7 +768,6 @@ const VirtualKeyboardComponent = ({
           )}
         </div>
         </button>
-      </KeyTooltip>
     );
   };
 
@@ -829,18 +823,25 @@ const VirtualKeyboardComponent = ({
     const isHovered = hoveredKey === btn.key;
     const sizeClass = customSize ? `${customSize.width} ${customSize.height}` : 'w-36 h-20';
 
-    const showTooltip = isHovered && mode === 'display';
+    // ツールチップ用のテキストを生成
+    const titleText = tooltipData ? [
+      tooltipData.remap ? `リマップ: ${tooltipData.remap.from} → ${tooltipData.remap.to}` : null,
+      tooltipData.actions?.length ? `操作: ${tooltipData.actions.join(', ')}` : null,
+      tooltipData.externalTool ? `外部ツール: ${tooltipData.externalTool}` : null,
+      tooltipData.fingers?.length ? `指: ${tooltipData.fingers.join(', ')}` : null,
+    ].filter(Boolean).join('\n') : undefined;
 
     return (
-      <KeyTooltip key={btn.key} content={tooltipData} show={showTooltip} keyLabel={btn.label}>
         <button
+          key={btn.key}
+          title={mode === 'display' ? titleText : undefined}
           type="button"
           onClick={() => {
             if (btn.disabled) return;
             if (mode === 'edit') {
               handleOpenModal(btn.key);
             } else if (mode === 'display' && onKeyClick) {
-              onKeyClick(btn.key);
+              onKeyClick(minecraftToWeb(btn.key));
             }
           }}
           onMouseEnter={() => setHoveredKey(btn.key)}
@@ -906,7 +907,6 @@ const VirtualKeyboardComponent = ({
           )}
         </div>
         </button>
-      </KeyTooltip>
     );
   };
 
