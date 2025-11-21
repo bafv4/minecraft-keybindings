@@ -219,7 +219,7 @@ export function KeyboardListView({ users }: KeyboardListViewProps) {
                   className="border-b border-[rgb(var(--border))] last:border-b-0 group cursor-pointer hover:bg-gradient-to-r hover:from-primary/5 hover:to-secondary/5 transition-all duration-200"
                 >
                   {/* プレイヤー */}
-                  <td className="sticky left-0 z-10 bg-[rgb(var(--card))] px-4 py-3 border-r border-[rgb(var(--border))] group-hover:bg-[rgb(var(--primary)/0.05)] shadow-[2px_0_4px_-2px_rgba(0,0,0,0.1)]">
+                  <td className="sticky left-0 z-10 bg-[rgb(var(--card))] px-4 py-3 border-r border-[rgb(var(--border))] group-hover:bg-gradient-to-r group-hover:from-primary/5 group-hover:to-transparent shadow-[2px_0_4px_-2px_rgba(0,0,0,0.1)]">
                     <div className="flex items-center gap-3">
                       <MinecraftAvatar uuid={user.uuid} mcid={user.mcid} size={32} />
                       <div>
