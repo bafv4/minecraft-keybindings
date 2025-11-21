@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, Fragment } from 'react';
+import { useState, Fragment, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Switch, Dialog, DialogPanel, DialogTitle, Transition, TransitionChild } from '@headlessui/react';
 import { calculateCm360, calculateCursorSpeed } from '@/lib/utils';
 import type { PlayerSettings, Finger, FingerAssignments, CustomKey } from '@/types/player';
 import { VirtualKeyboard } from './VirtualKeyboard';
+import { ItemLayoutEditor } from './ItemLayoutEditor';
 import { Input, Textarea, Button } from '@/components/ui';
 import { Combobox } from '@/components/ui/Combobox';
 import { RadioGroup } from '@/components/ui/RadioGroup';
@@ -159,6 +160,7 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [selectedAction, setSelectedAction] = useState<string | null>(null);
   const [syncingMcid, setSyncingMcid] = useState(false);
+  const itemLayoutEditorRef = useRef<{ save: () => Promise<boolean> }>(null);
 
   // ユーザー情報
   const [displayName, setDisplayName] = useState(initialDisplayName);
@@ -630,6 +632,14 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
         throw new Error('Failed to save settings');
       }
 
+      // アイテム配置設定も保存
+      if (itemLayoutEditorRef.current) {
+        const itemLayoutSaved = await itemLayoutEditorRef.current.save();
+        if (!itemLayoutSaved) {
+          throw new Error('Failed to save item layouts');
+        }
+      }
+
       // 現在のMCIDでリダイレクト
       router.push(`/player/${currentMcid}`);
       router.refresh();
@@ -1030,6 +1040,12 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
         </div>
       </section>
 
+      {/* アイテム配置設定 */}
+      <section className="bg-[rgb(var(--card))] p-6 rounded-lg border border-[rgb(var(--border))]">
+        <h2 className="text-xl font-bold mb-4">アイテム配置設定</h2>
+        <ItemLayoutEditor uuid={uuid} ref={itemLayoutEditorRef} hideSaveButton />
+      </section>
+
       {/* リマップと外部ツールは仮想キーボードのモーダルから設定可能 */}
 
       <div className="flex gap-4 justify-between">
@@ -1044,7 +1060,7 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
         <div className="flex gap-4">
           <Button
             onClick={() => router.back()}
-            variant="secondary"
+            variant="ghost"
             size="lg"
           >
             キャンセル

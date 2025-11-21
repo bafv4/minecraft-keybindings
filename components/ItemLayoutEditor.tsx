@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
 import { MinecraftItemIcon, formatItemName } from '@/lib/mcitems';
 import { getSegmentList } from '@/lib/segments';
 import { ItemSelectorModal } from './ItemSelectorModal';
@@ -11,12 +11,18 @@ import type { ItemLayout, SpeedrunSegment } from '@/types/itemLayout';
 interface ItemLayoutEditorProps {
   uuid: string;
   onSave?: () => void;
+  hideSaveButton?: boolean;
+}
+
+export interface ItemLayoutEditorRef {
+  save: () => Promise<boolean>;
 }
 
 /**
  * アイテム配置エディタコンポーネント
  */
-export function ItemLayoutEditor({ uuid, onSave }: ItemLayoutEditorProps) {
+export const ItemLayoutEditor = forwardRef<ItemLayoutEditorRef, ItemLayoutEditorProps>(
+  function ItemLayoutEditor({ uuid, onSave, hideSaveButton = false }, ref) {
   const segments = getSegmentList();
   const [selectedSegment, setSelectedSegment] = useState<SpeedrunSegment>(segments[0].id);
   const [layouts, setLayouts] = useState<Record<string, Partial<ItemLayout>>>({});
@@ -98,7 +104,7 @@ export function ItemLayoutEditor({ uuid, onSave }: ItemLayoutEditorProps) {
   };
 
   // 保存
-  const handleSave = async () => {
+  const handleSave = async (): Promise<boolean> => {
     setSaving(true);
     try {
       const response = await fetch('/api/item-layouts', {
@@ -112,18 +118,23 @@ export function ItemLayoutEditor({ uuid, onSave }: ItemLayoutEditorProps) {
       });
 
       if (response.ok) {
-        alert('保存しました');
         onSave?.();
+        return true;
       } else {
-        alert('保存に失敗しました');
+        return false;
       }
     } catch (error) {
       console.error('Failed to save:', error);
-      alert('保存に失敗しました');
+      return false;
     } finally {
       setSaving(false);
     }
   };
+
+  // refを使って外部から保存関数を呼び出せるようにする
+  useImperativeHandle(ref, () => ({
+    save: handleSave,
+  }));
 
   const slotNames: Array<keyof typeof currentLayout> = [
     'slot1', 'slot2', 'slot3', 'slot4', 'slot5',
@@ -232,10 +243,12 @@ export function ItemLayoutEditor({ uuid, onSave }: ItemLayoutEditorProps) {
       />
 
       {/* 保存ボタン */}
-      <Button onClick={handleSave} disabled={saving} className="flex items-center gap-2">
-        {saving && <LoadingSpinner size="sm" />}
-        {saving ? '保存中...' : '保存'}
-      </Button>
+      {!hideSaveButton && (
+        <Button onClick={handleSave} disabled={saving} className="flex items-center gap-2">
+          {saving && <LoadingSpinner size="sm" />}
+          {saving ? '保存中...' : '保存'}
+        </Button>
+      )}
 
       {/* アイテム選択モーダル */}
       <ItemSelectorModal
@@ -246,7 +259,7 @@ export function ItemLayoutEditor({ uuid, onSave }: ItemLayoutEditorProps) {
       />
     </div>
   );
-}
+});
 
 /**
  * スロットボックスコンポーネント（ローテーション表示対応）
