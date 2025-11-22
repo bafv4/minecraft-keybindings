@@ -49,12 +49,40 @@ export async function POST(request: Request) {
     }
 
     const data = await request.json();
-    const { mcid, uuid, displayName } = data;
+    const { mcid, displayName } = data;
 
-    if (!mcid || !uuid) {
+    if (!mcid) {
       return NextResponse.json(
-        { error: 'MCIDとUUIDは必須です' },
+        { error: 'MCIDは必須です' },
         { status: 400 }
+      );
+    }
+
+    // Mojang APIからUUIDを取得
+    let uuid: string;
+    try {
+      const mojangResponse = await fetch(`https://api.mojang.com/users/profiles/minecraft/${mcid}`);
+
+      if (!mojangResponse.ok) {
+        if (mojangResponse.status === 404) {
+          return NextResponse.json(
+            { error: 'このMCIDは存在しません。正しいMinecraft Java版のユーザー名を入力してください' },
+            { status: 400 }
+          );
+        }
+        throw new Error('Mojang API error');
+      }
+
+      const mojangData = await mojangResponse.json();
+      uuid = mojangData.id;
+
+      // UUIDにハイフンを追加（Mojang APIはハイフンなしで返す）
+      uuid = uuid.replace(/(.{8})(.{4})(.{4})(.{4})(.{12})/, '$1-$2-$3-$4-$5');
+    } catch (error) {
+      console.error('Failed to fetch UUID from Mojang:', error);
+      return NextResponse.json(
+        { error: 'Minecraft UUIDの取得に失敗しました。MCIDが正しいか確認してください' },
+        { status: 500 }
       );
     }
 

@@ -22,7 +22,6 @@ export function GuestManagement() {
 
   // フォーム入力
   const [mcid, setMcid] = useState('');
-  const [uuid, setUuid] = useState('');
   const [displayName, setDisplayName] = useState('');
 
   // ゲストユーザー一覧を取得
@@ -56,7 +55,6 @@ export function GuestManagement() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           mcid,
-          uuid,
           displayName: displayName.trim() || undefined,
         }),
       });
@@ -64,7 +62,6 @@ export function GuestManagement() {
       if (response.ok) {
         // フォームをリセット
         setMcid('');
-        setUuid('');
         setDisplayName('');
         setShowForm(false);
         // 一覧を再取得
@@ -139,14 +136,7 @@ export function GuestManagement() {
               onChange={(e) => setMcid(e.target.value)}
               placeholder="例: Dream"
               required
-            />
-            <Input
-              label="UUID"
-              type="text"
-              value={uuid}
-              onChange={(e) => setUuid(e.target.value)}
-              placeholder="例: ec70bcaf-702f-4bb8-b48d-276fa52a780c"
-              required
+              help="Minecraftのユーザー名を入力してください。UUIDは自動的に取得されます。"
             />
             <Input
               label="表示名（オプション）"
