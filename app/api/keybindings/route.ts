@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/db';
+import { isAdmin } from '@/lib/admin';
 import type { UpdateKeybindingsRequest, PlayerData } from '@/types/keybinding';
 
 /**
@@ -122,8 +123,57 @@ export async function POST(request: Request) {
       );
     }
 
-    const uuid = session.user.uuid;
-    const data: UpdateKeybindingsRequest = await request.json();
+    const data: UpdateKeybindingsRequest & { targetUuid?: string } = await request.json();
+
+    // 保存先のUUIDを決定
+    let uuid = session.user.uuid;
+
+    // targetUuidが指定されている場合、管理者がゲストユーザーを編集している
+    if (data.targetUuid && data.targetUuid !== session.user.uuid) {
+      console.log('Admin editing guest user:', {
+        adminUuid: session.user.uuid,
+        targetUuid: data.targetUuid,
+      });
+
+      // 管理者チェック
+      if (!isAdmin(session.user.uuid)) {
+        console.error('User is not admin:', session.user.uuid);
+        return NextResponse.json(
+          { error: '管理者のみが他のユーザーを編集できます' },
+          { status: 403 }
+        );
+      }
+
+      // 対象ユーザーがゲストかチェック
+      const targetUser = await prisma.user.findUnique({
+        where: { uuid: data.targetUuid },
+        select: { isGuest: true, mcid: true },
+      });
+
+      console.log('Target user:', targetUser);
+
+      if (!targetUser) {
+        console.error('Target user not found:', data.targetUuid);
+        return NextResponse.json(
+          { error: '対象ユーザーが見つかりません' },
+          { status: 404 }
+        );
+      }
+
+      if (!targetUser.isGuest) {
+        console.error('Target user is not a guest:', data.targetUuid);
+        return NextResponse.json(
+          { error: '対象ユーザーはゲストユーザーではありません' },
+          { status: 403 }
+        );
+      }
+
+      // 管理者がゲストユーザーを編集する場合、targetUuidを使用
+      uuid = data.targetUuid;
+      console.log('Using target UUID:', uuid);
+    } else {
+      console.log('User editing own settings:', uuid);
+    }
 
     // トランザクションで全更新
     await prisma.$transaction(async (tx: any) => {

@@ -7,6 +7,7 @@ import { getLanguageName } from '@/lib/languages';
 import dynamic from 'next/dynamic';
 import type { Metadata } from 'next';
 import { KeybindingDisplaySkeleton } from '@/components/KeybindingDisplaySkeleton';
+import { ShareButton } from '@/components/ShareButton';
 
 const KeybindingDisplay = dynamic(() => import('@/components/KeybindingDisplay').then(mod => ({ default: mod.KeybindingDisplay })), {
   ssr: true,
@@ -35,6 +36,7 @@ export async function generateMetadata({ params }: PlayerPageProps): Promise<Met
   const avatarUrl = `/api/avatar?uuid=${user.uuid}&size=128`;
   const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
   const fullAvatarUrl = `${baseUrl}${avatarUrl}`;
+  const ogImageUrl = `${baseUrl}/player/${mcid}/opengraph-image`;
 
   return {
     title: `${displayName} | MCSRer Hotkeys`,
@@ -52,18 +54,18 @@ export async function generateMetadata({ params }: PlayerPageProps): Promise<Met
       description: `${displayName} (${user.mcid}) のキーボード・マウス設定`,
       images: [
         {
-          url: fullAvatarUrl,
-          width: 128,
-          height: 128,
-          alt: `${displayName} のアバター`,
+          url: ogImageUrl,
+          width: 1200,
+          height: 630,
+          alt: `${displayName} のキーボード・マウス設定`,
         },
       ],
     },
     twitter: {
-      card: 'summary',
+      card: 'summary_large_image',
       title: `${displayName} | MCSRer Hotkeys`,
       description: `${displayName} (${user.mcid}) のキーボード・マウス設定`,
-      images: [fullAvatarUrl],
+      images: [ogImageUrl],
     },
   };
 }
@@ -92,17 +94,29 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
   return (
     <div className="pb-6 space-y-8">
       {/* プレイヤーヘッダー */}
-      <div className="bg-gradient-to-r from-primary/5 via-secondary/5 to-transparent rounded-2xl border border-border shadow-sm p-6 space-y-6">
+      <div className="bg-gradient-to-r from-primary/5 via-secondary/5 to-transparent rounded-2xl border border-border shadow-sm p-6 space-y-6 relative">
+        {/* 共有ボタン */}
+        <div className="absolute top-4 right-4">
+          <ShareButton mcid={mcid} />
+        </div>
+
         {/* プレイヤー情報 */}
         <div className="flex items-center gap-6">
           <div className="relative">
             <div className="absolute inset-0 bg-gradient-to-br from-primary to-secondary rounded-2xl blur-xl opacity-30"></div>
-            <MinecraftAvatar uuid={user.uuid} mcid={user.mcid} size={96} />
+            <MinecraftAvatar uuid={user.uuid} mcid={user.mcid} size={96} priority />
           </div>
           <div>
-            <h1 className="text-4xl font-bold text-foreground">
-              {showDisplayName ? user.displayName : user.mcid}
-            </h1>
+            <div className="flex items-center gap-3 flex-wrap">
+              <h1 className="text-4xl font-bold text-foreground">
+                {showDisplayName ? user.displayName : user.mcid}
+              </h1>
+              {user.isGuest && (
+                <span className="text-xs px-2.5 py-1 rounded bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/50 font-bold">
+                  GUEST
+                </span>
+              )}
+            </div>
             {showDisplayName && user.displayName !== user.mcid && (
               <p className="text-muted-foreground text-lg mt-1">{user.mcid}</p>
             )}

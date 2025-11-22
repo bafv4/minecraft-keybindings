@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/db';
+import { isAdmin } from '@/lib/admin';
 import dynamic from 'next/dynamic';
 import type { PlayerSettings } from '@/types/player';
 import type { Metadata } from 'next';
@@ -75,8 +76,22 @@ export default async function EditPage({ params }: EditPageProps) {
     redirect('/login');
   }
 
-  // 自分の設定のみ編集可能
-  if (session.user.mcid !== mcid) {
+  // アクセス制御: 自分の設定 OR (管理者 AND ゲストユーザー)
+  // まず対象ユーザーがゲストかどうかを確認
+  const targetUser = await prisma.user.findUnique({
+    where: { mcid },
+    select: { isGuest: true, mcid: true, uuid: true }
+  });
+
+  if (!targetUser) {
+    redirect('/');
+  }
+
+  // 自分の設定を編集する場合、または管理者がゲストユーザーを編集する場合は許可
+  const isOwnSettings = session.user.mcid === mcid;
+  const isAdminEditingGuest = isAdmin(session.user.uuid) && targetUser.isGuest;
+
+  if (!isOwnSettings && !isAdminEditingGuest) {
     redirect(`/player/${mcid}`);
   }
 

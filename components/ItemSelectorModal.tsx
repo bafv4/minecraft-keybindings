@@ -27,10 +27,14 @@ const SPEEDRUN_ITEMS = [
   { id: 'minecraft:dirt', name: 'ブロック（不動）', category: 'blocks' },
   { id: 'minecraft:gravel', name: 'ブロック（重力）', category: 'blocks' },
   { id: 'minecraft:obsidian', name: '黒曜石', category: 'blocks' },
+  { id: 'minecraft:crying_obsidian', name: '泣く黒曜石', category: 'blocks' },
   { id: 'minecraft:gold_block', name: '金ブロック', category: 'blocks' },
   { id: 'minecraft:crafting_table', name: '作業台', category: 'blocks' },
   { id: 'minecraft:iron_bars', name: '鉄格子', category: 'blocks' },
   { id: 'minecraft:tnt', name: 'TNT', category: 'blocks' },
+  { id: 'minecraft:glowstone', name: 'グロウストーン', category: 'blocks' },
+  { id: 'minecraft:soul_sand', name: 'ソウルサンド', category: 'blocks' },
+  { id: 'minecraft:respawn_anchor', name: 'リスポーンアンカー', category: 'blocks' },
 
   // レッドストーン系
   { id: 'minecraft:oak_door', name: 'ドア', category: 'redstone' },
@@ -38,7 +42,7 @@ const SPEEDRUN_ITEMS = [
 
   // 食料・ベッド・ポーション
   { id: 'minecraft:cooked_porkchop', name: '食料', category: 'consumables' },
-  { id: 'minecraft:red_bed', name: 'ベッド', category: 'consumables' },
+  { id: 'minecraft:white_bed', name: 'ベッド', category: 'consumables' },
   { id: 'minecraft:potion', name: '耐火のポーション', category: 'consumables' },
   { id: 'minecraft:splash_potion', name: '耐火のスプラッシュポーション', category: 'consumables' },
 
@@ -57,6 +61,7 @@ const SPEEDRUN_ITEMS = [
   { id: 'minecraft:blaze_rod', name: 'ブレイズロッド', category: 'misc' },
   { id: 'minecraft:blaze_powder', name: 'ブレイズパウダー', category: 'misc' },
   { id: 'minecraft:string', name: '糸', category: 'misc' },
+  { id: 'minecraft:glowstone_dust', name: 'グロウストーンダスト', category: 'misc' },
 
   // 特殊
   { id: 'any', name: 'なんでも', category: 'special' },

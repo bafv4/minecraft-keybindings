@@ -47,6 +47,11 @@ function getLocalTextureUrl(itemId: string, nbtData?: any): StaticImageData | un
 function getItemColor(itemId: string): string {
   const itemName = itemId.replace(/^minecraft:/, '');
 
+  // Fire Resistance potion color (pink) for all potions in 1.16
+  if (itemName.includes('potion')) {
+    return 'hsl(330, 81%, 66%)'; // Fire Resistance pink (1.16)
+  }
+
   // Hash the item name to get a consistent color
   let hash = 0;
   for (let i = 0; i < itemName.length; i++) {

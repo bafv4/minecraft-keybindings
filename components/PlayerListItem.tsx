@@ -9,7 +9,7 @@ interface PlayerListItemProps {
 }
 
 export const PlayerListItem = memo(function PlayerListItem({ user }: PlayerListItemProps) {
-  const { mcid, uuid, displayName, settings, customKeys } = user;
+  const { mcid, uuid, displayName, settings, customKeys, isGuest } = user;
   const showDisplayName = displayName && displayName.trim() !== '';
 
   return (
@@ -23,8 +23,13 @@ export const PlayerListItem = memo(function PlayerListItem({ user }: PlayerListI
         <div className="flex items-center gap-2">
           <MinecraftAvatar uuid={uuid} mcid={mcid} size={32} />
           <div className="font-semibold truncate flex-1 min-w-0">
-            <div className="truncate text-sm group-hover:text-primary transition-colors">
-              {showDisplayName ? displayName : mcid}
+            <div className="truncate text-sm group-hover:text-primary transition-colors flex items-center gap-1.5">
+              <span className="truncate">{showDisplayName ? displayName : mcid}</span>
+              {isGuest && (
+                <span className="flex-shrink-0 text-[9px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/50 font-bold">
+                  GUEST
+                </span>
+              )}
             </div>
             {showDisplayName && displayName !== mcid && (
               <div className="text-[10px] text-muted-foreground truncate">
@@ -98,8 +103,13 @@ export const PlayerListItem = memo(function PlayerListItem({ user }: PlayerListI
         <div className="flex items-center gap-2.5">
           <MinecraftAvatar uuid={uuid} mcid={mcid} size={36} />
           <div className="flex-1 min-w-0">
-            <div className="font-semibold text-sm group-hover:text-primary transition-colors truncate">
-              {showDisplayName ? displayName : mcid}
+            <div className="font-semibold text-sm group-hover:text-primary transition-colors flex items-center gap-1.5">
+              <span className="truncate">{showDisplayName ? displayName : mcid}</span>
+              {isGuest && (
+                <span className="flex-shrink-0 text-[9px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/50 font-bold">
+                  GUEST
+                </span>
+              )}
             </div>
             {showDisplayName && displayName !== mcid && (
               <div className="text-[10px] text-muted-foreground truncate">

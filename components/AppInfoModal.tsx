@@ -6,7 +6,7 @@ import { XMarkIcon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 import { MinecraftAvatar } from './MinecraftAvatar';
 
-export const APP_VERSION = '1.0.0';
+export const APP_VERSION = '1.1.0';
 
 interface AppInfoModalProps {
   isOpen: boolean;

@@ -39,6 +39,12 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
   const [syncingMcid, setSyncingMcid] = useState(false);
   const itemLayoutEditorRef = useRef<{ save: () => Promise<boolean> }>(null);
 
+  // ヘルパー関数: 配列を文字列に正規化（後方互換性のため）
+  const normalizeKeyBinding = (value: string | string[] | undefined, defaultValue: string): string => {
+    if (!value) return defaultValue;
+    return Array.isArray(value) ? (value[0] || defaultValue) : value;
+  };
+
   // ユーザー情報
   const [displayName, setDisplayName] = useState(initialDisplayName);
   const [currentMcid, setCurrentMcid] = useState(mcid);
@@ -78,47 +84,47 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
   const [keyboardModel, setKeyboardModel] = useState(initialSettings?.keyboardModel || '');
   const [notes, setNotes] = useState(initialSettings?.notes || '');
 
-  // キーバインド（移動）
-  const [forward, setForward] = useState<string | string[]>(initialSettings?.forward || 'key.keyboard.w');
-  const [back, setBack] = useState<string | string[]>(initialSettings?.back || 'key.keyboard.s');
-  const [left, setLeft] = useState<string | string[]>(initialSettings?.left || 'key.keyboard.a');
-  const [right, setRight] = useState<string | string[]>(initialSettings?.right || 'key.keyboard.d');
-  const [jump, setJump] = useState<string | string[]>(initialSettings?.jump || 'key.keyboard.space');
-  const [sneak, setSneak] = useState<string | string[]>(initialSettings?.sneak || 'key.keyboard.left.shift');
-  const [sprint, setSprint] = useState<string | string[]>(initialSettings?.sprint || 'key.keyboard.left.control');
+  // キーバインド（移動）- 1アクション1キーのみ
+  const [forward, setForward] = useState<string>(normalizeKeyBinding(initialSettings?.forward, 'key.keyboard.w'));
+  const [back, setBack] = useState<string>(normalizeKeyBinding(initialSettings?.back, 'key.keyboard.s'));
+  const [left, setLeft] = useState<string>(normalizeKeyBinding(initialSettings?.left, 'key.keyboard.a'));
+  const [right, setRight] = useState<string>(normalizeKeyBinding(initialSettings?.right, 'key.keyboard.d'));
+  const [jump, setJump] = useState<string>(normalizeKeyBinding(initialSettings?.jump, 'key.keyboard.space'));
+  const [sneak, setSneak] = useState<string>(normalizeKeyBinding(initialSettings?.sneak, 'key.keyboard.left.shift'));
+  const [sprint, setSprint] = useState<string>(normalizeKeyBinding(initialSettings?.sprint, 'key.keyboard.left.control'));
 
-  // キーバインド（アクション）
-  const [attack, setAttack] = useState<string | string[]>(initialSettings?.attack || 'key.mouse.left');
-  const [use, setUse] = useState<string | string[]>(initialSettings?.use || 'key.mouse.right');
-  const [pickBlock, setPickBlock] = useState<string | string[]>(initialSettings?.pickBlock || 'key.mouse.middle');
-  const [drop, setDrop] = useState<string | string[]>(initialSettings?.drop || 'key.keyboard.q');
+  // キーバインド（アクション）- 1アクション1キーのみ
+  const [attack, setAttack] = useState<string>(normalizeKeyBinding(initialSettings?.attack, 'key.mouse.left'));
+  const [use, setUse] = useState<string>(normalizeKeyBinding(initialSettings?.use, 'key.mouse.right'));
+  const [pickBlock, setPickBlock] = useState<string>(normalizeKeyBinding(initialSettings?.pickBlock, 'key.mouse.middle'));
+  const [drop, setDrop] = useState<string>(normalizeKeyBinding(initialSettings?.drop, 'key.keyboard.q'));
 
-  // キーバインド（インベントリ）
-  const [inventory, setInventory] = useState<string | string[]>(initialSettings?.inventory || 'key.keyboard.e');
-  const [swapHands, setSwapHands] = useState<string | string[]>(initialSettings?.swapHands || 'key.keyboard.f');
-  const [hotbar1, setHotbar1] = useState<string | string[]>(initialSettings?.hotbar1 || 'key.keyboard.1');
-  const [hotbar2, setHotbar2] = useState<string | string[]>(initialSettings?.hotbar2 || 'key.keyboard.2');
-  const [hotbar3, setHotbar3] = useState<string | string[]>(initialSettings?.hotbar3 || 'key.keyboard.3');
-  const [hotbar4, setHotbar4] = useState<string | string[]>(initialSettings?.hotbar4 || 'key.keyboard.4');
-  const [hotbar5, setHotbar5] = useState<string | string[]>(initialSettings?.hotbar5 || 'key.keyboard.5');
-  const [hotbar6, setHotbar6] = useState<string | string[]>(initialSettings?.hotbar6 || 'key.keyboard.6');
-  const [hotbar7, setHotbar7] = useState<string | string[]>(initialSettings?.hotbar7 || 'key.keyboard.7');
-  const [hotbar8, setHotbar8] = useState<string | string[]>(initialSettings?.hotbar8 || 'key.keyboard.8');
-  const [hotbar9, setHotbar9] = useState<string | string[]>(initialSettings?.hotbar9 || 'key.keyboard.9');
+  // キーバインド（インベントリ）- 1アクション1キーのみ
+  const [inventory, setInventory] = useState<string>(normalizeKeyBinding(initialSettings?.inventory, 'key.keyboard.e'));
+  const [swapHands, setSwapHands] = useState<string>(normalizeKeyBinding(initialSettings?.swapHands, 'key.keyboard.f'));
+  const [hotbar1, setHotbar1] = useState<string>(normalizeKeyBinding(initialSettings?.hotbar1, 'key.keyboard.1'));
+  const [hotbar2, setHotbar2] = useState<string>(normalizeKeyBinding(initialSettings?.hotbar2, 'key.keyboard.2'));
+  const [hotbar3, setHotbar3] = useState<string>(normalizeKeyBinding(initialSettings?.hotbar3, 'key.keyboard.3'));
+  const [hotbar4, setHotbar4] = useState<string>(normalizeKeyBinding(initialSettings?.hotbar4, 'key.keyboard.4'));
+  const [hotbar5, setHotbar5] = useState<string>(normalizeKeyBinding(initialSettings?.hotbar5, 'key.keyboard.5'));
+  const [hotbar6, setHotbar6] = useState<string>(normalizeKeyBinding(initialSettings?.hotbar6, 'key.keyboard.6'));
+  const [hotbar7, setHotbar7] = useState<string>(normalizeKeyBinding(initialSettings?.hotbar7, 'key.keyboard.7'));
+  const [hotbar8, setHotbar8] = useState<string>(normalizeKeyBinding(initialSettings?.hotbar8, 'key.keyboard.8'));
+  const [hotbar9, setHotbar9] = useState<string>(normalizeKeyBinding(initialSettings?.hotbar9, 'key.keyboard.9'));
 
-  // キーバインド（ビュー・UI操作）
-  const [togglePerspective, setTogglePerspective] = useState<string | string[]>(initialSettings?.togglePerspective || 'key.keyboard.f5');
-  const [fullscreen, setFullscreen] = useState<string | string[]>(initialSettings?.fullscreen || 'key.keyboard.f11');
-  const [chat, setChat] = useState<string | string[]>(initialSettings?.chat || 'key.keyboard.t');
-  const [command, setCommand] = useState<string | string[]>(initialSettings?.command || 'key.keyboard.slash');
-  const [toggleHud, setToggleHud] = useState<string | string[]>(initialSettings?.toggleHud || 'key.keyboard.f1');
+  // キーバインド（ビュー・UI操作）- 1アクション1キーのみ
+  const [togglePerspective, setTogglePerspective] = useState<string>(normalizeKeyBinding(initialSettings?.togglePerspective, 'key.keyboard.f5'));
+  const [fullscreen, setFullscreen] = useState<string>(normalizeKeyBinding(initialSettings?.fullscreen, 'key.keyboard.f11'));
+  const [chat, setChat] = useState<string>(normalizeKeyBinding(initialSettings?.chat, 'key.keyboard.t'));
+  const [command, setCommand] = useState<string>(normalizeKeyBinding(initialSettings?.command, 'key.keyboard.slash'));
+  const [toggleHud, setToggleHud] = useState<string>(normalizeKeyBinding(initialSettings?.toggleHud, 'key.keyboard.f1'));
 
-  // 追加設定（additionalSettings JSONフィールドから読み込み）
-  const [reset, setReset] = useState<string | string[]>(
-    (initialSettings?.additionalSettings as { reset?: string | string[] })?.reset || 'key.keyboard.f6'
+  // 追加設定（additionalSettings JSONフィールドから読み込み）- 1アクション1キーのみ
+  const [reset, setReset] = useState<string>(
+    normalizeKeyBinding((initialSettings?.additionalSettings as { reset?: string | string[] })?.reset, 'key.keyboard.f6')
   );
-  const [playerList, setPlayerList] = useState<string | string[]>(
-    (initialSettings?.additionalSettings as { playerList?: string | string[] })?.playerList || 'key.keyboard.tab'
+  const [playerList, setPlayerList] = useState<string>(
+    normalizeKeyBinding((initialSettings?.additionalSettings as { playerList?: string | string[] })?.playerList, 'key.keyboard.tab')
   );
 
   // リマップとツール設定（オブジェクトとして管理）
@@ -265,37 +271,9 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
     externalTool?: string;
     finger?: Finger[];
   }) => {
-    // Helper function to add a key to an action's binding
-    const addKeyToAction = (currentValue: string | string[], keyToAdd: string): string | string[] => {
-      if (Array.isArray(currentValue)) {
-        // Already an array - add if not present
-        return currentValue.includes(keyToAdd) ? currentValue : [...currentValue, keyToAdd];
-      } else if (currentValue) {
-        // Single value - convert to array if different from current
-        return currentValue === keyToAdd ? currentValue : [currentValue, keyToAdd];
-      } else {
-        // Empty - just set the key
-        return keyToAdd;
-      }
-    };
-
-    // Helper function to remove a key from an action's binding
-    const removeKeyFromAction = (currentValue: string | string[], keyToRemove: string, defaultValue: string): string | string[] => {
-      if (Array.isArray(currentValue)) {
-        const filtered = currentValue.filter(k => k !== keyToRemove);
-        // Return single string if only one left, default value if none, array otherwise
-        if (filtered.length === 0) return defaultValue;
-        if (filtered.length === 1) return filtered[0];
-        return filtered;
-      } else if (currentValue === keyToRemove) {
-        return defaultValue;
-      }
-      return currentValue;
-    };
-
-    // アクション割り当て処理
+    // アクション割り当て処理（1アクション1キーのみ - 配列ヘルパー関数不要）
     if ('actions' in config) {
-      const setters: { [key: string]: (value: string | string[]) => void } = {
+      const setters: { [key: string]: (value: string) => void } = {
         forward: setForward, back: setBack, left: setLeft, right: setRight,
         jump: setJump, sneak: setSneak, sprint: setSprint,
         attack: setAttack, use: setUse, pickBlock: setPickBlock, drop: setDrop,
@@ -308,7 +286,7 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
         playerList: setPlayerList, reset: setReset,
       };
 
-      const getters: { [key: string]: string | string[] } = {
+      const getters: { [key: string]: string } = {
         forward, back, left, right, jump, sneak, sprint,
         attack, use, pickBlock, drop,
         inventory, swapHands,
@@ -330,14 +308,9 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
         playerList: 'key.keyboard.tab', reset: 'key.keyboard.f6',
       };
 
-      // Find which actions are currently bound to this key
+      // Find which actions are currently bound to this key（1アクション1キーのみ）
       const currentActionsForKey = Object.entries(getters)
-        .filter(([_, keyBinding]) => {
-          if (Array.isArray(keyBinding)) {
-            return keyBinding.includes(keyCode);
-          }
-          return keyBinding === keyCode;
-        })
+        .filter(([_, keyBinding]) => keyBinding === keyCode)
         .map(([action]) => action);
 
       const newActions = config.actions || [];
@@ -348,22 +321,20 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
       // Find actions to remove (in currentActionsForKey but not in newActions)
       const actionsToRemove = currentActionsForKey.filter(action => !newActions.includes(action));
 
-      // Add key to new actions
+      // Add key to new actions（1アクション1キーのみ - 直接設定）
       for (const action of actionsToAdd) {
         const setter = setters[action];
-        const currentValue = getters[action];
         if (setter) {
-          setter(addKeyToAction(currentValue, keyCode));
+          setter(keyCode); // 直接キーコードを設定（配列不要）
         }
       }
 
-      // Remove key from removed actions
+      // Remove key from removed actions（1アクション1キーのみ - デフォルト値に戻す）
       for (const action of actionsToRemove) {
         const setter = setters[action];
-        const currentValue = getters[action];
-        const defaultValue = defaults[action] || 'key.keyboard.unknown';
+        const defaultValue = defaults[action] || '';
         if (setter) {
-          setter(removeKeyFromAction(currentValue, keyCode, defaultValue));
+          setter(defaultValue); // デフォルト値または空文字列に戻す
         }
       }
     }
@@ -417,8 +388,8 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
     setSaving(true);
 
     try {
-      // キーバインドを新スキーマ形式（Keybinding配列）に変換
-      const keybindingStates: { [action: string]: string | string[] } = {
+      // キーバインドを新スキーマ形式（Keybinding配列）に変換（1アクション1キー）
+      const keybindingStates: { [action: string]: string } = {
         forward, back, left, right, jump, sneak, sprint,
         attack, use, pickBlock, drop,
         inventory, swapHands,
@@ -426,42 +397,36 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
         togglePerspective, fullscreen, chat, command, toggleHud,
       };
 
-      // additionalSettingsのキーバインドも追加
-      const additionalBindings: { [action: string]: string | string[] } = {
+      // additionalSettingsのキーバインドも追加（1アクション1キー）
+      const additionalBindings: { [action: string]: string } = {
         reset,
         playerList,
       };
 
       const keybindings: Array<{ action: string; keyCode: string; category: string; fingers?: string[] }> = [];
 
-      // 通常のキーバインドを変換
-      Object.entries(keybindingStates).forEach(([action, keyBinding]) => {
-        const keyCodes = Array.isArray(keyBinding) ? keyBinding : [keyBinding];
-        keyCodes.forEach(keyCode => {
-          if (keyCode && keyCode !== '') {
-            keybindings.push({
-              action,
-              keyCode,
-              category: getCategoryForAction(action),
-              fingers: fingerAssignments[keyCode] || undefined,
-            });
-          }
-        });
+      // 通常のキーバインドを変換（1アクション1キーのみ）
+      Object.entries(keybindingStates).forEach(([action, keyCode]) => {
+        if (keyCode && keyCode !== '') {
+          keybindings.push({
+            action,
+            keyCode,
+            category: getCategoryForAction(action),
+            fingers: fingerAssignments[keyCode] || undefined,
+          });
+        }
       });
 
-      // 追加設定のキーバインドを変換
-      Object.entries(additionalBindings).forEach(([action, keyBinding]) => {
-        const keyCodes = Array.isArray(keyBinding) ? keyBinding : [keyBinding];
-        keyCodes.forEach(keyCode => {
-          if (keyCode && keyCode !== '') {
-            keybindings.push({
-              action,
-              keyCode,
-              category: 'other',
-              fingers: fingerAssignments[keyCode] || undefined,
-            });
-          }
-        });
+      // 追加設定のキーバインドを変換（1アクション1キーのみ）
+      Object.entries(additionalBindings).forEach(([action, keyCode]) => {
+        if (keyCode && keyCode !== '') {
+          keybindings.push({
+            action,
+            keyCode,
+            category: 'other',
+            fingers: fingerAssignments[keyCode] || undefined,
+          });
+        }
       });
 
       // キーリマップを配列形式に変換
@@ -479,6 +444,7 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
       }));
 
       const data = {
+        targetUuid: uuid, // 管理者がゲストユーザーを編集する場合のため、対象ユーザーのUUIDを送信
         settings: {
           displayName,
           keyboardLayout,
@@ -514,7 +480,9 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
       });
 
       if (!response.ok) {
-        throw new Error('Failed to save settings');
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        console.error('Save failed:', response.status, errorData);
+        throw new Error(errorData.error || 'Failed to save settings');
       }
 
       // アイテム配置設定も保存
@@ -529,8 +497,9 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
       router.push(`/player/${currentMcid}`);
       router.refresh();
     } catch (error) {
-      console.error(error);
-      alert('保存に失敗しました');
+      console.error('Save error:', error);
+      const errorMessage = error instanceof Error ? error.message : '保存に失敗しました';
+      alert(`保存に失敗しました: ${errorMessage}`);
     } finally {
       setSaving(false);
     }
