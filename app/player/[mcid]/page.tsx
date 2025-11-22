@@ -35,6 +35,7 @@ export async function generateMetadata({ params }: PlayerPageProps): Promise<Met
   const avatarUrl = `/api/avatar?uuid=${user.uuid}&size=128`;
   const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
   const fullAvatarUrl = `${baseUrl}${avatarUrl}`;
+  const ogImageUrl = `${baseUrl}/player/${mcid}/opengraph-image`;
 
   return {
     title: `${displayName} | MCSRer Hotkeys`,
@@ -52,18 +53,18 @@ export async function generateMetadata({ params }: PlayerPageProps): Promise<Met
       description: `${displayName} (${user.mcid}) のキーボード・マウス設定`,
       images: [
         {
-          url: fullAvatarUrl,
-          width: 128,
-          height: 128,
-          alt: `${displayName} のアバター`,
+          url: ogImageUrl,
+          width: 1200,
+          height: 630,
+          alt: `${displayName} のキーボード・マウス設定`,
         },
       ],
     },
     twitter: {
-      card: 'summary',
+      card: 'summary_large_image',
       title: `${displayName} | MCSRer Hotkeys`,
       description: `${displayName} (${user.mcid}) のキーボード・マウス設定`,
-      images: [fullAvatarUrl],
+      images: [ogImageUrl],
     },
   };
 }
