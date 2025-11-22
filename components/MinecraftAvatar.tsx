@@ -1,15 +1,23 @@
 'use client';
 
 import { useState, memo } from 'react';
+import Image from 'next/image';
 
 interface MinecraftAvatarProps {
   uuid: string;
   mcid: string;
   size?: number;
   className?: string;
+  priority?: boolean;
 }
 
-const MinecraftAvatarComponent = ({ uuid, mcid, size = 64, className = '' }: MinecraftAvatarProps) => {
+const MinecraftAvatarComponent = ({
+  uuid,
+  mcid,
+  size = 64,
+  className = '',
+  priority = false
+}: MinecraftAvatarProps) => {
   const [imgError, setImgError] = useState(false);
 
   // Next.jsのAPIルート経由で画像を取得（CORSを回避）
@@ -18,8 +26,7 @@ const MinecraftAvatarComponent = ({ uuid, mcid, size = 64, className = '' }: Min
 
   return (
     <div className={`relative ${className}`} style={{ width: size, height: size }}>
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
+      <Image
         src={imgError ? fallbackUrl : imageUrl}
         alt={`${mcid} のスキン`}
         width={size}
@@ -27,6 +34,8 @@ const MinecraftAvatarComponent = ({ uuid, mcid, size = 64, className = '' }: Min
         className="pixelated"
         style={{ imageRendering: 'pixelated' }}
         onError={() => setImgError(true)}
+        unoptimized
+        priority={priority}
       />
     </div>
   );

@@ -97,7 +97,7 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
         <div className="flex items-center gap-6">
           <div className="relative">
             <div className="absolute inset-0 bg-gradient-to-br from-primary to-secondary rounded-2xl blur-xl opacity-30"></div>
-            <MinecraftAvatar uuid={user.uuid} mcid={user.mcid} size={96} />
+            <MinecraftAvatar uuid={user.uuid} mcid={user.mcid} size={96} priority />
           </div>
           <div>
             <div className="flex items-center gap-3 flex-wrap">
