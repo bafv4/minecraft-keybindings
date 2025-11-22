@@ -130,10 +130,16 @@ export async function POST(request: Request) {
 
     // targetUuidが指定されている場合、管理者がゲストユーザーを編集している
     if (data.targetUuid && data.targetUuid !== session.user.uuid) {
+      console.log('Admin editing guest user:', {
+        adminUuid: session.user.uuid,
+        targetUuid: data.targetUuid,
+      });
+
       // 管理者チェック
       if (!isAdmin(session.user.uuid)) {
+        console.error('User is not admin:', session.user.uuid);
         return NextResponse.json(
-          { error: 'Only admins can edit other users' },
+          { error: '管理者のみが他のユーザーを編集できます' },
           { status: 403 }
         );
       }
@@ -141,18 +147,32 @@ export async function POST(request: Request) {
       // 対象ユーザーがゲストかチェック
       const targetUser = await prisma.user.findUnique({
         where: { uuid: data.targetUuid },
-        select: { isGuest: true },
+        select: { isGuest: true, mcid: true },
       });
 
-      if (!targetUser?.isGuest) {
+      console.log('Target user:', targetUser);
+
+      if (!targetUser) {
+        console.error('Target user not found:', data.targetUuid);
         return NextResponse.json(
-          { error: 'Target user is not a guest or does not exist' },
+          { error: '対象ユーザーが見つかりません' },
+          { status: 404 }
+        );
+      }
+
+      if (!targetUser.isGuest) {
+        console.error('Target user is not a guest:', data.targetUuid);
+        return NextResponse.json(
+          { error: '対象ユーザーはゲストユーザーではありません' },
           { status: 403 }
         );
       }
 
       // 管理者がゲストユーザーを編集する場合、targetUuidを使用
       uuid = data.targetUuid;
+      console.log('Using target UUID:', uuid);
+    } else {
+      console.log('User editing own settings:', uuid);
     }
 
     // トランザクションで全更新

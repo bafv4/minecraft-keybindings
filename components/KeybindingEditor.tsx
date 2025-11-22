@@ -515,7 +515,9 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
       });
 
       if (!response.ok) {
-        throw new Error('Failed to save settings');
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        console.error('Save failed:', response.status, errorData);
+        throw new Error(errorData.error || 'Failed to save settings');
       }
 
       // アイテム配置設定も保存
@@ -530,8 +532,9 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
       router.push(`/player/${currentMcid}`);
       router.refresh();
     } catch (error) {
-      console.error(error);
-      alert('保存に失敗しました');
+      console.error('Save error:', error);
+      const errorMessage = error instanceof Error ? error.message : '保存に失敗しました';
+      alert(`保存に失敗しました: ${errorMessage}`);
     } finally {
       setSaving(false);
     }
