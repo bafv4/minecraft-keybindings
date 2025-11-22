@@ -100,9 +100,16 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
             <MinecraftAvatar uuid={user.uuid} mcid={user.mcid} size={96} />
           </div>
           <div>
-            <h1 className="text-4xl font-bold text-foreground">
-              {showDisplayName ? user.displayName : user.mcid}
-            </h1>
+            <div className="flex items-center gap-3 flex-wrap">
+              <h1 className="text-4xl font-bold text-foreground">
+                {showDisplayName ? user.displayName : user.mcid}
+              </h1>
+              {user.isGuest && (
+                <span className="text-xs px-2.5 py-1 rounded bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/50 font-bold">
+                  GUEST
+                </span>
+              )}
+            </div>
             {showDisplayName && user.displayName !== user.mcid && (
               <p className="text-muted-foreground text-lg mt-1">{user.mcid}</p>
             )}

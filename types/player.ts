@@ -124,6 +124,7 @@ export interface User {
   mcid: string;
   passphrase?: string | null;
   displayName: string;
+  isGuest?: boolean; // ゲストユーザーフラグ
   createdAt: Date;
   updatedAt: Date;
   settings?: PlayerSettings | null;
