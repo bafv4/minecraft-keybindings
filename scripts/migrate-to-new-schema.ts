@@ -367,39 +367,85 @@ async function migrate() {
         // 4. ExternalTool（新）へ外部ツール設定を移行
         const externalTools = [];
         if (oldUser.externalTools && typeof oldUser.externalTools === 'object') {
-          const tools = oldUser.externalTools as Record<
-            string,
-            {
-              actions?: Array<{
-                trigger?: string;
-                action?: string;
-                description?: string;
-              }>;
-            }
-          >;
+          const toolsData = oldUser.externalTools as any;
 
-          for (const [toolName, toolConfig] of Object.entries(tools)) {
-            if (toolConfig.actions && Array.isArray(toolConfig.actions)) {
-              for (const toolAction of toolConfig.actions) {
-                if (toolAction.trigger && toolAction.action) {
-                  let webTriggerKey: string;
+          // 形式を判定：最初のエントリをチェック
+          const firstEntry = Object.entries(toolsData)[0];
+          const isFormat1 =
+            firstEntry &&
+            typeof firstEntry[1] === 'object' &&
+            !Array.isArray(firstEntry[1]) &&
+            'actions' in firstEntry[1];
 
-                  // トリガーキーがkey.custom.*の場合
-                  if (toolAction.trigger.startsWith('key.custom.')) {
-                    const { keyCode } = customKeyMapper.getOrCreateKeyCode(toolAction.trigger);
-                    webTriggerKey = keyCode;
-                  } else {
-                    webTriggerKey = minecraftToWeb(toolAction.trigger);
+          if (isFormat1) {
+            // 形式1: { "ToolName": { "actions": [...] } }
+            const tools = toolsData as Record<
+              string,
+              {
+                actions?: Array<{
+                  trigger?: string;
+                  action?: string;
+                  description?: string;
+                }>;
+              }
+            >;
+
+            for (const [toolName, toolConfig] of Object.entries(tools)) {
+              if (toolConfig.actions && Array.isArray(toolConfig.actions)) {
+                for (const toolAction of toolConfig.actions) {
+                  if (toolAction.trigger) {
+                    let webTriggerKey: string;
+
+                    // トリガーキーがkey.custom.*の場合
+                    if (toolAction.trigger.startsWith('key.custom.')) {
+                      const { keyCode } = customKeyMapper.getOrCreateKeyCode(toolAction.trigger);
+                      webTriggerKey = keyCode;
+                    } else {
+                      webTriggerKey = minecraftToWeb(toolAction.trigger);
+                    }
+
+                    // actionNameが空の場合は、description → toolName の順で使用
+                    const actionName =
+                      toolAction.action ||
+                      toolAction.description ||
+                      toolName;
+
+                    externalTools.push({
+                      uuid,
+                      triggerKey: webTriggerKey,
+                      toolName,
+                      actionName,
+                      description: toolAction.description || null,
+                    });
                   }
-
-                  externalTools.push({
-                    uuid,
-                    triggerKey: webTriggerKey,
-                    toolName,
-                    actionName: toolAction.action,
-                    description: toolAction.description || null,
-                  });
                 }
+              }
+            }
+          } else {
+            // 形式2: { "key.keyboard.6": "Zoom", "key.keyboard.7": "Wide" }
+            const keyValuePairs = toolsData as Record<string, string>;
+
+            for (const [triggerKey, description] of Object.entries(keyValuePairs)) {
+              // キーが key.* 形式かチェック
+              if (typeof description === 'string' && triggerKey.startsWith('key.')) {
+                let webTriggerKey: string;
+
+                // トリガーキーがkey.custom.*の場合
+                if (triggerKey.startsWith('key.custom.')) {
+                  const { keyCode } = customKeyMapper.getOrCreateKeyCode(triggerKey);
+                  webTriggerKey = keyCode;
+                } else {
+                  webTriggerKey = minecraftToWeb(triggerKey);
+                }
+
+                // 形式2では descriptionをactionNameとして使用
+                externalTools.push({
+                  uuid,
+                  triggerKey: webTriggerKey,
+                  toolName: 'Custom', // デフォルトのツール名
+                  actionName: description,
+                  description,
+                });
               }
             }
           }

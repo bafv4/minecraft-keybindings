@@ -53,7 +53,8 @@
       "Bash(tasklist:*)",
       "Bash(findstr:*)",
       "Bash(node:*)",
-      "Bash(cd:*)"
+      "Bash(cd:*)",
+      "Bash(rm:*)"
     ],
     "deny": [],
     "ask": []

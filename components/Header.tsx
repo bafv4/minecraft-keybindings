@@ -31,8 +31,26 @@ export function Header({ session }: HeaderProps) {
   const { openLoginModal } = useLoginModal();
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 border-b border-border/50 bg-gradient-to-r from-primary/10 via-secondary/10 to-transparent backdrop-blur-xl shadow-sm">
-      <div className="container mx-auto px-3 sm:px-4 lg:px-6">
+    <>
+      {/* Mobile Menu Backdrop - 画面全体を覆う */}
+      <Transition
+        show={mobileMenuOpen}
+        as={Fragment}
+        enter="transition-opacity ease-out duration-200"
+        enterFrom="opacity-0"
+        enterTo="opacity-100"
+        leave="transition-opacity ease-in duration-150"
+        leaveFrom="opacity-100"
+        leaveTo="opacity-0"
+      >
+        <div
+          className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 md:hidden"
+          onClick={() => setMobileMenuOpen(false)}
+        />
+      </Transition>
+
+      <header className="fixed top-0 left-0 right-0 z-50 border-b border-border/50 bg-gradient-to-r from-primary/10 via-secondary/10 to-transparent backdrop-blur-xl shadow-sm">
+        <div className="container mx-auto px-3 sm:px-4 lg:px-6">
         <div className="flex items-center justify-between h-14 md:h-20">
           {/* Spacer for mobile - ダミーの要素で左右対称を保つ */}
           <div className="md:hidden w-8"></div>
@@ -236,22 +254,14 @@ export function Header({ session }: HeaderProps) {
                     </MenuItem>
                   </MenuItems>
                 </Menu>
-
-                <Link
-                  href={`/player/${session.user.mcid}/edit`}
-                  className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-primary to-primary-light hover:brightness-110 text-white text-sm font-medium rounded-xl shadow-md hover:shadow-lg transition-all duration-200"
-                >
-                  <PencilSquareIcon className="w-5 h-5" />
-                  <span>設定を編集</span>
-                </Link>
               </>
             ) : (
               <button
                 onClick={openLoginModal}
-                className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-primary to-primary-light hover:brightness-110 text-white text-sm font-medium rounded-xl shadow-md hover:shadow-lg transition-all duration-200"
+                className="flex items-center gap-2 px-4 py-2 text-sm bg-gradient-to-r from-primary to-primary-light hover:brightness-110 text-white rounded-xl shadow-md hover:shadow-lg transition-all duration-200"
               >
                 <PencilSquareIcon className="w-5 h-5" />
-                <span>登録 / 編集</span>
+                <span>設定を編集</span>
               </button>
             )}
           </nav>
@@ -280,7 +290,7 @@ export function Header({ session }: HeaderProps) {
           leaveFrom="opacity-100 translate-y-0"
           leaveTo="opacity-0 -translate-y-2"
         >
-          <div className="md:hidden border-t border-border/50 py-4 space-y-2">
+          <div className="md:hidden border-t border-border/50 py-4 space-y-2 relative z-50">
             {/* バージョン情報 */}
             <button
               onClick={() => {
@@ -405,10 +415,10 @@ export function Header({ session }: HeaderProps) {
                   setMobileMenuOpen(false);
                   openLoginModal();
                 }}
-                className="flex items-center gap-3 px-4 py-3 mx-4 text-sm bg-gradient-to-r from-primary to-primary-light text-white rounded-lg shadow-md hover:shadow-lg transition-all w-[calc(100%-2rem)]"
+                className="flex items-center justify-center gap-3 px-4 py-3 mx-4 text-sm bg-gradient-to-r from-primary to-primary-light text-white rounded-lg shadow-md hover:shadow-lg transition-all w-[calc(100%-2rem)]"
               >
                 <PencilSquareIcon className="w-5 h-5" />
-                <span>登録 / 編集</span>
+                <span>設定を編集</span>
               </button>
             )}
           </div>
@@ -418,5 +428,6 @@ export function Header({ session }: HeaderProps) {
       {/* App Info Modal */}
       <AppInfoModal isOpen={appInfoOpen} onClose={() => setAppInfoOpen(false)} />
     </header>
+    </>
   );
 }
