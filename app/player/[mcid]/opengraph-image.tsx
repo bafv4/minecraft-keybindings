@@ -60,7 +60,17 @@ export default async function Image({ params }: Props) {
 
     const baseUrl = process.env.NEXTAUTH_URL || 'https://mchotkeys-stg.vercel.app';
     const avatarUrl = `${baseUrl}/api/avatar?uuid=${user.uuid}&size=128`;
-    const iconUrl = `${baseUrl}/icon.svg`;
+
+    // アバター画像を fetch して ArrayBuffer として取得
+    let avatarBuffer: ArrayBuffer | null = null;
+    try {
+      const avatarResponse = await fetch(avatarUrl);
+      if (avatarResponse.ok) {
+        avatarBuffer = await avatarResponse.arrayBuffer();
+      }
+    } catch (error) {
+      console.error('Failed to fetch avatar:', error);
+    }
 
     // 主要なキーバインド
     const hotbarKeys = [
@@ -96,6 +106,11 @@ export default async function Image({ params }: Props) {
       autoJump: settings?.autoJump ? 'ON' : 'OFF',
     };
 
+    // アバター画像を Base64 に変換
+    const avatarDataUri = avatarBuffer
+      ? `data:image/png;base64,${Buffer.from(avatarBuffer).toString('base64')}`
+      : undefined;
+
     return new ImageResponse(
       (
         <div
@@ -126,11 +141,7 @@ export default async function Image({ params }: Props) {
                 gap: '12px',
               }}
             >
-              {/* アイコン */}
-              <div style={{ width: '40px', height: '40px', display: 'flex' }}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={iconUrl} alt="icon" width={40} height={40} />
-              </div>
+              <span>🎮</span>
               <span>MCSRer Hotkeys</span>
             </div>
           </div>
@@ -145,28 +156,46 @@ export default async function Image({ params }: Props) {
             }}
           >
             {/* アバター */}
-            <div
-              style={{
-                width: '80px',
-                height: '80px',
-                borderRadius: '12px',
-                background: 'rgba(100, 116, 139, 0.1)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                overflow: 'hidden',
-                border: '2px solid rgba(100, 116, 139, 0.2)',
-              }}
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={avatarUrl}
-                alt={displayName}
-                width={80}
-                height={80}
-                style={{ imageRendering: 'pixelated' }}
-              />
-            </div>
+            {avatarDataUri ? (
+              <div
+                style={{
+                  width: '80px',
+                  height: '80px',
+                  borderRadius: '12px',
+                  background: 'rgba(100, 116, 139, 0.1)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  overflow: 'hidden',
+                  border: '2px solid rgba(100, 116, 139, 0.2)',
+                }}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={avatarDataUri}
+                  alt={displayName}
+                  width={80}
+                  height={80}
+                  style={{ imageRendering: 'pixelated' }}
+                />
+              </div>
+            ) : (
+              <div
+                style={{
+                  width: '80px',
+                  height: '80px',
+                  borderRadius: '12px',
+                  background: 'rgba(100, 116, 139, 0.1)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  border: '2px solid rgba(100, 116, 139, 0.2)',
+                  fontSize: 40,
+                }}
+              >
+                👤
+              </div>
+            )}
 
             {/* 名前 */}
             <div style={{ display: 'flex', flexDirection: 'column' }}>
