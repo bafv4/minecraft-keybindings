@@ -1,6 +1,8 @@
 import { ImageResponse } from 'next/og';
 import { getPlayerData } from '@/lib/playerData';
 import { formatKeyName } from '@/lib/utils';
+import { readFile } from 'fs/promises';
+import { join } from 'path';
 
 export const runtime = 'nodejs';
 export const alt = 'Player Keybindings';
@@ -60,6 +62,21 @@ export default async function Image({ params }: Props) {
 
     const baseUrl = process.env.NEXTAUTH_URL || 'https://mchotkeys-stg.vercel.app';
     const avatarUrl = `${baseUrl}/api/avatar?uuid=${user.uuid}&size=128`;
+
+    // アイコンSVGを読み込んでPNGに変換
+    let iconDataUri: string | undefined;
+    try {
+      const sharp = (await import('sharp')).default;
+      const iconPath = join(process.cwd(), 'public', 'icon.svg');
+      const iconSvg = await readFile(iconPath);
+      const iconPng = await sharp(iconSvg)
+        .resize(40, 40)
+        .png()
+        .toBuffer();
+      iconDataUri = `data:image/png;base64,${iconPng.toString('base64')}`;
+    } catch (error) {
+      console.error('Failed to load icon:', error);
+    }
 
     // アバター画像を fetch して ArrayBuffer として取得
     let avatarBuffer: ArrayBuffer | null = null;
@@ -141,7 +158,15 @@ export default async function Image({ params }: Props) {
                 gap: '12px',
               }}
             >
-              <span>🎮</span>
+              {/* アイコン */}
+              {iconDataUri ? (
+                <div style={{ width: '40px', height: '40px', display: 'flex' }}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={iconDataUri} alt="icon" width={40} height={40} />
+                </div>
+              ) : (
+                <span>🎮</span>
+              )}
               <span>MCSRer Hotkeys</span>
             </div>
           </div>
@@ -161,13 +186,9 @@ export default async function Image({ params }: Props) {
                 style={{
                   width: '80px',
                   height: '80px',
-                  borderRadius: '12px',
-                  background: 'rgba(100, 116, 139, 0.1)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  overflow: 'hidden',
-                  border: '2px solid rgba(100, 116, 139, 0.2)',
                 }}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -184,12 +205,9 @@ export default async function Image({ params }: Props) {
                 style={{
                   width: '80px',
                   height: '80px',
-                  borderRadius: '12px',
-                  background: 'rgba(100, 116, 139, 0.1)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  border: '2px solid rgba(100, 116, 139, 0.2)',
                   fontSize: 40,
                 }}
               >
