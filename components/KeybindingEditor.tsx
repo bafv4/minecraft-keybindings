@@ -479,6 +479,7 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
       }));
 
       const data = {
+        targetUuid: uuid, // 管理者がゲストユーザーを編集する場合のため、対象ユーザーのUUIDを送信
         settings: {
           displayName,
           keyboardLayout,

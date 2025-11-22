@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/db';
+import { isAdmin } from '@/lib/admin';
 import type { UpdateKeybindingsRequest, PlayerData } from '@/types/keybinding';
 
 /**
@@ -122,8 +123,37 @@ export async function POST(request: Request) {
       );
     }
 
-    const uuid = session.user.uuid;
-    const data: UpdateKeybindingsRequest = await request.json();
+    const data: UpdateKeybindingsRequest & { targetUuid?: string } = await request.json();
+
+    // 保存先のUUIDを決定
+    let uuid = session.user.uuid;
+
+    // targetUuidが指定されている場合、管理者がゲストユーザーを編集している
+    if (data.targetUuid && data.targetUuid !== session.user.uuid) {
+      // 管理者チェック
+      if (!isAdmin(session.user.uuid)) {
+        return NextResponse.json(
+          { error: 'Only admins can edit other users' },
+          { status: 403 }
+        );
+      }
+
+      // 対象ユーザーがゲストかチェック
+      const targetUser = await prisma.user.findUnique({
+        where: { uuid: data.targetUuid },
+        select: { isGuest: true },
+      });
+
+      if (!targetUser?.isGuest) {
+        return NextResponse.json(
+          { error: 'Target user is not a guest or does not exist' },
+          { status: 403 }
+        );
+      }
+
+      // 管理者がゲストユーザーを編集する場合、targetUuidを使用
+      uuid = data.targetUuid;
+    }
 
     // トランザクションで全更新
     await prisma.$transaction(async (tx: any) => {
