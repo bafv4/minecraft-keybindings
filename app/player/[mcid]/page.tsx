@@ -81,12 +81,7 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
 
   const showDisplayName = user.displayName && user.displayName.trim() !== '';
 
-  // ゲーム設定と環境設定の存在チェック
-  const hasGameSettings = settings && (
-    settings.toggleSprint !== null ||
-    settings.toggleSneak !== null ||
-    settings.autoJump !== null
-  );
+  // 環境設定の存在チェック
   const hasPlayerConfig = settings && (
     settings.gameLanguage ||
     settings.mouseModel ||
@@ -114,75 +109,34 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
           </div>
         </div>
 
-        {/* 環境設定とゲーム設定 */}
-        {(hasPlayerConfig || hasGameSettings) && (
-          <div className="border-t border-border/50 pt-6 space-y-4">
-            {/* 環境設定 */}
-            {hasPlayerConfig && (
-              <div className="space-y-3">
-                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">環境</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {settings.gameLanguage && (
-                    <div className="flex items-center gap-2 text-sm">
-                      <span className="text-muted-foreground">言語:</span>
-                      <span className="font-medium">{getLanguageName(settings.gameLanguage)}</span>
-                    </div>
-                  )}
-                  {settings.mouseModel && (
-                    <div className="flex items-center gap-2 text-sm">
-                      <span className="text-muted-foreground">マウス:</span>
-                      <span className="font-medium">{settings.mouseModel}</span>
-                    </div>
-                  )}
-                  {settings.keyboardModel && (
-                    <div className="flex items-center gap-2 text-sm">
-                      <span className="text-muted-foreground">キーボード:</span>
-                      <span className="font-medium">{settings.keyboardModel}</span>
-                    </div>
-                  )}
+        {/* 環境設定 */}
+        {hasPlayerConfig && (
+          <div className="border-t border-border/50 pt-6 space-y-3">
+            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">環境</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {settings.gameLanguage && (
+                <div className="flex items-center gap-2 text-sm">
+                  <span className="text-muted-foreground">言語:</span>
+                  <span className="font-medium">{getLanguageName(settings.gameLanguage)}</span>
                 </div>
-                {settings.notes && (
-                  <div className="bg-[rgb(var(--card))] p-5 rounded-lg border-2 border-[rgb(var(--border))] shadow-md">
-                    <p className="text-sm font-semibold text-muted-foreground mb-2">コメント</p>
-                    <p className="text-sm whitespace-pre-wrap">{settings.notes}</p>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* ゲーム設定 */}
-            {hasGameSettings && (
-              <div className="space-y-3">
-                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">ゲーム設定</h3>
-                <div className="flex flex-wrap gap-3">
-                  {settings.toggleSprint !== null && (
-                    <div className={`px-3 py-1.5 rounded-lg border text-sm font-medium ${
-                      settings.toggleSprint
-                        ? 'bg-green-500/10 border-green-500/50 text-green-700 dark:text-green-300'
-                        : 'bg-red-500/10 border-red-500/50 text-red-700 dark:text-red-300'
-                    }`}>
-                      Toggle Sprint: {settings.toggleSprint ? 'ON' : 'OFF'}
-                    </div>
-                  )}
-                  {settings.toggleSneak !== null && (
-                    <div className={`px-3 py-1.5 rounded-lg border text-sm font-medium ${
-                      settings.toggleSneak
-                        ? 'bg-green-500/10 border-green-500/50 text-green-700 dark:text-green-300'
-                        : 'bg-red-500/10 border-red-500/50 text-red-700 dark:text-red-300'
-                    }`}>
-                      Toggle Sneak: {settings.toggleSneak ? 'ON' : 'OFF'}
-                    </div>
-                  )}
-                  {settings.autoJump !== null && (
-                    <div className={`px-3 py-1.5 rounded-lg border text-sm font-medium ${
-                      settings.autoJump
-                        ? 'bg-green-500/10 border-green-500/50 text-green-700 dark:text-green-300'
-                        : 'bg-red-500/10 border-red-500/50 text-red-700 dark:text-red-300'
-                    }`}>
-                      Auto Jump: {settings.autoJump ? 'ON' : 'OFF'}
-                    </div>
-                  )}
+              )}
+              {settings.mouseModel && (
+                <div className="flex items-center gap-2 text-sm">
+                  <span className="text-muted-foreground">マウス:</span>
+                  <span className="font-medium">{settings.mouseModel}</span>
                 </div>
+              )}
+              {settings.keyboardModel && (
+                <div className="flex items-center gap-2 text-sm">
+                  <span className="text-muted-foreground">キーボード:</span>
+                  <span className="font-medium">{settings.keyboardModel}</span>
+                </div>
+              )}
+            </div>
+            {settings.notes && (
+              <div className="bg-[rgb(var(--card))] p-5 rounded-lg border-2 border-[rgb(var(--border))] shadow-md">
+                <p className="text-sm font-semibold text-muted-foreground mb-2">コメント</p>
+                <p className="text-sm whitespace-pre-wrap">{settings.notes}</p>
               </div>
             )}
           </div>
