@@ -1,230 +1,159 @@
 'use client';
 
-import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { XMarkIcon } from '@heroicons/react/24/outline';
+import { useState, useEffect } from 'react';
+import {
+  Tab,
+  TabGroup,
+  TabList,
+  TabPanel,
+  TabPanels,
+  Combobox,
+  ComboboxInput,
+  ComboboxButton,
+  ComboboxOptions,
+  ComboboxOption,
+} from '@headlessui/react';
+import { CheckIcon, ChevronUpDownIcon } from '@heroicons/react/24/outline';
 import type { Finger } from '@/types/player';
+import { formatKeyName } from '@/lib/utils';
+import { DraggableModal } from '@/components/ui/DraggableModal';
 
 interface KeybindingModalProps {
   isOpen: boolean;
   onClose: () => void;
   selectedKey: string;
-  currentAction: string | null;
+  currentAction: string | string[] | null;
   onSave: (config: {
-    action?: string;
+    actions?: string[];
     remap?: string;
-    externalTool?: string; // アクション名（例: "Jingle:ThinBT" or カスタム文字列）
+    externalTool?: string;
     finger?: Finger[];
   }) => void;
-  // 既存の設定を渡す
   currentRemap?: string;
-  currentExternalTool?: string; // アクション名
+  currentExternalTool?: string;
   currentFinger?: Finger[];
-  // カスタムキー関連
   isCustomKey?: boolean;
   customKeyLabel?: string;
   onUpdateCustomKey?: (label: string) => void;
   onDeleteCustomKey?: () => void;
 }
 
-type TabType = 'action' | 'remap' | 'external' | 'finger' | 'custom';
-
-// 外部ツールアクションのプリセット定義
-const EXTERNAL_TOOL_ACTIONS = [
-  { value: 'ThinBT', label: 'ThinBT' },
-  { value: 'Wide', label: 'Wide' },
-  { value: 'Zoom', label: 'Zoom' },
-  { value: 'マウス感度切替', label: 'マウス感度切替' },
-  { value: 'Ninb: リセット', label: 'Ninb: リセット' },
-  { value: 'Ninb: Undo', label: 'Ninb: Undo' },
-  { value: 'Ninb: Redo', label: 'Ninb: Redo' },
-  { value: 'Ninb: ロック', label: 'Ninb: ロック' },
-  { value: 'Ninb: +0.01', label: 'Ninb: +0.01' },
-  { value: 'Ninb: -0.01', label: 'Ninb: -0.01' },
-  { value: 'Ninb: 表示切替', label: 'Ninb: 表示切替' },
-  { value: 'Ninb: Blue Boat', label: 'Ninb: Blue Boat' },
-  { value: 'SeedQueue: Reset All', label: 'SeedQueue: Reset All' },
-  { value: 'SeedQueue: Play Instance', label: 'SeedQueue: Play Instance' },
-  { value: 'SeedQueue: Lock Instance', label: 'SeedQueue: Lock Instance' },
-  { value: 'SeedQueue: Play Next Lock', label: 'SeedQueue: Play Next Lock' },
+// アクション定義
+const ACTIONS = [
+  { id: 'forward', label: '前進', category: '移動' },
+  { id: 'back', label: '後退', category: '移動' },
+  { id: 'left', label: '左移動', category: '移動' },
+  { id: 'right', label: '右移動', category: '移動' },
+  { id: 'jump', label: 'ジャンプ', category: '移動' },
+  { id: 'sneak', label: 'スニーク', category: '移動' },
+  { id: 'sprint', label: 'ダッシュ', category: '移動' },
+  { id: 'attack', label: '攻撃', category: '操作' },
+  { id: 'use', label: '使用', category: '操作' },
+  { id: 'pickBlock', label: 'ブロック選択', category: '操作' },
+  { id: 'drop', label: 'ドロップ', category: '操作' },
+  { id: 'swapHands', label: 'オフハンド持ち替え', category: '操作' },
+  { id: 'inventory', label: 'インベントリ', category: 'UI' },
+  { id: 'chat', label: 'チャット', category: 'UI' },
+  { id: 'command', label: 'コマンド', category: 'UI' },
+  { id: 'playerList', label: 'プレイヤーリスト', category: 'UI' },
+  { id: 'togglePerspective', label: '視点変更', category: 'UI' },
+  { id: 'fullscreen', label: 'フルスクリーン', category: 'UI' },
+  { id: 'toggleHud', label: 'HUD非表示', category: 'UI' },
+  ...Array.from({ length: 9 }, (_, i) => ({
+    id: `hotbar${i + 1}`,
+    label: `ホットバー${i + 1}`,
+    category: 'ホットバー',
+  })),
+  { id: 'reset', label: 'リセット', category: 'その他' },
 ];
 
-// 指の選択肢定義
-const FINGER_OPTIONS: { value: Finger; label: string; hand: 'left' | 'right' }[] = [
-  { value: 'left-pinky', label: '左手 小指', hand: 'left' },
-  { value: 'left-ring', label: '左手 薬指', hand: 'left' },
-  { value: 'left-middle', label: '左手 中指', hand: 'left' },
-  { value: 'left-index', label: '左手 人差し指', hand: 'left' },
-  { value: 'left-thumb', label: '左手 親指', hand: 'left' },
-  { value: 'right-thumb', label: '右手 親指', hand: 'right' },
-  { value: 'right-index', label: '右手 人差し指', hand: 'right' },
-  { value: 'right-middle', label: '右手 中指', hand: 'right' },
-  { value: 'right-ring', label: '右手 薬指', hand: 'right' },
-  { value: 'right-pinky', label: '右手 小指', hand: 'right' },
+// 指の選択肢
+const FINGER_OPTIONS: { value: Finger; label: string; color: string }[] = [
+  { value: 'left-pinky', label: '左小指', color: 'bg-pink-400' },
+  { value: 'left-ring', label: '左薬指', color: 'bg-purple-400' },
+  { value: 'left-middle', label: '左中指', color: 'bg-blue-400' },
+  { value: 'left-index', label: '左人差', color: 'bg-green-400' },
+  { value: 'left-thumb', label: '左親指', color: 'bg-yellow-400' },
+  { value: 'right-thumb', label: '右親指', color: 'bg-orange-400' },
+  { value: 'right-index', label: '右人差', color: 'bg-red-400' },
+  { value: 'right-middle', label: '右中指', color: 'bg-rose-400' },
+  { value: 'right-ring', label: '右薬指', color: 'bg-indigo-400' },
+  { value: 'right-pinky', label: '右小指', color: 'bg-cyan-400' },
 ];
 
-// リマップ可能なキー一覧
-const REMAPPABLE_KEYS = {
-  '特殊': [
-    { value: 'key.keyboard.disabled', label: '無効化（キーを押しても反応しない）' },
-  ],
-  '修飾キー': [
-    { value: 'key.keyboard.left.shift', label: '左Shift' },
-    { value: 'key.keyboard.right.shift', label: '右Shift' },
-    { value: 'key.keyboard.left.control', label: '左Ctrl' },
-    { value: 'key.keyboard.right.control', label: '右Ctrl' },
-    { value: 'key.keyboard.left.alt', label: '左Alt' },
-    { value: 'key.keyboard.right.alt', label: '右Alt' },
-    { value: 'key.keyboard.caps.lock', label: 'Caps Lock' },
-  ],
-  '文字キー': [
-    { value: 'key.keyboard.a', label: 'A' },
-    { value: 'key.keyboard.b', label: 'B' },
-    { value: 'key.keyboard.c', label: 'C' },
-    { value: 'key.keyboard.d', label: 'D' },
-    { value: 'key.keyboard.e', label: 'E' },
-    { value: 'key.keyboard.f', label: 'F' },
-    { value: 'key.keyboard.g', label: 'G' },
-    { value: 'key.keyboard.h', label: 'H' },
-    { value: 'key.keyboard.i', label: 'I' },
-    { value: 'key.keyboard.j', label: 'J' },
-    { value: 'key.keyboard.k', label: 'K' },
-    { value: 'key.keyboard.l', label: 'L' },
-    { value: 'key.keyboard.m', label: 'M' },
-    { value: 'key.keyboard.n', label: 'N' },
-    { value: 'key.keyboard.o', label: 'O' },
-    { value: 'key.keyboard.p', label: 'P' },
-    { value: 'key.keyboard.q', label: 'Q' },
-    { value: 'key.keyboard.r', label: 'R' },
-    { value: 'key.keyboard.s', label: 'S' },
-    { value: 'key.keyboard.t', label: 'T' },
-    { value: 'key.keyboard.u', label: 'U' },
-    { value: 'key.keyboard.v', label: 'V' },
-    { value: 'key.keyboard.w', label: 'W' },
-    { value: 'key.keyboard.x', label: 'X' },
-    { value: 'key.keyboard.y', label: 'Y' },
-    { value: 'key.keyboard.z', label: 'Z' },
-  ],
-  '数字キー': [
-    { value: 'key.keyboard.1', label: '1' },
-    { value: 'key.keyboard.2', label: '2' },
-    { value: 'key.keyboard.3', label: '3' },
-    { value: 'key.keyboard.4', label: '4' },
-    { value: 'key.keyboard.5', label: '5' },
-    { value: 'key.keyboard.6', label: '6' },
-    { value: 'key.keyboard.7', label: '7' },
-    { value: 'key.keyboard.8', label: '8' },
-    { value: 'key.keyboard.9', label: '9' },
-    { value: 'key.keyboard.0', label: '0' },
-  ],
-  'ファンクションキー': [
-    { value: 'key.keyboard.f1', label: 'F1' },
-    { value: 'key.keyboard.f2', label: 'F2' },
-    { value: 'key.keyboard.f3', label: 'F3' },
-    { value: 'key.keyboard.f4', label: 'F4' },
-    { value: 'key.keyboard.f5', label: 'F5' },
-    { value: 'key.keyboard.f6', label: 'F6' },
-    { value: 'key.keyboard.f7', label: 'F7' },
-    { value: 'key.keyboard.f8', label: 'F8' },
-    { value: 'key.keyboard.f9', label: 'F9' },
-    { value: 'key.keyboard.f10', label: 'F10' },
-    { value: 'key.keyboard.f11', label: 'F11' },
-    { value: 'key.keyboard.f12', label: 'F12' },
-    { value: 'key.keyboard.f13', label: 'F13' },
-    { value: 'key.keyboard.f14', label: 'F14' },
-    { value: 'key.keyboard.f15', label: 'F15' },
-    { value: 'key.keyboard.f16', label: 'F16' },
-    { value: 'key.keyboard.f17', label: 'F17' },
-    { value: 'key.keyboard.f18', label: 'F18' },
-    { value: 'key.keyboard.f19', label: 'F19' },
-    { value: 'key.keyboard.f20', label: 'F20' },
-  ],
-  '記号キー': [
-    { value: 'key.keyboard.comma', label: ', (コンマ)' },
-    { value: 'key.keyboard.period', label: '. (ピリオド)' },
-    { value: 'key.keyboard.slash', label: '/ (スラッシュ)' },
-    { value: 'key.keyboard.semicolon', label: '; (セミコロン)' },
-    { value: 'key.keyboard.apostrophe', label: '\' (アポストロフィ)' },
-    { value: 'key.keyboard.left.bracket', label: '[ (左角括弧)' },
-    { value: 'key.keyboard.right.bracket', label: '] (右角括弧)' },
-    { value: 'key.keyboard.minus', label: '- (マイナス)' },
-    { value: 'key.keyboard.equal', label: '= (イコール)' },
-    { value: 'key.keyboard.grave.accent', label: '` (グレイヴ)' },
-    { value: 'key.keyboard.backslash', label: '\\ (バックスラッシュ)' },
-  ],
-  '特殊キー': [
-    { value: 'key.keyboard.space', label: 'スペース' },
-    { value: 'key.keyboard.enter', label: 'Enter' },
-    { value: 'key.keyboard.tab', label: 'Tab' },
-    { value: 'key.keyboard.backspace', label: 'Backspace' },
-    { value: 'key.keyboard.escape', label: 'Esc' },
-  ],
-  '日本語キーボード': [
-    { value: 'key.keyboard.nonconvert', label: '無変換' },
-    { value: 'key.keyboard.convert', label: '変換' },
-    { value: 'key.keyboard.kana', label: 'かな' },
-  ],
-  '矢印キー': [
-    { value: 'key.keyboard.up', label: '↑' },
-    { value: 'key.keyboard.down', label: '↓' },
-    { value: 'key.keyboard.left', label: '←' },
-    { value: 'key.keyboard.right', label: '→' },
-  ],
-  '編集キー': [
-    { value: 'key.keyboard.insert', label: 'Insert' },
-    { value: 'key.keyboard.delete', label: 'Delete' },
-    { value: 'key.keyboard.home', label: 'Home' },
-    { value: 'key.keyboard.end', label: 'End' },
-    { value: 'key.keyboard.page.up', label: 'Page Up' },
-    { value: 'key.keyboard.page.down', label: 'Page Down' },
-  ],
-  'テンキー': [
-    { value: 'key.keyboard.keypad.0', label: 'テンキー 0' },
-    { value: 'key.keyboard.keypad.1', label: 'テンキー 1' },
-    { value: 'key.keyboard.keypad.2', label: 'テンキー 2' },
-    { value: 'key.keyboard.keypad.3', label: 'テンキー 3' },
-    { value: 'key.keyboard.keypad.4', label: 'テンキー 4' },
-    { value: 'key.keyboard.keypad.5', label: 'テンキー 5' },
-    { value: 'key.keyboard.keypad.6', label: 'テンキー 6' },
-    { value: 'key.keyboard.keypad.7', label: 'テンキー 7' },
-    { value: 'key.keyboard.keypad.8', label: 'テンキー 8' },
-    { value: 'key.keyboard.keypad.9', label: 'テンキー 9' },
-    { value: 'key.keyboard.keypad.add', label: 'テンキー +' },
-    { value: 'key.keyboard.keypad.subtract', label: 'テンキー -' },
-    { value: 'key.keyboard.keypad.multiply', label: 'テンキー *' },
-    { value: 'key.keyboard.keypad.divide', label: 'テンキー /' },
-    { value: 'key.keyboard.keypad.decimal', label: 'テンキー .' },
-    { value: 'key.keyboard.keypad.enter', label: 'テンキー Enter' },
-    { value: 'key.keyboard.keypad.equal', label: 'テンキー =' },
-  ],
-  '国際キー / 特殊文字': [
-    { value: 'key.keyboard.world.1', label: 'World 1 (汎用特殊キー1)' },
-    { value: 'key.keyboard.world.2', label: 'World 2 (汎用特殊キー2)' },
-    { value: 'key.keyboard.section', label: '§ (セクション)' },
-  ],
-  '北欧語・ドイツ語キー': [
-    { value: 'key.keyboard.ae', label: 'æ (AE合字)' },
-    { value: 'key.keyboard.oe', label: 'ø (O with Stroke)' },
-    { value: 'key.keyboard.aa', label: 'å (A with Ring)' },
-    { value: 'key.keyboard.a.umlaut', label: 'ä (A Umlaut)' },
-    { value: 'key.keyboard.o.umlaut', label: 'ö (O Umlaut)' },
-    { value: 'key.keyboard.u.umlaut', label: 'ü (U Umlaut)' },
-    { value: 'key.keyboard.eszett', label: 'ß (Eszett)' },
-  ],
-  'フランス語・その他の国際キー': [
-    { value: 'key.keyboard.e.acute', label: 'é (E Acute)' },
-    { value: 'key.keyboard.e.grave', label: 'è (E Grave)' },
-    { value: 'key.keyboard.a.grave', label: 'à (A Grave)' },
-    { value: 'key.keyboard.c.cedilla', label: 'ç (C Cedilla)' },
-    { value: 'key.keyboard.n.tilde', label: 'ñ (N Tilde)' },
-  ],
-  'マウスボタン': [
-    { value: 'key.mouse.left', label: 'マウス左' },
-    { value: 'key.mouse.right', label: 'マウス右' },
-    { value: 'key.mouse.middle', label: 'マウスホイール' },
-    { value: 'key.mouse.4', label: 'マウス4' },
-    { value: 'key.mouse.5', label: 'マウス5' },
-  ],
-};
+// リマップ可能なキー（拡張版）
+const REMAP_KEYS = [
+  { value: '', label: 'リマップなし' },
+  { value: 'key.keyboard.disabled', label: '無効化' },
+  // 修飾キー
+  { value: 'key.keyboard.left.shift', label: '左Shift' },
+  { value: 'key.keyboard.right.shift', label: '右Shift' },
+  { value: 'key.keyboard.left.control', label: '左Ctrl' },
+  { value: 'key.keyboard.right.control', label: '右Ctrl' },
+  { value: 'key.keyboard.left.alt', label: '左Alt' },
+  { value: 'key.keyboard.right.alt', label: '右Alt' },
+  { value: 'key.keyboard.caps.lock', label: 'Caps Lock' },
+  // 特殊キー
+  { value: 'key.keyboard.space', label: 'Space' },
+  { value: 'key.keyboard.tab', label: 'Tab' },
+  { value: 'key.keyboard.enter', label: 'Enter' },
+  { value: 'key.keyboard.backspace', label: 'Backspace' },
+  { value: 'key.keyboard.escape', label: 'Escape' },
+  { value: 'key.keyboard.insert', label: 'Insert' },
+  { value: 'key.keyboard.delete', label: 'Delete' },
+  { value: 'key.keyboard.home', label: 'Home' },
+  { value: 'key.keyboard.end', label: 'End' },
+  { value: 'key.keyboard.page.up', label: 'Page Up' },
+  { value: 'key.keyboard.page.down', label: 'Page Down' },
+  // 矢印キー
+  { value: 'key.keyboard.up', label: '↑' },
+  { value: 'key.keyboard.down', label: '↓' },
+  { value: 'key.keyboard.left', label: '←' },
+  { value: 'key.keyboard.right', label: '→' },
+  // ファンクションキー
+  ...Array.from({ length: 12 }, (_, i) => ({
+    value: `key.keyboard.f${i + 1}`,
+    label: `F${i + 1}`,
+  })),
+  // 数字キー
+  ...Array.from({ length: 10 }, (_, i) => ({
+    value: `key.keyboard.${i}`,
+    label: `${i}`,
+  })),
+  // アルファベットキー
+  ...'abcdefghijklmnopqrstuvwxyz'.split('').map(char => ({
+    value: `key.keyboard.${char}`,
+    label: char.toUpperCase(),
+  })),
+  // 記号キー
+  { value: 'key.keyboard.minus', label: '-' },
+  { value: 'key.keyboard.equal', label: '=' },
+  { value: 'key.keyboard.left.bracket', label: '[' },
+  { value: 'key.keyboard.right.bracket', label: ']' },
+  { value: 'key.keyboard.backslash', label: '\\' },
+  { value: 'key.keyboard.semicolon', label: ';' },
+  { value: 'key.keyboard.apostrophe', label: "'" },
+  { value: 'key.keyboard.grave.accent', label: '`' },
+  { value: 'key.keyboard.comma', label: ',' },
+  { value: 'key.keyboard.period', label: '.' },
+  { value: 'key.keyboard.slash', label: '/' },
+  // マウスボタン
+  { value: 'key.mouse.left', label: 'マウス左' },
+  { value: 'key.mouse.right', label: 'マウス右' },
+  { value: 'key.mouse.middle', label: 'マウス中央' },
+  { value: 'key.mouse.4', label: 'マウス4' },
+  { value: 'key.mouse.5', label: 'マウス5' },
+];
+
+// 外部ツールプリセット
+const EXTERNAL_TOOLS = [
+  'リセット',
+  'Ninb: リセット',
+  'SeedQueue: Reset All',
+  'マウス感度切替',
+  'Zoom',
+  'Wide',
+];
 
 export function KeybindingModal({
   isOpen,
@@ -240,781 +169,359 @@ export function KeybindingModal({
   onUpdateCustomKey,
   onDeleteCustomKey,
 }: KeybindingModalProps) {
-  const [activeTab, setActiveTab] = useState<TabType>('action');
-  const [editedLabel, setEditedLabel] = useState(customKeyLabel);
-  const [selectedAction, setSelectedAction] = useState<string | null>(currentAction);
-  const [remapInput, setRemapInput] = useState<string>(''); // ユーザー入力値（表示用）
-  const [showRemapDropdown, setShowRemapDropdown] = useState(false);
-  const [externalToolAction, setExternalToolAction] = useState<string>(currentExternalTool || '');
-  const [selectedFingers, setSelectedFingers] = useState<Finger[]>(currentFinger || []);
-  const remapDropdownRef = useRef<HTMLDivElement>(null);
+  // 状態管理
+  const [selectedActions, setSelectedActions] = useState<string[]>([]);
+  const [selectedFingers, setSelectedFingers] = useState<Finger[]>([]);
+  const [remapValue, setRemapValue] = useState('');
+  const [remapQuery, setRemapQuery] = useState('');
+  const [externalTool, setExternalTool] = useState('');
+  const [externalToolQuery, setExternalToolQuery] = useState('');
+  const [customLabel, setCustomLabel] = useState('');
+  const [selectedTabIndex, setSelectedTabIndex] = useState(0);
 
-  // ドロップダウン外クリック検知
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (remapDropdownRef.current && !remapDropdownRef.current.contains(event.target as Node)) {
-        setShowRemapDropdown(false);
-      }
-    };
-
-    if (showRemapDropdown) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [showRemapDropdown]);
-
-  // キーコードからラベルを取得
-  const getKeyLabel = (keyCode: string): string => {
-    if (!keyCode) return '';
-    // REMAPPABLE_KEYSから検索
-    for (const keys of Object.values(REMAPPABLE_KEYS)) {
-      const found = keys.find(k => k.value === keyCode);
-      if (found) return found.label;
-    }
-    // 見つからなければformatKeyLabelを使用
-    return formatKeyLabel(keyCode);
-  };
-
-  // ユーザー入力からキーコードに変換
-  const parseInputToKeyCode = (input: string): string => {
-    if (!input.trim()) return '';
-
-    const normalized = input.trim().toLowerCase();
-
-    // 既にキーコード形式なら検証してそのまま返す
-    if (normalized.startsWith('key.')) {
-      return input.trim();
-    }
-
-    // 単一文字（最優先 - 他のキーとの部分一致を避けるため）
-    if (/^[a-z]$/.test(normalized)) {
-      return `key.keyboard.${normalized}`;
-    }
-
-    // 数字（最優先）
-    if (/^[0-9]$/.test(normalized)) {
-      return `key.keyboard.${normalized}`;
-    }
-
-    // ファンクションキー: f1-f20
-    const fKeyMatch = normalized.match(/^f(\d+)$/);
-    if (fKeyMatch) {
-      const num = parseInt(fKeyMatch[1]);
-      if (num >= 1 && num <= 20) return `key.keyboard.f${num}`;
-    }
-
-    // REMAPPABLE_KEYSから完全一致を検索
-    for (const keys of Object.values(REMAPPABLE_KEYS)) {
-      const found = keys.find(k => k.label.toLowerCase() === normalized);
-      if (found) return found.value;
-    }
-
-    // テンキー
-    if (normalized.startsWith('numpad ') || normalized.startsWith('keypad ') || normalized.startsWith('テンキー ')) {
-      const parts = normalized.split(' ');
-      if (parts.length === 2) {
-        const num = parts[1];
-        if (/^\d+$/.test(num)) return `key.keyboard.keypad.${num}`;
-        // テンキー記号
-        const keypadSymbols: { [key: string]: string } = {
-          '+': 'add',
-          '-': 'subtract',
-          '*': 'multiply',
-          '/': 'divide',
-          '.': 'decimal',
-          'enter': 'enter',
-          '=': 'equal',
-        };
-        if (keypadSymbols[num]) return `key.keyboard.keypad.${keypadSymbols[num]}`;
-      }
-    }
-
-    // 特殊キーのエイリアス
-    const aliases: { [key: string]: string } = {
-      'space': 'key.keyboard.space',
-      'スペース': 'key.keyboard.space',
-      'enter': 'key.keyboard.enter',
-      'tab': 'key.keyboard.tab',
-      'backspace': 'key.keyboard.backspace',
-      'esc': 'key.keyboard.escape',
-      'escape': 'key.keyboard.escape',
-      'caps': 'key.keyboard.caps.lock',
-      'capslock': 'key.keyboard.caps.lock',
-      'caps lock': 'key.keyboard.caps.lock',
-      'shift': 'key.keyboard.left.shift',
-      'left shift': 'key.keyboard.left.shift',
-      'lshift': 'key.keyboard.left.shift',
-      'right shift': 'key.keyboard.right.shift',
-      'rshift': 'key.keyboard.right.shift',
-      'ctrl': 'key.keyboard.left.control',
-      'control': 'key.keyboard.left.control',
-      'left ctrl': 'key.keyboard.left.control',
-      'left control': 'key.keyboard.left.control',
-      'lctrl': 'key.keyboard.left.control',
-      'right ctrl': 'key.keyboard.right.control',
-      'right control': 'key.keyboard.right.control',
-      'rctrl': 'key.keyboard.right.control',
-      'alt': 'key.keyboard.left.alt',
-      'left alt': 'key.keyboard.left.alt',
-      'lalt': 'key.keyboard.left.alt',
-      'right alt': 'key.keyboard.right.alt',
-      'ralt': 'key.keyboard.right.alt',
-      'win': 'key.keyboard.left.win',
-      'windows': 'key.keyboard.left.win',
-      'left win': 'key.keyboard.left.win',
-      'right win': 'key.keyboard.right.win',
-      'up': 'key.keyboard.up',
-      '↑': 'key.keyboard.up',
-      'down': 'key.keyboard.down',
-      '↓': 'key.keyboard.down',
-      'left': 'key.keyboard.left',
-      '←': 'key.keyboard.left',
-      'right': 'key.keyboard.right',
-      '→': 'key.keyboard.right',
-      '無変換': 'key.keyboard.nonconvert',
-      '変換': 'key.keyboard.convert',
-      'かな': 'key.keyboard.kana',
-      // 編集キー
-      'insert': 'key.keyboard.insert',
-      'ins': 'key.keyboard.insert',
-      'delete': 'key.keyboard.delete',
-      'del': 'key.keyboard.delete',
-      'home': 'key.keyboard.home',
-      'end': 'key.keyboard.end',
-      'pageup': 'key.keyboard.page.up',
-      'page up': 'key.keyboard.page.up',
-      'pgup': 'key.keyboard.page.up',
-      'pagedown': 'key.keyboard.page.down',
-      'page down': 'key.keyboard.page.down',
-      'pgdn': 'key.keyboard.page.down',
-      // 記号キー
-      ',': 'key.keyboard.comma',
-      'comma': 'key.keyboard.comma',
-      'コンマ': 'key.keyboard.comma',
-      '.': 'key.keyboard.period',
-      'period': 'key.keyboard.period',
-      'ピリオド': 'key.keyboard.period',
-      '/': 'key.keyboard.slash',
-      'slash': 'key.keyboard.slash',
-      'スラッシュ': 'key.keyboard.slash',
-      ';': 'key.keyboard.semicolon',
-      'semicolon': 'key.keyboard.semicolon',
-      'セミコロン': 'key.keyboard.semicolon',
-      '\'': 'key.keyboard.apostrophe',
-      'apostrophe': 'key.keyboard.apostrophe',
-      'アポストロフィ': 'key.keyboard.apostrophe',
-      '[': 'key.keyboard.left.bracket',
-      'left bracket': 'key.keyboard.left.bracket',
-      '左角括弧': 'key.keyboard.left.bracket',
-      ']': 'key.keyboard.right.bracket',
-      'right bracket': 'key.keyboard.right.bracket',
-      '右角括弧': 'key.keyboard.right.bracket',
-      '-': 'key.keyboard.minus',
-      'minus': 'key.keyboard.minus',
-      'マイナス': 'key.keyboard.minus',
-      '=': 'key.keyboard.equal',
-      'equal': 'key.keyboard.equal',
-      'イコール': 'key.keyboard.equal',
-      '`': 'key.keyboard.grave.accent',
-      'grave': 'key.keyboard.grave.accent',
-      'グレイヴ': 'key.keyboard.grave.accent',
-      '\\': 'key.keyboard.backslash',
-      'backslash': 'key.keyboard.backslash',
-      'バックスラッシュ': 'key.keyboard.backslash',
-    };
-
-    if (aliases[normalized]) return aliases[normalized];
-
-    // デフォルト: key.keyboard.として扱う
-    return `key.keyboard.${normalized}`;
-  };
-
-  // モーダルが開くたびに現在の設定で状態をリセット
+  // モーダルが開いたら初期化
   useEffect(() => {
     if (isOpen) {
-      setSelectedAction(currentAction);
-      // 既存のリマップをラベル形式で表示
-      setRemapInput(currentRemap ? getKeyLabel(currentRemap) : '');
-      setExternalToolAction(currentExternalTool || '');
+      setSelectedActions(currentAction ? (Array.isArray(currentAction) ? currentAction : [currentAction]) : []);
       setSelectedFingers(currentFinger || []);
-      setActiveTab('action');
+      setRemapValue(currentRemap || '');
+      setExternalTool(currentExternalTool || '');
+      setCustomLabel(customKeyLabel);
     }
-  }, [isOpen, currentAction, currentRemap, currentExternalTool, currentFinger]);
+  }, [isOpen, currentAction, currentFinger, currentRemap, currentExternalTool, customKeyLabel]);
 
-  // リマップ候補のフィルタリング
-  const filteredRemapOptions = useMemo(() => {
-    if (!remapInput.trim()) {
-      // 入力がない場合は全カテゴリを返す
-      return Object.entries(REMAPPABLE_KEYS);
-    }
+  // アクションのトグル
+  const toggleAction = (actionId: string) => {
+    setSelectedActions(prev =>
+      prev.includes(actionId) ? prev.filter(a => a !== actionId) : [...prev, actionId]
+    );
+  };
 
-    const query = remapInput.toLowerCase();
-    const filtered: [string, typeof REMAPPABLE_KEYS[keyof typeof REMAPPABLE_KEYS]][] = [];
+  // 指のトグル
+  const toggleFinger = (finger: Finger) => {
+    setSelectedFingers(prev =>
+      prev.includes(finger) ? prev.filter(f => f !== finger) : [...prev, finger]
+    );
+  };
 
-    for (const [category, keys] of Object.entries(REMAPPABLE_KEYS)) {
-      const matchingKeys = keys.filter(k =>
-        k.label.toLowerCase().includes(query) ||
-        k.value.toLowerCase().includes(query)
-      );
-      if (matchingKeys.length > 0) {
-        filtered.push([category, matchingKeys]);
-      }
-    }
-
-    return filtered;
-  }, [remapInput]);
-
-  if (!isOpen) return null;
-
+  // 保存処理
   const handleSave = () => {
-    // カスタムキーのラベル更新
-    if (isCustomKey && onUpdateCustomKey && editedLabel !== customKeyLabel) {
-      onUpdateCustomKey(editedLabel);
+    // カスタムキーラベルの更新
+    if (isCustomKey && onUpdateCustomKey && customLabel !== customKeyLabel) {
+      onUpdateCustomKey(customLabel);
     }
 
-    // 入力値をキーコードに変換
-    const finalRemapKey = remapInput.trim() ? parseInputToKeyCode(remapInput) : undefined;
-
-    const config = {
-      action: selectedAction || undefined,
-      remap: finalRemapKey,
-      // 外部ツールアクション（空文字列でない場合のみ保存）
-      externalTool: externalToolAction.trim() || undefined,
+    // 設定を保存
+    onSave({
+      actions: selectedActions.length > 0 ? selectedActions : undefined,
       finger: selectedFingers.length > 0 ? selectedFingers : undefined,
-    };
-    console.log('KeybindingModal saving:', { selectedKey, config, parsedRemap: finalRemapKey });
-    onSave(config);
+      remap: remapValue || undefined,
+      externalTool: externalTool || undefined,
+    });
+
     onClose();
   };
 
-  // キーラベルを表示用にフォーマット
-  const formatKeyLabel = (keyCode: string): string => {
-    if (keyCode.startsWith('key.mouse.')) {
-      const button = keyCode.replace('key.mouse.', '');
-      if (button === 'left') return 'マウス左';
-      if (button === 'right') return 'マウス右';
-      if (button === 'middle') return 'マウスホイール';
-      if (button === '4') return 'マウス4';
-      if (button === '5') return 'マウス5';
-      return button.toUpperCase();
-    }
-
-    if (keyCode.startsWith('key.keyboard.')) {
-      const key = keyCode.replace('key.keyboard.', '');
-      const specialKeys: { [key: string]: string } = {
-        'left.shift': '左Shift',
-        'right.shift': '右Shift',
-        'left.control': '左Ctrl',
-        'right.control': '右Ctrl',
-        'left.alt': '左Alt',
-        'right.alt': '右Alt',
-        'space': 'スペース',
-        'caps.lock': 'Caps Lock',
-        'enter': 'Enter',
-        'tab': 'Tab',
-        'backspace': 'Backspace',
-        'escape': 'Esc',
-        'up': '↑',
-        'down': '↓',
-        'left': '←',
-        'right': '→',
-        'nonconvert': '無変換',
-        'convert': '変換',
-        'kana': 'かな',
-        'comma': ',',
-        'period': '.',
-        'slash': '/',
-        'semicolon': ';',
-        'apostrophe': '\'',
-        'left.bracket': '[',
-        'right.bracket': ']',
-        'minus': '-',
-        'equal': '=',
-        'grave.accent': '`',
-        'backslash': '\\',
-        'world.1': 'World 1',
-        'world.2': 'World 2',
-        'section': '§',
-        // 北欧語・ドイツ語キー
-        'ae': 'æ',
-        'oe': 'ø',
-        'aa': 'å',
-        'a.umlaut': 'ä',
-        'o.umlaut': 'ö',
-        'u.umlaut': 'ü',
-        'eszett': 'ß',
-        // フランス語・その他
-        'e.acute': 'é',
-        'e.grave': 'è',
-        'a.grave': 'à',
-        'c.cedilla': 'ç',
-        'n.tilde': 'ñ',
-        'disabled': '無効化',
-        // 編集キー
-        'insert': 'Insert',
-        'delete': 'Delete',
-        'home': 'Home',
-        'end': 'End',
-        'page.up': 'Page Up',
-        'page.down': 'Page Down',
-        // テンキー
-        'keypad.0': 'テンキー 0',
-        'keypad.1': 'テンキー 1',
-        'keypad.2': 'テンキー 2',
-        'keypad.3': 'テンキー 3',
-        'keypad.4': 'テンキー 4',
-        'keypad.5': 'テンキー 5',
-        'keypad.6': 'テンキー 6',
-        'keypad.7': 'テンキー 7',
-        'keypad.8': 'テンキー 8',
-        'keypad.9': 'テンキー 9',
-        'keypad.add': 'テンキー +',
-        'keypad.subtract': 'テンキー -',
-        'keypad.multiply': 'テンキー *',
-        'keypad.divide': 'テンキー /',
-        'keypad.decimal': 'テンキー .',
-        'keypad.enter': 'テンキー Enter',
-        'keypad.equal': 'テンキー =',
-      };
-
-      if (specialKeys[key]) return specialKeys[key];
-
-      // F13-F20の処理
-      if (key.match(/^f(1[3-9]|20)$/)) {
-        return key.toUpperCase();
-      }
-
-      return key.toUpperCase();
-    }
-
-    return keyCode;
-  };
-
-  // 利用可能なアクション一覧（攻撃/使用は除外 - MCSRルール）
-  const actions = [
-    { id: 'forward', label: '前進' },
-    { id: 'back', label: '後退' },
-    { id: 'left', label: '左移動' },
-    { id: 'right', label: '右移動' },
-    { id: 'jump', label: 'ジャンプ' },
-    { id: 'sneak', label: 'スニーク' },
-    { id: 'sprint', label: 'ダッシュ' },
-    { id: 'inventory', label: 'インベントリ' },
-    { id: 'swapHands', label: 'オフハンド持ち替え' },
-    { id: 'drop', label: 'ドロップ' },
-    // attack と use は MCSRルールにより除外
-    { id: 'pickBlock', label: 'ブロック選択' },
-    { id: 'chat', label: 'チャット' },
-    { id: 'command', label: 'コマンド' },
-    { id: 'togglePerspective', label: '視点変更' },
-    { id: 'fullscreen', label: 'フルスクリーン' },
-    { id: 'toggleHud', label: 'HUD非表示' },
-    { id: 'playerList', label: 'プレイヤーリスト' },
-    { id: 'reset', label: 'リセット' },
-    ...Array.from({ length: 9 }, (_, i) => ({
-      id: `hotbar${i + 1}`,
-      label: `ホットバー${i + 1}`,
-    })),
+  // タブ定義
+  const tabs = [
+    { id: 'action', label: '操作割り当て' },
+    { id: 'finger', label: '指の割り当て' },
+    { id: 'remap', label: 'リマップ' },
+    { id: 'external', label: '外部ツール' },
+    ...(isCustomKey ? [{ id: 'custom', label: 'カスタムキー' }] : []),
   ];
 
+  // カテゴリ別にアクションをグループ化
+  const groupedActions = ACTIONS.reduce((acc, action) => {
+    if (!acc[action.category]) acc[action.category] = [];
+    acc[action.category].push(action);
+    return acc;
+  }, {} as Record<string, typeof ACTIONS>);
+
+  // リマップキーのフィルタリング
+  const filteredRemapKeys = remapQuery === ''
+    ? REMAP_KEYS
+    : REMAP_KEYS.filter((key) =>
+        key.label.toLowerCase().includes(remapQuery.toLowerCase())
+      );
+
+  // 外部ツールのフィルタリング
+  const filteredExternalTools = externalToolQuery === ''
+    ? EXTERNAL_TOOLS
+    : EXTERNAL_TOOLS.filter((tool) =>
+        tool.toLowerCase().includes(externalToolQuery.toLowerCase())
+      );
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="bg-[rgb(var(--card))] border border-[rgb(var(--border))] rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col">
-        {/* ヘッダー */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[rgb(var(--border))] flex-shrink-0">
-          <h2 className="text-xl font-semibold">
-            キー設定: {formatKeyLabel(selectedKey)}
-          </h2>
-          <button
-            type="button"
-            onClick={onClose}
-            className="text-[rgb(var(--muted-foreground))] hover:text-[rgb(var(--foreground))] transition-colors"
-          >
-            <XMarkIcon className="w-6 h-6" />
-          </button>
-        </div>
-
-        {/* タブ */}
-        <div className="flex border-b border-[rgb(var(--border))] flex-shrink-0">
-          <button
-            type="button"
-            onClick={() => setActiveTab('action')}
-            className={`flex-1 px-4 py-3 font-medium transition-colors text-sm ${
-              activeTab === 'action'
-                ? 'border-b-2 border-blue-500 text-blue-600'
-                : 'text-[rgb(var(--muted-foreground))] hover:text-[rgb(var(--foreground))]'
-            }`}
-          >
-            操作割り当て
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab('finger')}
-            className={`flex-1 px-4 py-3 font-medium transition-colors text-sm ${
-              activeTab === 'finger'
-                ? 'border-b-2 border-blue-500 text-blue-600'
-                : 'text-[rgb(var(--muted-foreground))] hover:text-[rgb(var(--foreground))]'
-            }`}
-          >
-            指の割り当て
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab('remap')}
-            className={`flex-1 px-4 py-3 font-medium transition-colors text-sm ${
-              activeTab === 'remap'
-                ? 'border-b-2 border-blue-500 text-blue-600'
-                : 'text-[rgb(var(--muted-foreground))] hover:text-[rgb(var(--foreground))]'
-            }`}
-          >
-            リマップ
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab('external')}
-            className={`flex-1 px-4 py-3 font-medium transition-colors text-sm ${
-              activeTab === 'external'
-                ? 'border-b-2 border-blue-500 text-blue-600'
-                : 'text-[rgb(var(--muted-foreground))] hover:text-[rgb(var(--foreground))]'
-            }`}
-          >
-            外部ツール・Mod
-          </button>
-          {isCustomKey && (
-            <button
-              type="button"
-              onClick={() => setActiveTab('custom')}
-              className={`flex-1 px-4 py-3 font-medium transition-colors text-sm ${
-                activeTab === 'custom'
-                  ? 'border-b-2 border-blue-500 text-blue-600'
-                  : 'text-[rgb(var(--muted-foreground))] hover:text-[rgb(var(--foreground))]'
-              }`}
-            >
-              カスタムキー
-            </button>
-          )}
-        </div>
-
-        {/* コンテンツ */}
-        <div className="px-6 py-4 min-h-[300px] overflow-y-auto flex-1">
-          {activeTab === 'action' && (
-            <div className="space-y-3">
-              <p className="text-sm text-[rgb(var(--muted-foreground))] mb-4">
-                このキーに割り当てる操作を選択してください
-              </p>
-              <div className="grid grid-cols-2 gap-2">
-                {actions.map((action) => (
-                  <button
-                    key={action.id}
-                    onClick={() => setSelectedAction(action.id)}
-                    className={`px-4 py-2 rounded-lg border transition-colors text-left ${
-                      selectedAction === action.id
-                        ? 'border-blue-500 bg-blue-500/10 text-blue-600'
-                        : 'border-[rgb(var(--border))] hover:bg-[rgb(var(--accent))]'
-                    }`}
-                  >
-                    {action.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'finger' && (
-            <div className="space-y-4">
-              <p className="text-sm text-[rgb(var(--muted-foreground))]">
-                このキーをどの指で押すかを選択してください。複数の指を選択できます。指による色分け表示が有効になります。
-              </p>
-              <div className="space-y-6">
-                {/* 左手 - 小指から親指の順 */}
-                <div>
-                  <h3 className="text-sm font-semibold mb-3 text-center">左手</h3>
-                  <div className="flex justify-center gap-1">
-                    {FINGER_OPTIONS.filter(f => f.hand === 'left').map((finger) => {
-                      const isSelected = selectedFingers.includes(finger.value);
-                      return (
-                        <button
-                          key={finger.value}
-                          onClick={() => {
-                            // トグル動作: 選択されていれば解除、されていなければ追加
-                            setSelectedFingers(prev =>
-                              isSelected
-                                ? prev.filter(f => f !== finger.value)
-                                : [...prev, finger.value]
-                            );
-                          }}
-                          className={`px-2 py-8 rounded-lg border transition-colors text-center text-xs w-16 ${
-                            isSelected
-                              ? 'border-blue-500 bg-blue-500/10 text-blue-600 font-bold'
-                              : 'border-[rgb(var(--border))] hover:bg-[rgb(var(--accent))]'
-                          }`}
-                          style={{
-                            marginTop: finger.value === 'left-pinky' ? '20px' :
-                                      finger.value === 'left-ring' ? '8px' :
-                                      finger.value === 'left-middle' ? '0px' :
-                                      finger.value === 'left-index' ? '4px' : '28px'
-                          }}
-                        >
-                          {finger.label.replace('左手 ', '')}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-                {/* 右手 - 正順で配置（親指から小指） */}
-                <div>
-                  <h3 className="text-sm font-semibold mb-3 text-center">右手</h3>
-                  <div className="flex justify-center gap-1">
-                    {FINGER_OPTIONS.filter(f => f.hand === 'right').map((finger) => {
-                      const isSelected = selectedFingers.includes(finger.value);
-                      return (
-                        <button
-                          key={finger.value}
-                          onClick={() => {
-                            // トグル動作: 選択されていれば解除、されていなければ追加
-                            setSelectedFingers(prev =>
-                              isSelected
-                                ? prev.filter(f => f !== finger.value)
-                                : [...prev, finger.value]
-                            );
-                          }}
-                          className={`px-2 py-8 rounded-lg border transition-colors text-center text-xs w-16 ${
-                            isSelected
-                              ? 'border-blue-500 bg-blue-500/10 text-blue-600 font-bold'
-                              : 'border-[rgb(var(--border))] hover:bg-[rgb(var(--accent))]'
-                          }`}
-                          style={{
-                            marginTop: finger.value === 'right-thumb' ? '28px' :
-                                      finger.value === 'right-index' ? '4px' :
-                                      finger.value === 'right-middle' ? '0px' :
-                                      finger.value === 'right-ring' ? '8px' : '20px'
-                          }}
-                        >
-                          {finger.label.replace('右手 ', '')}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'remap' && (
-            <div className="space-y-4">
-              <p className="text-sm text-[rgb(var(--muted-foreground))]">
-                このキーを別のキーに置き換えます。ハードウェアレベルでの変更をシミュレートします。
-              </p>
-              <div className="relative" ref={remapDropdownRef}>
-                <label className="block text-sm font-medium mb-2">
-                  リマップ先のキー
-                </label>
-                <input
-                  type="text"
-                  value={remapInput}
-                  onChange={(e) => {
-                    setRemapInput(e.target.value);
-                    if (!showRemapDropdown) setShowRemapDropdown(true);
-                  }}
-                  onFocus={() => setShowRemapDropdown(true)}
-                  placeholder="例: F13, Ctrl, A, 無変換, Numpad 0"
-                  className="w-full px-4 py-2 border border-[rgb(var(--border))] rounded-lg bg-[rgb(var(--background))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--ring))]"
-                />
-                <p className="text-xs text-[rgb(var(--muted-foreground))] mt-2">
-                  キー名を入力してください。候補から選択するか、直接入力できます。
-                </p>
-
-                {/* ドロップダウン候補 */}
-                {showRemapDropdown && filteredRemapOptions.length > 0 && (
-                  <div className="absolute z-10 w-full mt-1 max-h-64 overflow-y-auto bg-[rgb(var(--card))] border border-[rgb(var(--border))] rounded-lg shadow-lg">
-                    {filteredRemapOptions.map(([category, keys]) => (
-                      <div key={category}>
-                        <div className="px-3 py-1 text-xs font-semibold text-[rgb(var(--muted-foreground))] bg-[rgb(var(--muted))] sticky top-0">
-                          {category}
-                        </div>
-                        {keys.map((key) => (
-                          <button
-                            key={key.value}
-                            type="button"
-                            onClick={() => {
-                              setRemapInput(key.label);
-                              setShowRemapDropdown(false);
-                            }}
-                            className="w-full px-3 py-2 text-left text-sm hover:bg-[rgb(var(--muted))] focus:bg-[rgb(var(--muted))] focus:outline-none"
-                          >
-                            {key.label}
-                          </button>
-                        ))}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* プレビュー */}
-              {remapInput.trim() && (
-                <div className="p-4 bg-[rgb(var(--muted))] rounded-lg">
-                  <p className="text-sm">
-                    <span className="font-medium">{formatKeyLabel(selectedKey)}</span>
-                    {' → '}
-                    <span className="font-medium text-blue-600 dark:text-blue-400">
-                      {remapInput}
-                    </span>
-                  </p>
-                  <p className="text-xs text-[rgb(var(--muted-foreground))] mt-1">
-                    キーコード: <code className="px-1 py-0.5 bg-[rgb(var(--background))] rounded text-xs">{parseInputToKeyCode(remapInput)}</code>
-                  </p>
-                </div>
-              )}
-
-              {/* ヘルプテキスト */}
-              <div className="mt-4 p-3 bg-blue-500/10 rounded-lg border border-blue-500/20">
-                <p className="text-xs text-[rgb(var(--muted-foreground))]">
-                  <strong>入力例:</strong><br />
-                  • ファンクションキー: F13, F14, F20<br />
-                  • 文字キー: A, B, C<br />
-                  • 修飾キー: Ctrl, Shift, Alt<br />
-                  • 特殊キー: Space, Enter, Tab<br />
-                  • テンキー: Numpad 0, Keypad 1<br />
-                  • 日本語: 無変換, 変換, かな<br />
-                  • カスタムコード: key.keyboard.f13
-                </p>
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'external' && (
-            <div className="space-y-4">
-              <p className="text-sm text-[rgb(var(--muted-foreground))]">
-                外部ツールやModで実行するアクションを設定します。
-                ドロップダウンから選択するか、直接入力してください。
-              </p>
-
-              {/* アクション選択・入力 */}
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  アクション
-                </label>
-                <input
-                  type="text"
-                  list="external-tool-actions"
-                  value={externalToolAction}
-                  onChange={(e) => setExternalToolAction(e.target.value)}
-                  placeholder="ドロップダウンから選択、または直接入力"
-                  className="w-full px-4 py-2 border border-[rgb(var(--border))] rounded-lg bg-[rgb(var(--background))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--ring))]"
-                />
-                <datalist id="external-tool-actions">
-                  {EXTERNAL_TOOL_ACTIONS.map((action) => (
-                    <option key={action.value} value={action.value}>
-                      {action.label}
-                    </option>
-                  ))}
-                </datalist>
-                <p className="text-xs text-[rgb(var(--muted-foreground))] mt-2">
-                  プリセットから選択するか、カスタムアクション名を入力してください
-                </p>
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'custom' && isCustomKey && (
-            <div className="space-y-4">
-              <p className="text-sm text-[rgb(var(--muted-foreground))] mb-4">
-                カスタムキーの名前を変更、または削除できます
-              </p>
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  キー名
-                </label>
-                <input
-                  type="text"
-                  value={editedLabel}
-                  onChange={(e) => setEditedLabel(e.target.value)}
-                  placeholder="キー名（例: F13, MB4）"
-                  maxLength={6}
-                  className="w-full px-4 py-2 border border-[rgb(var(--border))] rounded-lg bg-[rgb(var(--background))] focus:outline-none focus:ring-2 focus:ring-[rgb(var(--ring))]"
-                />
-                <p className="text-xs text-[rgb(var(--muted-foreground))] mt-2">
-                  キーボード上に表示される名前です（最大6文字）
-                </p>
-              </div>
-              <div className="pt-4 border-t border-[rgb(var(--border))]">
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (onDeleteCustomKey && confirm('このカスタムキーを削除しますか？')) {
-                      onDeleteCustomKey();
-                    }
-                  }}
-                  className="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-                >
-                  カスタムキーを削除
-                </button>
-                <p className="text-xs text-[rgb(var(--muted-foreground))] mt-2 text-center">
-                  削除すると、このキーに割り当てられた設定もすべて失われます
-                </p>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* フッター */}
-        <div className="flex items-center justify-between px-6 py-4 border-t border-[rgb(var(--border))] flex-shrink-0">
-          {/* 左側: 各タブのクリアボタン */}
-          <div>
-            {activeTab === 'action' && selectedAction && (
-              <button
-                onClick={() => setSelectedAction(null)}
-                className="px-4 py-2 text-sm text-red-600 hover:text-red-700 border border-red-500 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
-              >
-                割り当てをクリア
-              </button>
-            )}
-            {activeTab === 'finger' && selectedFingers.length > 0 && (
-              <button
-                onClick={() => setSelectedFingers([])}
-                className="px-4 py-2 text-sm text-red-600 hover:text-red-700 border border-red-500 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
-              >
-                割り当てをクリア
-              </button>
-            )}
-            {activeTab === 'remap' && remapInput.trim() && (
-              <button
-                onClick={() => setRemapInput('')}
-                className="px-4 py-2 text-sm text-red-600 hover:text-red-700 border border-red-500 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
-              >
-                リマップをクリア
-              </button>
-            )}
-            {activeTab === 'external' && externalToolAction && (
-              <button
-                onClick={() => setExternalToolAction('')}
-                className="px-4 py-2 text-sm text-red-600 hover:text-red-700 border border-red-500 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
-              >
-                割り当てをクリア
-              </button>
-            )}
+    <DraggableModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="キー設定"
+      subtitle={
+        <kbd className="bg-muted border border-border rounded px-2 py-0.5 text-xs font-mono">
+          {formatKeyName(selectedKey)}
+        </kbd>
+      }
+      maxWidth="3xl"
+      panelClassName="w-full max-w-3xl bg-card rounded-2xl shadow-2xl border border-border overflow-hidden flex flex-col max-h-[85vh] select-none"
+      headerClassName="bg-gradient-to-r from-primary/10 via-secondary/10 to-transparent px-6 py-4 border-b border-border flex-shrink-0"
+      contentClassName="flex-1 flex flex-col overflow-hidden"
+      footerClassName="px-6 py-4 border-t border-[rgb(var(--border))] bg-muted/30 flex-shrink-0"
+      noScroll
+      footer={
+        <div className="flex items-center justify-between">
+          <div className="text-sm text-muted-foreground">
+            {selectedActions.length > 0 && `${selectedActions.length}個の操作`}
+            {selectedActions.length > 0 && selectedFingers.length > 0 && ' · '}
+            {selectedFingers.length > 0 && `${selectedFingers.length}本の指`}
           </div>
-
-          {/* 右側: 保存・キャンセルボタン */}
-          <div className="flex items-center gap-3">
+          <div className="flex gap-3">
             <button
               onClick={onClose}
-              className="px-4 py-2 text-sm font-medium text-[rgb(var(--muted-foreground))] hover:text-[rgb(var(--foreground))] transition-colors"
+              className="px-4 py-2 rounded-lg border border-border hover:bg-accent transition"
             >
               キャンセル
             </button>
             <button
               onClick={handleSave}
-              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
+              className="px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition font-medium"
             >
               保存
             </button>
           </div>
         </div>
-      </div>
-    </div>
+      }
+    >
+      {/* タブナビゲーション & コンテンツ */}
+      <TabGroup selectedIndex={selectedTabIndex} onChange={setSelectedTabIndex} className="flex flex-col flex-1 overflow-hidden">
+                {/* モバイル用ドロップダウン */}
+                <div className="md:hidden p-2 bg-muted/30">
+                  <select
+                    value={selectedTabIndex}
+                    onChange={(e) => setSelectedTabIndex(Number(e.target.value))}
+                    className="w-full px-4 py-2 rounded-lg border border-border bg-background focus:border-primary focus:ring-1 focus:ring-primary outline-none transition"
+                  >
+                    {tabs.map((tab, index) => (
+                      <option key={tab.id} value={index}>
+                        {tab.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* デスクトップ用タブ */}
+                <TabList className="hidden md:flex gap-2 p-2 bg-muted/30">
+                  {tabs.map((tab, index) => (
+                    <Tab
+                      key={tab.id}
+                      className={`px-4 py-2 text-sm font-medium rounded-lg transition-all focus:outline-none ${
+                        selectedTabIndex === index
+                          ? 'bg-accent text-foreground shadow'
+                          : 'text-muted-foreground hover:bg-accent/50 hover:text-foreground'
+                      }`}
+                    >
+                      {tab.label}
+                    </Tab>
+                  ))}
+                </TabList>
+
+                <TabPanels className="p-6 max-h-[60vh] overflow-y-auto">
+                  {/* 操作割り当てタブ */}
+                  <TabPanel className="space-y-6">
+                    <p className="text-sm text-muted-foreground">
+                      このキーに割り当てる操作を選択してください（複数選択可）
+                    </p>
+                    {Object.entries(groupedActions).map(([category, actions]) => (
+                      <div key={category}>
+                        <h3 className="text-sm font-semibold mb-3 text-muted-foreground">{category}</h3>
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                          {actions.map(action => {
+                            const isSelected = selectedActions.includes(action.id);
+                            return (
+                              <button
+                                key={action.id}
+                                onClick={() => toggleAction(action.id)}
+                                className={`px-3 py-2 rounded-lg border text-sm transition-all ${
+                                  isSelected
+                                    ? 'border-foreground/20 bg-accent text-foreground font-medium'
+                                    : 'border-border hover:bg-accent/50 hover:border-foreground/10'
+                                }`}
+                              >
+                                <div className="flex items-center gap-2">
+                                  {isSelected && <CheckIcon className="w-4 h-4 flex-shrink-0" />}
+                                  <span className="truncate">{action.label}</span>
+                                </div>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ))}
+                  </TabPanel>
+
+                  {/* 指の割り当てタブ */}
+                  <TabPanel className="space-y-6">
+                    <p className="text-sm text-muted-foreground">
+                      このキーを押す指を選択してください（複数選択可）
+                    </p>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 sm:gap-3">
+                      {FINGER_OPTIONS.map(finger => {
+                        const isSelected = selectedFingers.includes(finger.value);
+                        return (
+                          <button
+                            key={finger.value}
+                            onClick={() => toggleFinger(finger.value)}
+                            className={`p-3 sm:p-4 rounded-lg border transition-all ${
+                              isSelected
+                                ? 'border-foreground/20 bg-accent'
+                                : 'border-border hover:bg-accent/50'
+                            }`}
+                          >
+                            <div className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full ${finger.color} mx-auto mb-1 sm:mb-2`} />
+                            <div className="text-[10px] sm:text-xs font-medium text-center leading-tight">{finger.label}</div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </TabPanel>
+
+                  {/* リマップタブ */}
+                  <TabPanel className="space-y-4">
+                    <p className="text-sm text-muted-foreground">
+                      物理的なキーを別のキーにリマップします（例: Caps Lock → Ctrl）
+                    </p>
+                    <div>
+                      <label className="block text-sm font-medium mb-2">リマップ先を選択</label>
+                      <Combobox
+                        value={remapValue}
+                        onChange={(value) => setRemapValue(value || '')}
+                        immediate
+                      >
+                        <div className="relative">
+                          <ComboboxInput
+                            className="w-full px-4 py-2 pr-10 rounded-lg border border-border bg-background focus:border-primary focus:ring-1 focus:ring-primary outline-none transition"
+                            displayValue={(value: string) => {
+                              const key = REMAP_KEYS.find(k => k.value === value);
+                              return key ? key.label : value;
+                            }}
+                            onChange={(event) => {
+                              setRemapQuery(event.target.value);
+                              setRemapValue(event.target.value);
+                            }}
+                            placeholder="リマップ先を選択または入力"
+                          />
+                          <ComboboxButton className="absolute inset-y-0 right-0 flex items-center pr-2">
+                            <ChevronUpDownIcon className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
+                          </ComboboxButton>
+                          <ComboboxOptions
+                            anchor="bottom start"
+                            portal
+                            className="z-[100] w-[var(--input-width)] max-h-60 overflow-auto rounded-lg bg-[rgb(var(--card))] border border-border shadow-lg focus:outline-none"
+                          >
+                            {filteredRemapKeys.length === 0 && remapQuery !== '' ? (
+                              <div className="px-4 py-2 text-sm text-muted-foreground">
+                                カスタム値: "{remapQuery}"
+                              </div>
+                            ) : (
+                              filteredRemapKeys.map((key) => (
+                                <ComboboxOption
+                                  key={key.value}
+                                  value={key.value}
+                                  className="px-4 py-2 text-sm cursor-pointer ui-active:bg-accent ui-selected:bg-accent ui-selected:font-medium"
+                                >
+                                  {key.label}
+                                </ComboboxOption>
+                              ))
+                            )}
+                          </ComboboxOptions>
+                        </div>
+                      </Combobox>
+                    </div>
+                  </TabPanel>
+
+                  {/* 外部ツールタブ */}
+                  <TabPanel className="space-y-4">
+                    <p className="text-sm text-muted-foreground">
+                      外部ツールやModの機能を割り当てます
+                    </p>
+                    <div>
+                      <label className="block text-sm font-medium mb-2">外部ツールを選択</label>
+                      <Combobox
+                        value={externalTool}
+                        onChange={(value) => setExternalTool(value || '')}
+                        immediate
+                      >
+                        <div className="relative">
+                          <ComboboxInput
+                            className="w-full px-4 py-2 pr-10 rounded-lg border border-border bg-background focus:border-primary focus:ring-1 focus:ring-primary outline-none transition"
+                            onChange={(event) => {
+                              setExternalToolQuery(event.target.value);
+                              setExternalTool(event.target.value);
+                            }}
+                            placeholder="外部ツールを選択または入力"
+                          />
+                          <ComboboxButton className="absolute inset-y-0 right-0 flex items-center pr-2">
+                            <ChevronUpDownIcon className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
+                          </ComboboxButton>
+                          <ComboboxOptions
+                            anchor="bottom start"
+                            portal
+                            className="z-[100] w-[var(--input-width)] max-h-60 overflow-auto rounded-lg bg-[rgb(var(--card))] border border-border shadow-lg focus:outline-none"
+                          >
+                            {filteredExternalTools.length === 0 && externalToolQuery !== '' ? (
+                              <div className="px-4 py-2 text-sm text-muted-foreground">
+                                カスタム値: "{externalToolQuery}"
+                              </div>
+                            ) : (
+                              filteredExternalTools.map((tool) => (
+                                <ComboboxOption
+                                  key={tool}
+                                  value={tool}
+                                  className="px-4 py-2 text-sm cursor-pointer ui-active:bg-accent ui-selected:bg-accent ui-selected:font-medium"
+                                >
+                                  {tool}
+                                </ComboboxOption>
+                              ))
+                            )}
+                          </ComboboxOptions>
+                        </div>
+                      </Combobox>
+                    </div>
+                  </TabPanel>
+
+                  {/* カスタムキータブ */}
+                  {isCustomKey && (
+                    <TabPanel className="space-y-4">
+                      <p className="text-sm text-muted-foreground">
+                        カスタムキーの表示名を編集します
+                      </p>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">表示名</label>
+                        <input
+                          type="text"
+                          value={customLabel}
+                          onChange={(e) => setCustomLabel(e.target.value)}
+                          placeholder="例: G1ボタン、サイドボタン上"
+                          className="w-full px-4 py-2 rounded-lg border border-border bg-background focus:border-primary focus:ring-1 focus:ring-primary outline-none transition"
+                        />
+                      </div>
+                      {onDeleteCustomKey && (
+                        <button
+                          onClick={() => {
+                            if (confirm('このカスタムキーを削除しますか？')) {
+                              onDeleteCustomKey();
+                              onClose();
+                            }
+                          }}
+                          className="w-full px-4 py-2 bg-red-500/10 text-red-500 hover:bg-red-500/20 rounded-lg border border-red-500/20 transition"
+                        >
+                          カスタムキーを削除
+                        </button>
+                      )}
+                    </TabPanel>
+                  )}
+        </TabPanels>
+      </TabGroup>
+    </DraggableModal>
   );
 }

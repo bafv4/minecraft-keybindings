@@ -3,25 +3,93 @@
 import { useState } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import { Input, Button } from '@/components/ui';
 
-export function LoginOrRegisterForm() {
+interface LoginOrRegisterFormProps {
+  onSuccess?: () => void;
+}
+
+type FormStep = 'mcid' | 'login' | 'register';
+
+export function LoginOrRegisterForm({ onSuccess }: LoginOrRegisterFormProps = {}) {
   const router = useRouter();
+  const [step, setStep] = useState<FormStep>('mcid');
   const [mcid, setMcid] = useState('');
   const [passphrase, setPassphrase] = useState('');
   const [displayName, setDisplayName] = useState('');
-  const [showDisplayName, setShowDisplayName] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // MCIDを確認して次のステップに進む
+  const handleMcidNext = async () => {
+    if (!mcid.trim()) {
+      setError('MCIDを入力してください');
+      return;
+    }
+
     setError('');
-    setMessage('');
     setLoading(true);
 
     try {
-      // まず統合APIを呼び出し
+      // MCIDが登録済みかチェック
+      const response = await fetch(`/api/auth/check-mcid?mcid=${encodeURIComponent(mcid)}`);
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.error || 'チェックに失敗しました');
+        setLoading(false);
+        return;
+      }
+
+      // 登録済みならログイン、未登録なら新規登録
+      setStep(data.exists ? 'login' : 'register');
+      setLoading(false);
+    } catch (err) {
+      setError('チェックに失敗しました');
+      setLoading(false);
+    }
+  };
+
+  // ログイン処理
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+
+    try {
+      const result = await signIn('credentials', {
+        mcid,
+        passphrase: passphrase || '',
+        redirect: false,
+      });
+
+      if (result?.error) {
+        setError('MCIDまたはパスフレーズが正しくありません');
+        setLoading(false);
+        return;
+      }
+
+      setMessage('ログインしました！編集画面に移動します...');
+      setTimeout(() => {
+        onSuccess?.();
+        router.push(`/player/${mcid}/edit`);
+        router.refresh();
+      }, 1000);
+    } catch (err) {
+      setError('ログインに失敗しました');
+      setLoading(false);
+    }
+  };
+
+  // 新規登録処理
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+
+    try {
+      // 新規登録API呼び出し
       const response = await fetch('/api/auth/login-or-register', {
         method: 'POST',
         headers: {
@@ -30,27 +98,19 @@ export function LoginOrRegisterForm() {
         body: JSON.stringify({
           mcid,
           passphrase: passphrase || undefined,
-          displayName: showDisplayName ? displayName : undefined,
+          displayName: displayName || undefined,
         }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        // 初回登録で表示名が必要な場合
-        if (data.error === '初回登録には表示名が必要です') {
-          setShowDisplayName(true);
-          setError('初回登録です。表示名を入力してください');
-          setLoading(false);
-          return;
-        }
-
-        setError(data.error || '処理に失敗しました');
+        setError(data.error || '登録に失敗しました');
         setLoading(false);
         return;
       }
 
-      // 成功したらNextAuthでログイン
+      // 登録成功後、ログイン
       const result = await signIn('credentials', {
         mcid,
         passphrase: passphrase || '',
@@ -58,85 +118,148 @@ export function LoginOrRegisterForm() {
       });
 
       if (result?.error) {
-        setError('ログインに失敗しました');
+        setError('登録は成功しましたが、ログインに失敗しました');
         setLoading(false);
         return;
       }
 
-      // 成功メッセージを表示
-      if (data.action === 'register') {
-        setMessage('登録が完了しました！編集画面に移動します...');
-      } else {
-        setMessage('ログインしました！編集画面に移動します...');
-      }
-
-      // 編集画面にリダイレクト
+      setMessage('登録が完了しました！編集画面に移動します...');
       setTimeout(() => {
+        onSuccess?.();
         router.push(`/player/${mcid}/edit`);
         router.refresh();
       }, 1000);
     } catch (err) {
-      setError('処理に失敗しました');
+      setError('登録に失敗しました');
       setLoading(false);
     }
   };
 
-  return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
-        <label htmlFor="mcid" className="block text-sm font-medium mb-1.5">
-          Minecraft Java版 ユーザー名（MCID）
-        </label>
-        <input
+  // MCID入力画面
+  if (step === 'mcid') {
+    return (
+      <div className="space-y-4">
+        <Input
           id="mcid"
           type="text"
+          label="Minecraft Java版 ユーザー名（MCID）"
           value={mcid}
           onChange={(e) => setMcid(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              handleMcidNext();
+            }
+          }}
           required
           placeholder="例: Steve"
-          className="w-full px-3 py-2 rounded border border-[rgb(var(--border))] bg-[rgb(var(--background))] focus:outline-none focus:ring-1 focus:ring-[rgb(var(--ring))]"
+          autoFocus
         />
-        <p className="text-xs text-[rgb(var(--muted-foreground))] mt-1">
-          ※ 登録済みの場合はログイン、未登録の場合は新規登録されます
-        </p>
-      </div>
 
-      <div>
-        <label htmlFor="passphrase" className="block text-sm font-medium mb-1.5">
-          パスフレーズ <span className="text-xs text-[rgb(var(--muted-foreground))]">(任意)</span>
-        </label>
-        <input
+        {error && (
+          <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+        )}
+
+        <Button
+          type="button"
+          onClick={handleMcidNext}
+          disabled={loading || !mcid.trim()}
+          className="w-full"
+        >
+          {loading ? '確認中...' : '次へ'}
+        </Button>
+      </div>
+    );
+  }
+
+  // ログイン画面
+  if (step === 'login') {
+    return (
+      <form onSubmit={handleLogin} className="space-y-4">
+        <Input
+          id="mcid-display"
+          type="text"
+          label="Minecraft Java版 ユーザー名（MCID）"
+          value={mcid}
+          disabled
+        />
+
+        <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+          <Input
+            id="passphrase"
+            type="password"
+            label={<>パスフレーズ <span className="text-xs text-muted-foreground">(任意)</span></>}
+            value={passphrase}
+            onChange={(e) => setPassphrase(e.target.value)}
+            placeholder="未設定の場合は空欄"
+            description="※ 設定していない場合は空欄のまま進んでください"
+            autoFocus
+          />
+        </div>
+
+        {error && (
+          <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+        )}
+
+        {message && (
+          <p className="text-sm text-green-600 dark:text-green-400">{message}</p>
+        )}
+
+        <div className="flex gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => {
+              setStep('mcid');
+              setPassphrase('');
+              setError('');
+            }}
+            disabled={loading}
+          >
+            戻る
+          </Button>
+          <Button type="submit" disabled={loading} className="flex-1">
+            {loading ? 'ログイン中...' : 'ログイン'}
+          </Button>
+        </div>
+      </form>
+    );
+  }
+
+  // 新規登録画面
+  return (
+    <form onSubmit={handleRegister} className="space-y-4">
+      <Input
+        id="mcid-display"
+        type="text"
+        label="Minecraft Java版 ユーザー名（MCID）"
+        value={mcid}
+        disabled
+      />
+
+      <div className="animate-in fade-in slide-in-from-top-2 duration-300 space-y-4">
+        <Input
+          id="displayName"
+          type="text"
+          label={<>表示名 <span className="text-red-500">*</span></>}
+          value={displayName}
+          onChange={(e) => setDisplayName(e.target.value)}
+          required
+          placeholder="例: スティーブ"
+          description="※ プレイヤー一覧に表示される名前です"
+          autoFocus
+        />
+
+        <Input
           id="passphrase"
           type="password"
+          label={<>パスフレーズ <span className="text-xs text-muted-foreground">(任意)</span></>}
           value={passphrase}
           onChange={(e) => setPassphrase(e.target.value)}
           placeholder="未設定の場合は空欄"
-          className="w-full px-3 py-2 rounded border border-[rgb(var(--border))] bg-[rgb(var(--background))] focus:outline-none focus:ring-1 focus:ring-[rgb(var(--ring))]"
+          description="※ MCID変更時の認証に使用します（任意）"
         />
-        <p className="text-xs text-[rgb(var(--muted-foreground))] mt-1">
-          ※ MCID変更時の認証に使用します
-        </p>
       </div>
-
-      {showDisplayName && (
-        <div className="animate-in fade-in slide-in-from-top-2 duration-300">
-          <label htmlFor="displayName" className="block text-sm font-medium mb-1.5">
-            表示名 <span className="text-red-500">*</span>
-          </label>
-          <input
-            id="displayName"
-            type="text"
-            value={displayName}
-            onChange={(e) => setDisplayName(e.target.value)}
-            required={showDisplayName}
-            placeholder="例: スティーブ"
-            className="w-full px-3 py-2 rounded border border-[rgb(var(--border))] bg-[rgb(var(--background))] focus:outline-none focus:ring-1 focus:ring-[rgb(var(--ring))]"
-          />
-          <p className="text-xs text-[rgb(var(--muted-foreground))] mt-1">
-            ※ プレイヤー一覧に表示される名前です
-          </p>
-        </div>
-      )}
 
       {error && (
         <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
@@ -146,13 +269,24 @@ export function LoginOrRegisterForm() {
         <p className="text-sm text-green-600 dark:text-green-400">{message}</p>
       )}
 
-      <button
-        type="submit"
-        disabled={loading}
-        className="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed font-semibold"
-      >
-        {loading ? '処理中...' : '登録 / 編集'}
-      </button>
+      <div className="flex gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => {
+            setStep('mcid');
+            setDisplayName('');
+            setPassphrase('');
+            setError('');
+          }}
+          disabled={loading}
+        >
+          戻る
+        </Button>
+        <Button type="submit" disabled={loading} className="flex-1">
+          {loading ? '登録中...' : '登録'}
+        </Button>
+      </div>
     </form>
   );
 }

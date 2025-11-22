@@ -1,2 +1,54 @@
-components/PieChartModal.tsx(198,27): error TS2322: Type 'string | null' is not assignable to type 'string | undefined'.
-  Type 'null' is not assignable to type 'string | undefined'.
+
+> minecraft-keybindings@1.0.0 build C:\Users\yuanq\dev\minecraft-keybindings
+> next build
+
+   ▲ Next.js 16.0.1 (Turbopack)
+   - Environments: .env.local, .env
+   - Experiments (use with caution):
+     ✓ turbopackUseSystemTlsCerts
+
+   Creating an optimized production build ...
+(node:22676) ExperimentalWarning: Type Stripping is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ Compiled successfully in 3.9s
+   Running TypeScript ...
+   Collecting page data ...
+   Generating static pages (0/22) ...
+   Generating static pages (5/22) 
+   Generating static pages (10/22) 
+   Generating static pages (16/22) 
+ ✓ Generating static pages (22/22) in 6.7s
+   Finalizing page optimization ...
+
+Route (app)
+┌ ƒ /
+├ ƒ /_not-found
+├ ƒ /api/auth/[...nextauth]
+├ ƒ /api/auth/login-or-register
+├ ƒ /api/auth/register
+├ ƒ /api/avatar
+├ ƒ /api/item-layouts
+├ ƒ /api/keybindings
+├ ƒ /api/player/[mcid]
+├ ƒ /api/players
+├ ƒ /api/sync-mcid
+├ ƒ /api/user/by-uuid/[uuid]
+├ ƒ /api/user/change-mcid
+├ ƒ /api/user/update-mcid
+├ ○ /icon.svg
+├ ƒ /keyboard
+├ ƒ /login
+├ ƒ /mouse
+├ ƒ /player/[mcid]
+├ ƒ /player/[mcid]/edit
+├ ƒ /register
+├ ƒ /setup-mcid
+├ ƒ /stats
+├ ƒ /stats/actions
+├ ƒ /stats/keys
+└ ƒ /stats/mouse
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

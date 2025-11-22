@@ -18,7 +18,16 @@ export const metadata: Metadata = {
 
 export default async function MouseStatsPage() {
   // Fetch all user settings with user information
-  const settings = await prisma.playerSettings.findMany({
+  // Only include users who have actually set at least one mouse setting
+  const settings = await prisma.playerConfig.findMany({
+    where: {
+      OR: [
+        { mouseDpi: { not: null } },
+        { gameSensitivity: { not: null } },
+        { cm360: { not: null } },
+        { windowsSpeed: { not: null } },
+      ],
+    },
     select: {
       uuid: true,
       mouseDpi: true,
@@ -46,7 +55,7 @@ export default async function MouseStatsPage() {
   const cursorSpeedMap = new Map<string, number>();
   const cursorSpeedUsersMap = new Map<string, Array<{ mcid: string; uuid: string }>>();
 
-  settings.forEach((setting) => {
+  settings.forEach((setting: any) => {
     const userInfo = { mcid: setting.user.mcid, uuid: setting.user.uuid };
 
     // DPI - group by ranges (細分化: 3200以上を分割)

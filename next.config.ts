@@ -5,11 +5,11 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'crafatar.com',
+        hostname: 'sessionserver.mojang.com',
       },
       {
         protocol: 'https',
-        hostname: 'sessionserver.mojang.com',
+        hostname: 'textures.minecraft.net',
       },
     ],
   },

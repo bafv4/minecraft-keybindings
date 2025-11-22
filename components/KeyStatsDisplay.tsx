@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { VirtualKeyboard } from './VirtualKeyboard';
 import { PieChartModal } from './PieChartModal';
 import { ACTION_LABELS, formatKeyName } from '@/lib/utils';
@@ -8,7 +8,7 @@ import { ACTION_LABELS, formatKeyName } from '@/lib/utils';
 interface KeyStatsDisplayProps {
   allSettings: Array<{
     user: { mcid: string; uuid: string };
-    keybindings: Record<string, string>;
+    keybindings: Record<string, string | string[]>;
   }>;
 }
 
@@ -27,40 +27,42 @@ const COLORS = [
 ];
 
 export function KeyStatsDisplay({ allSettings }: KeyStatsDisplayProps) {
-  const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [modalData, setModalData] = useState<any>(null);
 
-  const handleKeySelect = (key: string) => {
-    setSelectedKey(key);
-
-    // Calculate statistics for the selected key with user tracking (リマップやカスタムキーは無視)
-    const actionUsersMap = new Map<string, Array<{ mcid: string; uuid: string }>>();
+  // キーごとの操作割り当てを事前計算（O(n*m)を一度だけ実行）
+  const keyToActionsMap = useMemo(() => {
+    const map = new Map<string, Map<string, Array<{ mcid: string; uuid: string }>>>();
 
     allSettings.forEach((setting) => {
       const userInfo = { mcid: setting.user.mcid, uuid: setting.user.uuid };
 
-      // Find which action is assigned to this key (without considering remaps)
       Object.entries(setting.keybindings).forEach(([action, assignedKey]) => {
-        // Skip custom keys
-        if (assignedKey && assignedKey.startsWith('custom.')) {
-          return;
-        }
-
-        // Direct comparison without remap consideration
-        if (assignedKey === key) {
-          const users = actionUsersMap.get(action) || [];
-          users.push(userInfo);
-          actionUsersMap.set(action, users);
-        }
+        const keys = Array.isArray(assignedKey) ? assignedKey : [assignedKey];
+        keys.forEach((key) => {
+          if (!map.has(key)) {
+            map.set(key, new Map());
+          }
+          const actionMap = map.get(key)!;
+          if (!actionMap.has(action)) {
+            actionMap.set(action, []);
+          }
+          actionMap.get(action)!.push(userInfo);
+        });
       });
     });
+
+    return map;
+  }, [allSettings]);
+
+  const handleKeySelect = useCallback((key: string) => {
+    const actionUsersMap = keyToActionsMap.get(key) || new Map();
 
     // Convert to pie chart format with users
     const chartData = Array.from(actionUsersMap.entries()).map(([action, users], index) => ({
       label: ACTION_LABELS[action] || action,
       value: users.length,
-      percentage: 0, // Will be calculated below
+      percentage: 0,
       color: COLORS[index % COLORS.length],
       users: users,
     }));
@@ -77,7 +79,7 @@ export function KeyStatsDisplay({ allSettings }: KeyStatsDisplayProps) {
       totalLabel: 'このキーを使用しているユーザー',
     });
     setModalOpen(true);
-  };
+  }, [keyToActionsMap]);
 
   return (
     <>

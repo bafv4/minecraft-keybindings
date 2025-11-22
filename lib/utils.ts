@@ -1,5 +1,6 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { formatKeyCode, minecraftToWeb } from '@/lib/keyConversion';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -125,95 +126,104 @@ export const ACTION_LABELS: Record<string, string> = {
   hotbar9: 'ホットバー9',
 };
 
+/** カスタムキー情報の型 */
+export interface CustomKeyInfo {
+  keyCode: string;
+  keyName: string;
+}
+
 /**
  * キー名を人間が読みやすい形式に変換
- * @param key Minecraftのキー名（例: "key.keyboard.w"）
- * @returns 表示用のキー名（例: "W"）
+ *
+ * 新システムに対応: Web標準形式とMinecraft形式の両方をサポート
+ *
+ * @param key Web標準キーコード（例: "KeyW", "Mouse0"）またはMinecraft形式（例: "key.keyboard.w"）
+ * @param customKeys カスタムキー配列（オプション）
+ * @returns 表示用のキー名（例: "W", "マウス左"）
  */
-export function formatKeyName(key: string): string {
+export function formatKeyName(key: string, customKeys?: CustomKeyInfo[]): string {
   if (!key) return "";
 
-  // マウスボタンかキーボードかを判定
-  const isMouse = key.startsWith("key.mouse.");
-  const isKeyboard = key.startsWith("key.keyboard.");
-
-  // "key.keyboard." または "key.mouse." を削除
-  const cleanKey = key
-    .replace("key.keyboard.", "")
-    .replace("key.mouse.", "");
-
-  // マウスボタンの特別処理（数字のボタン）
-  if (isMouse && cleanKey.match(/^\d+$/)) {
-    return `Mouse ${cleanKey}`;
+  // カスタムキーの場合、カスタム名を使用
+  if (customKeys && customKeys.length > 0) {
+    const customKey = customKeys.find(ck => ck.keyCode === key);
+    if (customKey) {
+      return customKey.keyName;
+    }
   }
 
-  // 特殊キーの変換
-  const keyMap: Record<string, string> = {
-    // マウス（left, rightはキーボードとマウスで異なる）
-    "left": isMouse ? "Mouse Left" : "Left",
-    "right": isMouse ? "Mouse Right" : "Right",
-    "middle": "Mouse Middle",
-    // 修飾キー（left.shift など、ドット付きは常にキーボード）
-    "left.shift": "L-Shift",
-    "right.shift": "R-Shift",
-    "left.control": "L-Ctrl",
-    "right.control": "R-Ctrl",
-    "left.alt": "L-Alt",
-    "right.alt": "R-Alt",
-    "left.win": "L-Win",
-    "right.win": "R-Win",
-    // スペースバー
-    "space": "Space",
-    // エンターキー
-    "enter": "Enter",
-    // テンキー
-    "num.lock": "NumLock",
-    "keypad.0": "Num0",
-    "keypad.1": "Num1",
-    "keypad.2": "Num2",
-    "keypad.3": "Num3",
-    "keypad.4": "Num4",
-    "keypad.5": "Num5",
-    "keypad.6": "Num6",
-    "keypad.7": "Num7",
-    "keypad.8": "Num8",
-    "keypad.9": "Num9",
-    "keypad.add": "Num+",
-    "keypad.subtract": "Num-",
-    "keypad.multiply": "Num*",
-    "keypad.divide": "Num/",
-    "keypad.decimal": "Num.",
-    "keypad.enter": "NumEnter",
-    // 編集キー
-    "insert": "Ins",
-    "delete": "Del",
-    "home": "Home",
-    "end": "End",
-    "page.up": "PgUp",
-    "page.down": "PgDn",
-    // 記号
-    "grave.accent": "`",
-    "minus": "-",
-    "equal": "=",
-    "left.bracket": "[",
-    "right.bracket": "]",
-    "backslash": "\\",
-    "semicolon": ";",
-    "apostrophe": "'",
-    "comma": ",",
-    "period": ".",
-    "slash": "/",
-    "caps.lock": "Caps",
-    "tab": "Tab",
-    "backspace": "Back",
-    "escape": "Esc",
-    "disabled": "✕",
-    // 日本語キーボード固有
-    "convert": "変換",
-    "nonconvert": "無変換",
+  // 新システム: Web標準形式の場合
+  if (!key.startsWith("key.")) {
+    return formatKeyCode(key);
+  }
+
+  // 旧システム: Minecraft形式の場合（後方互換性）
+  // 新形式に変換してからフォーマット
+  const webKey = minecraftToWeb(key);
+  return formatKeyCode(webKey);
+}
+
+/**
+ * キー名を短縮形式で表示（リマップ表示など、スペースが限られている場合に使用）
+ *
+ * @param key Web標準キーコード（例: "Backspace", "ControlLeft"）またはMinecraft形式
+ * @param customKeys カスタムキー配列（オプション）
+ * @returns 短縮表示用のキー名（例: "BS", "LCtrl"）
+ */
+export function formatKeyNameShort(key: string, customKeys?: CustomKeyInfo[]): string {
+  if (!key) return "";
+
+  // カスタムキーの場合、カスタム名を使用
+  if (customKeys && customKeys.length > 0) {
+    const customKey = customKeys.find(ck => ck.keyCode === key);
+    if (customKey) {
+      return customKey.keyName;
+    }
+  }
+
+  // Minecraft形式の場合はWeb標準形式に変換
+  const webKey = key.startsWith("key.") ? minecraftToWeb(key) : key;
+
+  // 短縮名マッピング
+  const shortNames: Record<string, string> = {
+    // 特殊キー
+    Backspace: "BS",
+    CapsLock: "Caps",
+    PageUp: "PgUp",
+    PageDown: "PgDn",
+    ControlLeft: "LCtrl",
+    ControlRight: "RCtrl",
+    ShiftLeft: "LShift",
+    ShiftRight: "RShift",
+    AltLeft: "LAlt",
+    AltRight: "RAlt",
+    MetaLeft: "LWin",
+    MetaRight: "RWin",
+    ContextMenu: "Menu",
+
+    // マウスボタン
+    Mouse0: "M1",
+    Mouse1: "M2",
+    Mouse2: "M3",
+    Mouse3: "M4",
+    Mouse4: "M5",
+
+    // テンキー（短縮）
+    NumpadEnter: "NumEnt",
+    NumpadAdd: "Num+",
+    NumpadSubtract: "Num-",
+    NumpadMultiply: "Num*",
+    NumpadDivide: "Num/",
+    NumpadDecimal: "Num.",
   };
 
-  return keyMap[cleanKey] || cleanKey.toUpperCase();
+  // 短縮名がある場合はそれを返す
+  if (shortNames[webKey]) {
+    return shortNames[webKey];
+  }
+
+  // 短縮名がない場合は通常のformatKeyNameを使用
+  return formatKeyCode(webKey);
 }
 
 /**
@@ -233,104 +243,5 @@ export function formatUUID(uuid: string): string {
   ].join("-");
 }
 
-/**
- * 言語コードを言語名に変換
- * @param languageCode 言語コード（例: "ja_jp"）
- * @returns 言語名（例: "日本語"）
- */
-export function getLanguageName(languageCode: string): string {
-  const languageNames: { [key: string]: string } = {
-    // 日本語・英語
-    'ja_jp': '日本語',
-    'en_us': 'English (US)',
-    'en_gb': 'English (UK)',
-    'en_ca': 'English (Canada)',
-    'en_au': 'English (Australia)',
-    'en_nz': 'English (New Zealand)',
-
-    // ヨーロッパ言語
-    'de_de': 'Deutsch',
-    'de_at': 'Deutsch (Österreich)',
-    'de_ch': 'Deutsch (Schweiz)',
-    'es_es': 'Español (España)',
-    'es_mx': 'Español (México)',
-    'es_ar': 'Español (Argentina)',
-    'es_cl': 'Español (Chile)',
-    'es_uy': 'Español (Uruguay)',
-    'es_ve': 'Español (Venezuela)',
-    'fr_fr': 'Français',
-    'fr_ca': 'Français (Canada)',
-    'it_it': 'Italiano',
-    'nl_nl': 'Nederlands',
-    'nl_be': 'Nederlands (België)',
-    'pl_pl': 'Polski',
-    'pt_br': 'Português (Brasil)',
-    'pt_pt': 'Português (Portugal)',
-    'sv_se': 'Svenska',
-    'da_dk': 'Dansk',
-    'fi_fi': 'Suomi',
-    'no_no': 'Norsk',
-    'nb_no': 'Norsk bokmål',
-    'nn_no': 'Norsk nynorsk',
-    'is_is': 'Íslenska',
-
-    // 東アジア言語
-    'ko_kr': '한국어',
-    'zh_cn': '简体中文',
-    'zh_tw': '繁體中文',
-    'zh_hk': '繁體中文（香港）',
-
-    // スラブ語系
-    'ru_ru': 'Русский',
-    'uk_ua': 'Українська',
-    'be_by': 'Беларуская',
-    'bg_bg': 'Български',
-    'cs_cz': 'Čeština',
-    'sk_sk': 'Slovenčina',
-    'sl_si': 'Slovenščina',
-    'hr_hr': 'Hrvatski',
-    'sr_sp': 'Српски',
-    'mk_mk': 'Македонски',
-
-    // その他ヨーロッパ
-    'el_gr': 'Ελληνικά',
-    'hu_hu': 'Magyar',
-    'ro_ro': 'Română',
-    'tr_tr': 'Türkçe',
-    'et_ee': 'Eesti',
-    'lv_lv': 'Latviešu',
-    'lt_lt': 'Lietuvių',
-    'ca_es': 'Català',
-    'eu_es': 'Euskara',
-    'gl_es': 'Galego',
-    'cy_gb': 'Cymraeg',
-    'ga_ie': 'Gaeilge',
-    'gd_gb': 'Gàidhlig',
-    'mt_mt': 'Malti',
-
-    // 中東・アフリカ
-    'ar_sa': 'العربية',
-    'he_il': 'עברית',
-    'fa_ir': 'فارسی',
-    'af_za': 'Afrikaans',
-
-    // 東南アジア
-    'th_th': 'ภาษาไทย',
-    'vi_vn': 'Tiếng Việt',
-    'id_id': 'Bahasa Indonesia',
-    'ms_my': 'Bahasa Melayu',
-    'fil_ph': 'Filipino',
-    'tl_ph': 'Tagalog',
-
-    // アフリカ言語
-    'yo_ng': 'Yorùbá',
-    'so_so': 'Soomaali',
-    'ast_es': 'Asturianu',
-
-    // その他
-    'eo_uy': 'Esperanto',
-    'la_la': 'Latina',
-  };
-
-  return languageNames[languageCode.toLowerCase()] || languageCode;
-}
+// Re-export getLanguageName from lib/languages for backward compatibility
+export { getLanguageName } from '@/lib/languages';

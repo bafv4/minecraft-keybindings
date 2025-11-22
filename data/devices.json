@@ -1,0 +1,38 @@
+{
+  "gaming_keyboards": [
+    {
+      "name": "G515 RAPID TKL",
+      "manufacturer_url": "https://gaming.logicool.co.jp/ja-jp/shop/p/g515-rapid-tkl",
+      "switch": "磁気アナログスイッチ",
+      "price_jpy": 23500
+    },
+    {
+      "name": "G413 SE",
+      "manufacturer_url": "https://gaming.logicool.co.jp/ja-jp/shop/p/g413-se-gaming-keyboard.920-010561",
+      "switch": "タクタイル メカニカル",
+      "price_jpy": 12320
+    },
+    {
+      "name": "G512",
+      "manufacturer_url": "https://gaming.logicool.co.jp/ja-jp/shop/p/g512-mechanical-gaming-keyboard",
+      "switch": "GX赤(リニア)/茶(タクタイル)/青(クリッキー)",
+      "price_jpy": 14960
+    }
+  ],
+  "gaming_mice": [
+    {
+      "name": "G502 HERO",
+      "manufacturer_url": "https://gaming.logicool.co.jp/ja-jp/shop/p/g502-hero-gaming-mouse",
+      "buttons": 11,
+      "dpi_range": "100-25600",
+      "price_jpy": 8430
+    },
+    {
+      "name": "PRO 2 LIGHTSPEED",
+      "manufacturer_url": "https://gaming.logicool.co.jp/ja-jp/shop/p/pro-2-lightspeed",
+      "buttons": 8,
+      "dpi_range": "100-44000",
+      "price_jpy": 15620
+    }
+  ]
+}

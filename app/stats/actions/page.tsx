@@ -17,81 +17,70 @@ export const metadata: Metadata = {
 };
 
 export default async function ActionStatsPage() {
-  // Fetch all user settings with user information
-  const settings = await prisma.playerSettings.findMany({
+  // Fetch all users with their keybindings
+  // Only include users who have actually set at least one keybinding
+  const users = await prisma.user.findMany({
+    where: {
+      keybindings: {
+        some: {},  // 少なくとも1つのkeybindingレコードが存在する
+      },
+    },
     select: {
-      forward: true,
-      back: true,
-      left: true,
-      right: true,
-      jump: true,
-      sneak: true,
-      sprint: true,
-      drop: true,
-      attack: true,
-      use: true,
-      pickBlock: true,
-      swapHands: true,
-      inventory: true,
-      chat: true,
-      command: true,
-      togglePerspective: true,
-      fullscreen: true,
-      toggleHud: true,
-      hotbar1: true,
-      hotbar2: true,
-      hotbar3: true,
-      hotbar4: true,
-      hotbar5: true,
-      hotbar6: true,
-      hotbar7: true,
-      hotbar8: true,
-      hotbar9: true,
-      user: {
+      mcid: true,
+      uuid: true,
+      keybindings: {
         select: {
-          mcid: true,
-          uuid: true,
+          action: true,
+          keyCode: true,
         },
       },
     },
   });
 
-  // Transform the data for client component with user information
-  const allSettings = settings.map((setting) => ({
-    user: {
-      mcid: setting.user.mcid,
-      uuid: setting.user.uuid,
-    },
-    keybindings: {
-      forward: setting.forward,
-      back: setting.back,
-      left: setting.left,
-      right: setting.right,
-      jump: setting.jump,
-      sneak: setting.sneak,
-      sprint: setting.sprint,
-      drop: setting.drop,
-      attack: setting.attack,
-      use: setting.use,
-      pickBlock: setting.pickBlock,
-      swapHands: setting.swapHands,
-      inventory: setting.inventory,
-      chat: setting.chat,
-      command: setting.command,
-      togglePerspective: setting.togglePerspective,
-      fullscreen: setting.fullscreen,
-      toggleHud: setting.toggleHud,
-      hotbar1: setting.hotbar1,
-      hotbar2: setting.hotbar2,
-      hotbar3: setting.hotbar3,
-      hotbar4: setting.hotbar4,
-      hotbar5: setting.hotbar5,
-      hotbar6: setting.hotbar6,
-      hotbar7: setting.hotbar7,
-      hotbar8: setting.hotbar8,
-      hotbar9: setting.hotbar9,
-    },
-  }));
+  // Transform the data for client component
+  const allSettings = users.map((user: any) => {
+    // Convert keybindings array to object map
+    const keybindingsMap: Record<string, string> = {};
+    for (const kb of user.keybindings) {
+      keybindingsMap[kb.action] = kb.keyCode;
+    }
+
+    return {
+      user: {
+        mcid: user.mcid,
+        uuid: user.uuid,
+      },
+      keybindings: {
+        forward: keybindingsMap.forward || 'KeyW',
+        back: keybindingsMap.back || 'KeyS',
+        left: keybindingsMap.left || 'KeyA',
+        right: keybindingsMap.right || 'KeyD',
+        jump: keybindingsMap.jump || 'Space',
+        sneak: keybindingsMap.sneak || 'ShiftLeft',
+        sprint: keybindingsMap.sprint || 'ControlLeft',
+        drop: keybindingsMap.drop || 'KeyQ',
+        attack: keybindingsMap.attack || 'Mouse0',
+        use: keybindingsMap.use || 'Mouse1',
+        pickBlock: keybindingsMap.pickBlock || 'Mouse2',
+        swapHands: keybindingsMap.swapHands || 'KeyF',
+        inventory: keybindingsMap.inventory || 'KeyE',
+        chat: keybindingsMap.chat || 'KeyT',
+        command: keybindingsMap.command || 'Slash',
+        togglePerspective: keybindingsMap.togglePerspective || 'F5',
+        fullscreen: keybindingsMap.fullscreen || 'F11',
+        toggleHud: keybindingsMap.toggleHud || 'F1',
+        hotbar1: keybindingsMap.hotbar1 || 'Digit1',
+        hotbar2: keybindingsMap.hotbar2 || 'Digit2',
+        hotbar3: keybindingsMap.hotbar3 || 'Digit3',
+        hotbar4: keybindingsMap.hotbar4 || 'Digit4',
+        hotbar5: keybindingsMap.hotbar5 || 'Digit5',
+        hotbar6: keybindingsMap.hotbar6 || 'Digit6',
+        hotbar7: keybindingsMap.hotbar7 || 'Digit7',
+        hotbar8: keybindingsMap.hotbar8 || 'Digit8',
+        hotbar9: keybindingsMap.hotbar9 || 'Digit9',
+      },
+    };
+  });
 
   return (
     <div className="pb-6">

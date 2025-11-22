@@ -1,134 +1,26 @@
 'use client';
 
-import { useState, useMemo, useRef, useEffect } from 'react';
+import { useState, Fragment, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import { Switch, Dialog, DialogPanel, DialogTitle, Transition, TransitionChild } from '@headlessui/react';
+import { TrashIcon } from '@heroicons/react/24/outline';
 import { calculateCm360, calculateCursorSpeed } from '@/lib/utils';
 import type { PlayerSettings, Finger, FingerAssignments, CustomKey } from '@/types/player';
 import { VirtualKeyboard } from './VirtualKeyboard';
+import { ItemLayoutEditor } from './ItemLayoutEditor';
+import { Input, Textarea, Button } from '@/components/ui';
+import { Combobox } from '@/components/ui/Combobox';
+import { RadioGroup } from '@/components/ui/RadioGroup';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { minecraftToWeb } from '@/lib/keyConversion';
+import { MINECRAFT_LANGUAGES } from '@/lib/languages';
 
-// Minecraft言語リスト（全言語）
-const MINECRAFT_LANGUAGES = [
-  { value: 'af_za', label: 'Afrikaans (Suid-Afrika)' },
-  { value: 'ar_sa', label: 'العربية (السعودية)' },
-  { value: 'ast_es', label: 'Asturianu (España)' },
-  { value: 'az_az', label: 'Azərbaycanca (Azərbaycan)' },
-  { value: 'ba_ru', label: 'Башҡортса (Россия)' },
-  { value: 'bar', label: 'Bairisch' },
-  { value: 'be_by', label: 'Беларуская (Беларусь)' },
-  { value: 'bg_bg', label: 'Български (България)' },
-  { value: 'br_fr', label: 'Brezhoneg (Frañs)' },
-  { value: 'brb', label: 'Barbadian' },
-  { value: 'bs_ba', label: 'Bosanski (Bosna i Hercegovina)' },
-  { value: 'ca_es', label: 'Català (Espanya)' },
-  { value: 'cs_cz', label: 'Čeština (Česko)' },
-  { value: 'cy_gb', label: 'Cymraeg (Y Deyrnas Unedig)' },
-  { value: 'da_dk', label: 'Dansk (Danmark)' },
-  { value: 'de_at', label: 'Deutsch (Österreich)' },
-  { value: 'de_ch', label: 'Deutsch (Schweiz)' },
-  { value: 'de_de', label: 'Deutsch (Deutschland)' },
-  { value: 'el_gr', label: 'Ελληνικά (Ελλάδα)' },
-  { value: 'en_au', label: 'English (Australia)' },
-  { value: 'en_ca', label: 'English (Canada)' },
-  { value: 'en_gb', label: 'English (United Kingdom)' },
-  { value: 'en_nz', label: 'English (New Zealand)' },
-  { value: 'en_pt', label: 'English (Pirate Speak)' },
-  { value: 'en_ud', label: 'English (Upside Down)' },
-  { value: 'en_us', label: 'English (United States)' },
-  { value: 'enp', label: 'English (Anglish)' },
-  { value: 'enws', label: 'English (Early Modern)' },
-  { value: 'eo_uy', label: 'Esperanto (Urugvajo)' },
-  { value: 'es_ar', label: 'Español (Argentina)' },
-  { value: 'es_cl', label: 'Español (Chile)' },
-  { value: 'es_ec', label: 'Español (Ecuador)' },
-  { value: 'es_es', label: 'Español (España)' },
-  { value: 'es_mx', label: 'Español (México)' },
-  { value: 'es_uy', label: 'Español (Uruguay)' },
-  { value: 'es_ve', label: 'Español (Venezuela)' },
-  { value: 'et_ee', label: 'Eesti (Eesti)' },
-  { value: 'eu_es', label: 'Euskara (Espainia)' },
-  { value: 'fa_ir', label: 'فارسی (ایران)' },
-  { value: 'fi_fi', label: 'Suomi (Suomi)' },
-  { value: 'fil_ph', label: 'Filipino (Pilipinas)' },
-  { value: 'fo_fo', label: 'Føroyskt (Føroyar)' },
-  { value: 'fr_ca', label: 'Français (Canada)' },
-  { value: 'fr_fr', label: 'Français (France)' },
-  { value: 'fra_de', label: 'Fränkisch (Deutschland)' },
-  { value: 'fur_it', label: 'Furlan (Italie)' },
-  { value: 'fy_nl', label: 'Frysk (Nederlân)' },
-  { value: 'ga_ie', label: 'Gaeilge (Éire)' },
-  { value: 'gd_gb', label: 'Gàidhlig (An Rìoghachd Aonaichte)' },
-  { value: 'gl_es', label: 'Galego (España)' },
-  { value: 'haw_us', label: 'ʻŌlelo Hawaiʻi (ʻAmelika Hui Pū ʻIa)' },
-  { value: 'he_il', label: 'עברית (ישראל)' },
-  { value: 'hi_in', label: 'हिन्दी (भारत)' },
-  { value: 'hr_hr', label: 'Hrvatski (Hrvatska)' },
-  { value: 'hu_hu', label: 'Magyar (Magyarország)' },
-  { value: 'hy_am', label: 'Հայերեն (Հայաստան)' },
-  { value: 'id_id', label: 'Bahasa Indonesia (Indonesia)' },
-  { value: 'ig_ng', label: 'Igbo (Naịjịrịa)' },
-  { value: 'io_en', label: 'Ido (Anglia)' },
-  { value: 'is_is', label: 'Íslenska (Ísland)' },
-  { value: 'isv', label: 'Interslavic' },
-  { value: 'it_it', label: 'Italiano (Italia)' },
-  { value: 'ja_jp', label: '日本語 (日本)' },
-  { value: 'jbo_en', label: 'la .lojban. (lb\'anglia)' },
-  { value: 'ka_ge', label: 'ქართული (საქართველო)' },
-  { value: 'kk_kz', label: 'Қазақша (Қазақстан)' },
-  { value: 'kn_in', label: 'ಕನ್ನಡ (ಭಾರತ)' },
-  { value: 'ko_kr', label: '한국어 (대한민국)' },
-  { value: 'ksh', label: 'Kölsch' },
-  { value: 'kw_gb', label: 'Kernewek (Rywvaneth Unys)' },
-  { value: 'la_la', label: 'Latina (Imperium Romanum)' },
-  { value: 'lb_lu', label: 'Lëtzebuergesch (Lëtzebuerg)' },
-  { value: 'li_li', label: 'Limburgs (Limburg)' },
-  { value: 'lmo', label: 'Lombard' },
-  { value: 'lt_lt', label: 'Lietuvių (Lietuva)' },
-  { value: 'lv_lv', label: 'Latviešu (Latvija)' },
-  { value: 'lzh', label: '文言 (華夏)' },
-  { value: 'mk_mk', label: 'Македонски (Македонија)' },
-  { value: 'mn_mn', label: 'Монгол (Монгол Улс)' },
-  { value: 'ms_my', label: 'Bahasa Melayu (Malaysia)' },
-  { value: 'mt_mt', label: 'Malti (Malta)' },
-  { value: 'nds_de', label: 'Plattdüütsch (Düütschland)' },
-  { value: 'nl_be', label: 'Nederlands (België)' },
-  { value: 'nl_nl', label: 'Nederlands (Nederland)' },
-  { value: 'nn_no', label: 'Norsk nynorsk (Noreg)' },
-  { value: 'no_no', label: 'Norsk bokmål (Norge)' },
-  { value: 'oc_fr', label: 'Occitan (França)' },
-  { value: 'ovd', label: 'Övdalsk' },
-  { value: 'pl_pl', label: 'Polski (Polska)' },
-  { value: 'pt_br', label: 'Português (Brasil)' },
-  { value: 'pt_pt', label: 'Português (Portugal)' },
-  { value: 'qya_aa', label: 'Quenya (Arda)' },
-  { value: 'ro_ro', label: 'Română (România)' },
-  { value: 'rpr', label: 'Ripoarisch' },
-  { value: 'ru_ru', label: 'Русский (Россия)' },
-  { value: 'se_no', label: 'Davvisámegiella (Norga)' },
-  { value: 'sk_sk', label: 'Slovenčina (Slovensko)' },
-  { value: 'sl_si', label: 'Slovenščina (Slovenija)' },
-  { value: 'so_so', label: 'Soomaaliga (Soomaaliya)' },
-  { value: 'sq_al', label: 'Shqip (Shqipëri)' },
-  { value: 'sr_sp', label: 'Српски (Србија)' },
-  { value: 'sv_se', label: 'Svenska (Sverige)' },
-  { value: 'sxu', label: 'Saksisch' },
-  { value: 'szl', label: 'Ślōnskŏ gŏdka' },
-  { value: 'ta_in', label: 'தமிழ் (இந்தியா)' },
-  { value: 'th_th', label: 'ไทย (ประเทศไทย)' },
-  { value: 'tl_ph', label: 'Tagalog (Pilipinas)' },
-  { value: 'tlh_aa', label: 'tlhIngan Hol (tlhIngan wo\')' },
-  { value: 'tok', label: 'toki pona' },
-  { value: 'tr_tr', label: 'Türkçe (Türkiye)' },
-  { value: 'tt_ru', label: 'Татарча (Россия)' },
-  { value: 'uk_ua', label: 'Українська (Україна)' },
-  { value: 'val_es', label: 'Valencià (Espanya)' },
-  { value: 'vec_it', label: 'Vèneto (Itàlia)' },
-  { value: 'vi_vn', label: 'Tiếng Việt (Việt Nam)' },
-  { value: 'yi_de', label: 'ייִדיש (דײַטשלאַנד)' },
-  { value: 'yo_ng', label: 'Yorùbá (Nàìjíríà)' },
-  { value: 'zh_cn', label: '简体中文 (中国大陆)' },
-  { value: 'zh_hk', label: '繁體中文 (香港)' },
-  { value: 'zh_tw', label: '繁體中文 (台灣)' },
-  { value: 'zlm_arab', label: 'بهاس ملايو (مليسيا)' },
+// キーボードレイアウトオプション
+const KEYBOARD_LAYOUT_OPTIONS = [
+  { value: 'JIS', label: 'JIS', description: '日本語配列フルサイズ' },
+  { value: 'US', label: 'US', description: '英語配列フルサイズ' },
+  { value: 'JIS-TKL', label: 'JIS (TKL)', description: '日本語配列テンキーレス' },
+  { value: 'US-TKL', label: 'US (TKL)', description: '英語配列テンキーレス' },
 ];
 
 interface KeybindingEditorProps {
@@ -145,6 +37,7 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [selectedAction, setSelectedAction] = useState<string | null>(null);
   const [syncingMcid, setSyncingMcid] = useState(false);
+  const itemLayoutEditorRef = useRef<{ save: () => Promise<boolean> }>(null);
 
   // ユーザー情報
   const [displayName, setDisplayName] = useState(initialDisplayName);
@@ -172,63 +65,67 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
 
   // プレイヤー環境設定
   const [gameLanguage, setGameLanguage] = useState(initialSettings?.gameLanguage || '');
-  const [languageSearch, setLanguageSearch] = useState('');
-  const [showLanguageDropdown, setShowLanguageDropdown] = useState(false);
   const [mouseModel, setMouseModel] = useState(initialSettings?.mouseModel || '');
   const [keyboardModel, setKeyboardModel] = useState(initialSettings?.keyboardModel || '');
   const [notes, setNotes] = useState(initialSettings?.notes || '');
 
   // キーバインド（移動）
-  const [forward, setForward] = useState(initialSettings?.forward || 'key.keyboard.w');
-  const [back, setBack] = useState(initialSettings?.back || 'key.keyboard.s');
-  const [left, setLeft] = useState(initialSettings?.left || 'key.keyboard.a');
-  const [right, setRight] = useState(initialSettings?.right || 'key.keyboard.d');
-  const [jump, setJump] = useState(initialSettings?.jump || 'key.keyboard.space');
-  const [sneak, setSneak] = useState(initialSettings?.sneak || 'key.keyboard.left.shift');
-  const [sprint, setSprint] = useState(initialSettings?.sprint || 'key.keyboard.left.control');
+  const [forward, setForward] = useState<string | string[]>(initialSettings?.forward || 'key.keyboard.w');
+  const [back, setBack] = useState<string | string[]>(initialSettings?.back || 'key.keyboard.s');
+  const [left, setLeft] = useState<string | string[]>(initialSettings?.left || 'key.keyboard.a');
+  const [right, setRight] = useState<string | string[]>(initialSettings?.right || 'key.keyboard.d');
+  const [jump, setJump] = useState<string | string[]>(initialSettings?.jump || 'key.keyboard.space');
+  const [sneak, setSneak] = useState<string | string[]>(initialSettings?.sneak || 'key.keyboard.left.shift');
+  const [sprint, setSprint] = useState<string | string[]>(initialSettings?.sprint || 'key.keyboard.left.control');
 
   // キーバインド（アクション）
-  const [attack, setAttack] = useState(initialSettings?.attack || 'key.mouse.left');
-  const [use, setUse] = useState(initialSettings?.use || 'key.mouse.right');
-  const [pickBlock, setPickBlock] = useState(initialSettings?.pickBlock || 'key.mouse.middle');
-  const [drop, setDrop] = useState(initialSettings?.drop || 'key.keyboard.q');
+  const [attack, setAttack] = useState<string | string[]>(initialSettings?.attack || 'key.mouse.left');
+  const [use, setUse] = useState<string | string[]>(initialSettings?.use || 'key.mouse.right');
+  const [pickBlock, setPickBlock] = useState<string | string[]>(initialSettings?.pickBlock || 'key.mouse.middle');
+  const [drop, setDrop] = useState<string | string[]>(initialSettings?.drop || 'key.keyboard.q');
 
   // キーバインド（インベントリ）
-  const [inventory, setInventory] = useState(initialSettings?.inventory || 'key.keyboard.e');
-  const [swapHands, setSwapHands] = useState(initialSettings?.swapHands || 'key.keyboard.f');
-  const [hotbar1, setHotbar1] = useState(initialSettings?.hotbar1 || 'key.keyboard.1');
-  const [hotbar2, setHotbar2] = useState(initialSettings?.hotbar2 || 'key.keyboard.2');
-  const [hotbar3, setHotbar3] = useState(initialSettings?.hotbar3 || 'key.keyboard.3');
-  const [hotbar4, setHotbar4] = useState(initialSettings?.hotbar4 || 'key.keyboard.4');
-  const [hotbar5, setHotbar5] = useState(initialSettings?.hotbar5 || 'key.keyboard.5');
-  const [hotbar6, setHotbar6] = useState(initialSettings?.hotbar6 || 'key.keyboard.6');
-  const [hotbar7, setHotbar7] = useState(initialSettings?.hotbar7 || 'key.keyboard.7');
-  const [hotbar8, setHotbar8] = useState(initialSettings?.hotbar8 || 'key.keyboard.8');
-  const [hotbar9, setHotbar9] = useState(initialSettings?.hotbar9 || 'key.keyboard.9');
+  const [inventory, setInventory] = useState<string | string[]>(initialSettings?.inventory || 'key.keyboard.e');
+  const [swapHands, setSwapHands] = useState<string | string[]>(initialSettings?.swapHands || 'key.keyboard.f');
+  const [hotbar1, setHotbar1] = useState<string | string[]>(initialSettings?.hotbar1 || 'key.keyboard.1');
+  const [hotbar2, setHotbar2] = useState<string | string[]>(initialSettings?.hotbar2 || 'key.keyboard.2');
+  const [hotbar3, setHotbar3] = useState<string | string[]>(initialSettings?.hotbar3 || 'key.keyboard.3');
+  const [hotbar4, setHotbar4] = useState<string | string[]>(initialSettings?.hotbar4 || 'key.keyboard.4');
+  const [hotbar5, setHotbar5] = useState<string | string[]>(initialSettings?.hotbar5 || 'key.keyboard.5');
+  const [hotbar6, setHotbar6] = useState<string | string[]>(initialSettings?.hotbar6 || 'key.keyboard.6');
+  const [hotbar7, setHotbar7] = useState<string | string[]>(initialSettings?.hotbar7 || 'key.keyboard.7');
+  const [hotbar8, setHotbar8] = useState<string | string[]>(initialSettings?.hotbar8 || 'key.keyboard.8');
+  const [hotbar9, setHotbar9] = useState<string | string[]>(initialSettings?.hotbar9 || 'key.keyboard.9');
 
   // キーバインド（ビュー・UI操作）
-  const [togglePerspective, setTogglePerspective] = useState(initialSettings?.togglePerspective || 'key.keyboard.f5');
-  const [fullscreen, setFullscreen] = useState(initialSettings?.fullscreen || 'key.keyboard.f11');
-  const [chat, setChat] = useState(initialSettings?.chat || 'key.keyboard.t');
-  const [command, setCommand] = useState(initialSettings?.command || 'key.keyboard.slash');
-  const [toggleHud, setToggleHud] = useState(initialSettings?.toggleHud || 'key.keyboard.f1');
+  const [togglePerspective, setTogglePerspective] = useState<string | string[]>(initialSettings?.togglePerspective || 'key.keyboard.f5');
+  const [fullscreen, setFullscreen] = useState<string | string[]>(initialSettings?.fullscreen || 'key.keyboard.f11');
+  const [chat, setChat] = useState<string | string[]>(initialSettings?.chat || 'key.keyboard.t');
+  const [command, setCommand] = useState<string | string[]>(initialSettings?.command || 'key.keyboard.slash');
+  const [toggleHud, setToggleHud] = useState<string | string[]>(initialSettings?.toggleHud || 'key.keyboard.f1');
 
   // 追加設定（additionalSettings JSONフィールドから読み込み）
-  const [reset, setReset] = useState(
-    (initialSettings?.additionalSettings as { reset?: string })?.reset || 'key.keyboard.f6'
+  const [reset, setReset] = useState<string | string[]>(
+    (initialSettings?.additionalSettings as { reset?: string | string[] })?.reset || 'key.keyboard.f6'
   );
-  const [playerList, setPlayerList] = useState(
-    (initialSettings?.additionalSettings as { playerList?: string })?.playerList || 'key.keyboard.tab'
+  const [playerList, setPlayerList] = useState<string | string[]>(
+    (initialSettings?.additionalSettings as { playerList?: string | string[] })?.playerList || 'key.keyboard.tab'
   );
 
   // リマップとツール設定（オブジェクトとして管理）
-  const [remappings, setRemappings] = useState<{ [key: string]: string }>(
-    initialSettings?.remappings || {}
-  );
+  const [remappings, setRemappings] = useState<{ [key: string]: string }>(() => {
+    if (initialSettings && 'remappings' in initialSettings) {
+      return (initialSettings.remappings as { [key: string]: string }) || {};
+    }
+    return {};
+  });
 
   // 外部ツール設定（key -> action名）
   const [externalTools, setExternalTools] = useState<{ [key: string]: string }>(() => {
-    return (initialSettings?.externalTools as { [key: string]: string }) || {};
+    if (initialSettings && 'externalTools' in initialSettings) {
+      return (initialSettings.externalTools as { [key: string]: string }) || {};
+    }
+    return {};
   });
 
   // 指の割り当て設定（後方互換性のため、古い形式を配列に変換）
@@ -282,38 +179,6 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
     ? calculateCm360(Number(mouseDpi), Number(sensitivityRaw), Number(windowsSpeed), rawInput, mouseAcceleration)
     : null;
 
-  // 言語検索の絞り込み
-  const filteredLanguages = useMemo(() => {
-    if (!languageSearch.trim()) return MINECRAFT_LANGUAGES;
-    const query = languageSearch.toLowerCase();
-    return MINECRAFT_LANGUAGES.filter((lang) =>
-      lang.label.toLowerCase().includes(query) || lang.value.toLowerCase().includes(query)
-    );
-  }, [languageSearch]);
-
-  // 選択された言語のラベル取得
-  const selectedLanguageLabel = useMemo(() => {
-    const found = MINECRAFT_LANGUAGES.find((lang) => lang.value === gameLanguage);
-    return found ? found.label : gameLanguage;
-  }, [gameLanguage]);
-
-  // ドロップダウン外クリック検知用のref
-  const languageDropdownRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (languageDropdownRef.current && !languageDropdownRef.current.contains(event.target as Node)) {
-        setShowLanguageDropdown(false);
-      }
-    };
-
-    if (showLanguageDropdown) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [showLanguageDropdown]);
 
   // 仮想キーボード用のバインディングマップ
   const bindings = {
@@ -339,6 +204,23 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
       command: 'コマンド', toggleHud: 'Hide HUD', playerList: 'プレイヤーリスト', reset: 'リセット',
     };
     return labels[action] || action;
+  };
+
+  // アクションのカテゴリを取得
+  const getCategoryForAction = (action: string): string => {
+    if (['forward', 'back', 'left', 'right', 'jump', 'sneak', 'sprint'].includes(action)) {
+      return 'movement';
+    }
+    if (['attack', 'use', 'pickBlock', 'drop'].includes(action)) {
+      return 'action';
+    }
+    if (['inventory', 'swapHands', 'hotbar1', 'hotbar2', 'hotbar3', 'hotbar4', 'hotbar5', 'hotbar6', 'hotbar7', 'hotbar8', 'hotbar9'].includes(action)) {
+      return 'inventory';
+    }
+    if (['togglePerspective', 'fullscreen', 'chat', 'command', 'toggleHud'].includes(action)) {
+      return 'view';
+    }
+    return 'other';
   };
 
   // MCIDを手動同期
@@ -369,16 +251,42 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
 
   // モーダルからの設定更新を処理
   const handleUpdateConfig = (keyCode: string, config: {
-    action?: string;
+    actions?: string[];
     remap?: string;
     externalTool?: string;
     finger?: Finger[];
   }) => {
-    console.log('handleUpdateConfig called:', { keyCode, config });
+    // Helper function to add a key to an action's binding
+    const addKeyToAction = (currentValue: string | string[], keyToAdd: string): string | string[] => {
+      if (Array.isArray(currentValue)) {
+        // Already an array - add if not present
+        return currentValue.includes(keyToAdd) ? currentValue : [...currentValue, keyToAdd];
+      } else if (currentValue) {
+        // Single value - convert to array if different from current
+        return currentValue === keyToAdd ? currentValue : [currentValue, keyToAdd];
+      } else {
+        // Empty - just set the key
+        return keyToAdd;
+      }
+    };
 
-    // アクション割り当て
-    if (config.action) {
-      const setters: { [key: string]: (value: string) => void } = {
+    // Helper function to remove a key from an action's binding
+    const removeKeyFromAction = (currentValue: string | string[], keyToRemove: string, defaultValue: string): string | string[] => {
+      if (Array.isArray(currentValue)) {
+        const filtered = currentValue.filter(k => k !== keyToRemove);
+        // Return single string if only one left, default value if none, array otherwise
+        if (filtered.length === 0) return defaultValue;
+        if (filtered.length === 1) return filtered[0];
+        return filtered;
+      } else if (currentValue === keyToRemove) {
+        return defaultValue;
+      }
+      return currentValue;
+    };
+
+    // アクション割り当て処理
+    if ('actions' in config) {
+      const setters: { [key: string]: (value: string | string[]) => void } = {
         forward: setForward, back: setBack, left: setLeft, right: setRight,
         jump: setJump, sneak: setSneak, sprint: setSprint,
         attack: setAttack, use: setUse, pickBlock: setPickBlock, drop: setDrop,
@@ -390,18 +298,79 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
         chat: setChat, command: setCommand, toggleHud: setToggleHud,
         playerList: setPlayerList, reset: setReset,
       };
-      setters[config.action]?.(keyCode);
+
+      const getters: { [key: string]: string | string[] } = {
+        forward, back, left, right, jump, sneak, sprint,
+        attack, use, pickBlock, drop,
+        inventory, swapHands,
+        hotbar1, hotbar2, hotbar3, hotbar4, hotbar5, hotbar6, hotbar7, hotbar8, hotbar9,
+        togglePerspective, fullscreen, chat, command, toggleHud, playerList, reset,
+      };
+
+      // デフォルト値のマップ
+      const defaults: { [key: string]: string } = {
+        forward: 'key.keyboard.w', back: 'key.keyboard.s', left: 'key.keyboard.a', right: 'key.keyboard.d',
+        jump: 'key.keyboard.space', sneak: 'key.keyboard.left.shift', sprint: 'key.keyboard.left.control',
+        attack: 'key.mouse.left', use: 'key.mouse.right', pickBlock: 'key.mouse.middle', drop: 'key.keyboard.q',
+        inventory: 'key.keyboard.e', swapHands: 'key.keyboard.f',
+        hotbar1: 'key.keyboard.1', hotbar2: 'key.keyboard.2', hotbar3: 'key.keyboard.3',
+        hotbar4: 'key.keyboard.4', hotbar5: 'key.keyboard.5', hotbar6: 'key.keyboard.6',
+        hotbar7: 'key.keyboard.7', hotbar8: 'key.keyboard.8', hotbar9: 'key.keyboard.9',
+        togglePerspective: 'key.keyboard.f5', fullscreen: 'key.keyboard.f11',
+        chat: 'key.keyboard.t', command: 'key.keyboard.slash', toggleHud: 'key.keyboard.f1',
+        playerList: 'key.keyboard.tab', reset: 'key.keyboard.f6',
+      };
+
+      // Find which actions are currently bound to this key
+      const currentActionsForKey = Object.entries(getters)
+        .filter(([_, keyBinding]) => {
+          if (Array.isArray(keyBinding)) {
+            return keyBinding.includes(keyCode);
+          }
+          return keyBinding === keyCode;
+        })
+        .map(([action]) => action);
+
+      const newActions = config.actions || [];
+
+      // Find actions to add (in newActions but not in currentActionsForKey)
+      const actionsToAdd = newActions.filter(action => !currentActionsForKey.includes(action));
+
+      // Find actions to remove (in currentActionsForKey but not in newActions)
+      const actionsToRemove = currentActionsForKey.filter(action => !newActions.includes(action));
+
+      // Add key to new actions
+      for (const action of actionsToAdd) {
+        const setter = setters[action];
+        const currentValue = getters[action];
+        if (setter) {
+          setter(addKeyToAction(currentValue, keyCode));
+        }
+      }
+
+      // Remove key from removed actions
+      for (const action of actionsToRemove) {
+        const setter = setters[action];
+        const currentValue = getters[action];
+        const defaultValue = defaults[action] || 'key.keyboard.unknown';
+        if (setter) {
+          setter(removeKeyFromAction(currentValue, keyCode, defaultValue));
+        }
+      }
     }
+
+    // Minecraft形式のキーコードをWeb標準形式に変換
+    const webKeyCode = minecraftToWeb(keyCode);
 
     // リマップ設定
     if ('remap' in config) {
       setRemappings(prev => {
         const updated = { ...prev };
         if (config.remap && config.remap.trim() !== '') {
-          updated[keyCode] = config.remap;
+          updated[webKeyCode] = config.remap;
         } else {
           // undefinedまたは空文字列の場合は削除
-          delete updated[keyCode];
+          delete updated[webKeyCode];
         }
         return updated;
       });
@@ -413,9 +382,9 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
         const updated = { ...prev };
         if (config.externalTool && config.externalTool.trim() !== '') {
           // アクション名を保存
-          updated[keyCode] = config.externalTool;
+          updated[webKeyCode] = config.externalTool;
         } else {
-          delete updated[keyCode];
+          delete updated[webKeyCode];
         }
         return updated;
       });
@@ -426,9 +395,9 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
       setFingerAssignments(prev => {
         const updated = { ...prev };
         if (config.finger && config.finger.length > 0) {
-          updated[keyCode] = config.finger;
+          updated[webKeyCode] = config.finger;
         } else {
-          delete updated[keyCode];
+          delete updated[webKeyCode];
         }
         return updated;
       });
@@ -439,75 +408,92 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
     setSaving(true);
 
     try {
-
-      const data = {
-        uuid, // UUIDを送信
-        displayName, // 表示名を送信
-        keyboardLayout, // キーボードレイアウトを送信
-
-        // マウス設定
-        mouseDpi: mouseDpi ? Number(mouseDpi) : null,
-        gameSensitivity: sensitivityRaw ? Number(sensitivityRaw) : null,
-        windowsSpeed: windowsSpeed ? Number(windowsSpeed) : null,
-        mouseAcceleration,
-        rawInput,
-        cm360,
-
-        // 移動
-        forward,
-        back,
-        left,
-        right,
-        jump,
-        sneak,
-        sprint,
-
-        // アクション
-        attack,
-        use,
-        pickBlock,
-        drop,
-
-        // インベントリ
-        inventory,
-        swapHands,
-        hotbar1,
-        hotbar2,
-        hotbar3,
-        hotbar4,
-        hotbar5,
-        hotbar6,
-        hotbar7,
-        hotbar8,
-        hotbar9,
-
-        // ビュー・UI操作
-        togglePerspective,
-        fullscreen,
-        chat,
-        command,
-        toggleHud,
-
-        // リマップと外部ツール（空のオブジェクトの場合はnullに変換）
-        remappings: Object.keys(remappings).length > 0 ? remappings : null,
-        externalTools: Object.keys(externalTools).length > 0 ? externalTools : null,
-        fingerAssignments: Object.keys(fingerAssignments).length > 0 ? fingerAssignments : null,
-
-        // 追加設定（additionalSettings JSONフィールドに保存）
-        additionalSettings: {
-          reset,
-          playerList,
-          customKeys: customKeys.length > 0 ? { keys: customKeys } : undefined
-        },
-
-        // プレイヤー環境設定
-        gameLanguage: gameLanguage.trim() || undefined,
-        mouseModel: mouseModel.trim() || undefined,
-        keyboardModel: keyboardModel.trim() || undefined,
-        notes: notes.trim() || undefined,
+      // キーバインドを新スキーマ形式（Keybinding配列）に変換
+      const keybindingStates: { [action: string]: string | string[] } = {
+        forward, back, left, right, jump, sneak, sprint,
+        attack, use, pickBlock, drop,
+        inventory, swapHands,
+        hotbar1, hotbar2, hotbar3, hotbar4, hotbar5, hotbar6, hotbar7, hotbar8, hotbar9,
+        togglePerspective, fullscreen, chat, command, toggleHud,
       };
 
-      console.log('Saving keybindings:', { remappings, externalTools, fingerAssignments });
+      // additionalSettingsのキーバインドも追加
+      const additionalBindings: { [action: string]: string | string[] } = {
+        reset,
+        playerList,
+      };
+
+      const keybindings: Array<{ action: string; keyCode: string; category: string; fingers?: string[] }> = [];
+
+      // 通常のキーバインドを変換
+      Object.entries(keybindingStates).forEach(([action, keyBinding]) => {
+        const keyCodes = Array.isArray(keyBinding) ? keyBinding : [keyBinding];
+        keyCodes.forEach(keyCode => {
+          if (keyCode && keyCode !== '') {
+            keybindings.push({
+              action,
+              keyCode,
+              category: getCategoryForAction(action),
+              fingers: fingerAssignments[keyCode] || undefined,
+            });
+          }
+        });
+      });
+
+      // 追加設定のキーバインドを変換
+      Object.entries(additionalBindings).forEach(([action, keyBinding]) => {
+        const keyCodes = Array.isArray(keyBinding) ? keyBinding : [keyBinding];
+        keyCodes.forEach(keyCode => {
+          if (keyCode && keyCode !== '') {
+            keybindings.push({
+              action,
+              keyCode,
+              category: 'other',
+              fingers: fingerAssignments[keyCode] || undefined,
+            });
+          }
+        });
+      });
+
+      // キーリマップを配列形式に変換
+      const keyRemaps = Object.entries(remappings).map(([sourceKey, targetKey]) => ({
+        sourceKey,
+        targetKey,
+      }));
+
+      // 外部ツールを配列形式に変換
+      const externalToolsArray = Object.entries(externalTools).map(([triggerKey, actionName]) => ({
+        triggerKey,
+        toolName: 'AutoHotKey', // デフォルト値
+        actionName,
+        description: undefined,
+      }));
+
+      const data = {
+        settings: {
+          displayName,
+          keyboardLayout,
+          mouseDpi: mouseDpi ? Number(mouseDpi) : null,
+          gameSensitivity: sensitivityRaw ? Number(sensitivityRaw) : null,
+          windowsSpeed: windowsSpeed ? Number(windowsSpeed) : null,
+          mouseAcceleration,
+          rawInput,
+          cm360,
+          fingerAssignments: Object.keys(fingerAssignments).length > 0 ? fingerAssignments : undefined,
+          gameLanguage: gameLanguage.trim() || undefined,
+          mouseModel: mouseModel.trim() || undefined,
+          keyboardModel: keyboardModel.trim() || undefined,
+          notes: notes.trim() || undefined,
+        },
+        keybindings,
+        keyRemaps: keyRemaps.length > 0 ? keyRemaps : undefined,
+        externalTools: externalToolsArray.length > 0 ? externalToolsArray : undefined,
+        customKeys: customKeys.length > 0 ? customKeys.map(ck => ({
+          keyCode: ck.keyCode,
+          keyName: ck.label,
+          category: 'keyboard' as const,
+        })) : undefined,
+      };
 
       const response = await fetch('/api/keybindings', {
         method: 'POST',
@@ -517,6 +503,14 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
 
       if (!response.ok) {
         throw new Error('Failed to save settings');
+      }
+
+      // アイテム配置設定も保存
+      if (itemLayoutEditorRef.current) {
+        const itemLayoutSaved = await itemLayoutEditorRef.current.save();
+        if (!itemLayoutSaved) {
+          throw new Error('Failed to save item layouts');
+        }
       }
 
       // 現在のMCIDでリダイレクト
@@ -555,90 +549,92 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-32">
       {/* ユーザー情報 */}
       <section className="bg-[rgb(var(--card))] p-6 rounded-lg border border-[rgb(var(--border))]">
-        <h2 className="text-xl font-bold mb-4">ユーザー情報</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <InputField
-            label="表示名"
-            type="text"
-            value={displayName}
-            onChange={setDisplayName}
-            placeholder="表示名を入力"
-          />
-          <div className="flex flex-col gap-1">
-            <label className="font-semibold">MCID</label>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={currentMcid}
-                readOnly
-                className="flex-1 min-w-0 px-3 py-2 border rounded bg-[rgb(var(--muted))] text-[rgb(var(--muted-foreground))] cursor-not-allowed"
-              />
-              <button
-                type="button"
-                onClick={handleSyncMcid}
-                disabled={syncingMcid}
-                className="px-2 sm:px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-medium rounded transition-colors whitespace-nowrap flex-shrink-0"
-                title="Mojang APIから最新のMCIDを取得"
-              >
-                {syncingMcid ? '同期中...' : '同期'}
-              </button>
+        <h2 className="text-xl font-bold mb-4">プレイヤー情報</h2>
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Input
+              label="表示名"
+              type="text"
+              value={displayName}
+              onChange={(e) => setDisplayName(e.target.value)}
+              placeholder="表示名を入力"
+            />
+            <div className="flex flex-col gap-1">
+              <label className="font-semibold">MCID</label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={currentMcid}
+                  readOnly
+                  className="flex-1 min-w-0 px-3 py-2 border rounded bg-[rgb(var(--muted))] text-[rgb(var(--muted-foreground))] cursor-not-allowed"
+                />
+                <Button
+                  onClick={handleSyncMcid}
+                  disabled={syncingMcid}
+                  size="sm"
+                  className="whitespace-nowrap flex-shrink-0"
+                  title="Mojang APIから最新のMCIDを取得"
+                >
+                  {syncingMcid ? '同期中...' : '同期'}
+                </Button>
+              </div>
+              <p className="text-xs text-[rgb(var(--muted-foreground))] mt-1">
+                MinecraftでIDを変更した場合は同期ボタンで更新できます
+              </p>
             </div>
-            <p className="text-xs text-[rgb(var(--muted-foreground))] mt-1">
-              MinecraftでIDを変更した場合は同期ボタンで更新できます
-            </p>
           </div>
-        </div>
-        <div className="mt-4">
-          <label className="font-semibold mb-2 block">キーボードレイアウト</label>
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              type="button"
-              onClick={() => setKeyboardLayout('JIS')}
-              className={`px-4 py-2 rounded-lg border transition-colors font-medium ${
-                keyboardLayout === 'JIS'
-                  ? 'border-blue-500 bg-blue-500/10 text-blue-600'
-                  : 'border-[rgb(var(--border))] hover:bg-[rgb(var(--accent))]'
-              }`}
-            >
-              JIS
-            </button>
-            <button
-              type="button"
-              onClick={() => setKeyboardLayout('US')}
-              className={`px-4 py-2 rounded-lg border transition-colors font-medium ${
-                keyboardLayout === 'US'
-                  ? 'border-blue-500 bg-blue-500/10 text-blue-600'
-                  : 'border-[rgb(var(--border))] hover:bg-[rgb(var(--accent))]'
-              }`}
-            >
-              US
-            </button>
-            <button
-              type="button"
-              onClick={() => setKeyboardLayout('JIS-TKL')}
-              className={`px-4 py-2 rounded-lg border transition-colors font-medium ${
-                keyboardLayout === 'JIS-TKL'
-                  ? 'border-blue-500 bg-blue-500/10 text-blue-600'
-                  : 'border-[rgb(var(--border))] hover:bg-[rgb(var(--accent))]'
-              }`}
-            >
-              JIS (TKL)
-            </button>
-            <button
-              type="button"
-              onClick={() => setKeyboardLayout('US-TKL')}
-              className={`px-4 py-2 rounded-lg border transition-colors font-medium ${
-                keyboardLayout === 'US-TKL'
-                  ? 'border-blue-500 bg-blue-500/10 text-blue-600'
-                  : 'border-[rgb(var(--border))] hover:bg-[rgb(var(--accent))]'
-              }`}
-            >
-              US (TKL)
-            </button>
+
+          {/* ゲーム内の言語 */}
+          <Combobox
+            label="ゲーム内の言語"
+            value={gameLanguage}
+            onChange={setGameLanguage}
+            options={MINECRAFT_LANGUAGES}
+            placeholder="言語を選択または入力"
+            allowCustomValue={true}
+            helpText={gameLanguage ? `現在の選択: ${MINECRAFT_LANGUAGES.find(l => l.value === gameLanguage)?.label || gameLanguage}` : undefined}
+          />
+
+          {/* デバイス情報 */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="mouseModel" className="font-semibold text-base mb-2 block">マウス</label>
+              <input
+                id="mouseModel"
+                type="text"
+                value={mouseModel}
+                onChange={(e) => setMouseModel(e.target.value)}
+                placeholder="例: Logicool G Pro X Superlight"
+                className="w-full px-3 py-2 text-base border border-[rgb(var(--border))] rounded bg-[rgb(var(--background))]"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="keyboardModel" className="font-semibold text-base mb-2 block">キーボード</label>
+              <input
+                id="keyboardModel"
+                type="text"
+                value={keyboardModel}
+                onChange={(e) => setKeyboardModel(e.target.value)}
+                placeholder="例: Keychron K8 Pro"
+                className="w-full px-3 py-2 text-base border border-[rgb(var(--border))] rounded bg-[rgb(var(--background))]"
+              />
+            </div>
           </div>
+
+          {/* 自由使用欄 */}
+          <Textarea
+            id="notes"
+            label="コメント"
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            placeholder="その他のメモや補足情報など"
+            rows={4}
+            className="resize-y"
+          />
         </div>
       </section>
 
@@ -648,21 +644,30 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
           <h2 className="text-xl font-bold">キー配置設定</h2>
           <div className="flex items-center gap-2">
             <label className="text-sm font-medium">指の色分け表示</label>
-            <button
-              type="button"
-              role="switch"
-              aria-checked={showFingerColors}
-              onClick={() => setShowFingerColors(!showFingerColors)}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${showFingerColors ? 'bg-blue-600' : 'bg-[rgb(var(--border))]'
-                }`}
+            <Switch
+              checked={showFingerColors}
+              onChange={setShowFingerColors}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
+                showFingerColors ? 'bg-primary' : 'bg-[rgb(var(--border))]'
+              }`}
             >
               <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${showFingerColors ? 'translate-x-6' : 'translate-x-1'
-                  }`}
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  showFingerColors ? 'translate-x-6' : 'translate-x-1'
+                }`}
               />
-            </button>
+            </Switch>
           </div>
         </div>
+
+        <RadioGroup
+          label="キーボードレイアウト"
+          value={keyboardLayout}
+          onChange={(value) => setKeyboardLayout(value as 'JIS' | 'JIS-TKL' | 'US' | 'US-TKL')}
+          options={KEYBOARD_LAYOUT_OPTIONS}
+          orientation="horizontal"
+          className="mb-4"
+        />
         <p className="text-sm text-[rgb(var(--muted-foreground))] mb-4">
           キーをクリックして、操作の割り当て・指の割り当て・リマップ・外部ツールの設定を行えます
         </p>
@@ -790,13 +795,11 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
                 オフの場合、DPIにWindows速度の係数をかけます
               </p>
             </div>
-            <button
-              type="button"
-              role="switch"
-              aria-checked={rawInput}
-              onClick={() => setRawInput(!rawInput)}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                rawInput ? 'bg-blue-600' : 'bg-[rgb(var(--border))]'
+            <Switch
+              checked={rawInput}
+              onChange={setRawInput}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
+                rawInput ? 'bg-primary' : 'bg-[rgb(var(--border))]'
               }`}
             >
               <span
@@ -804,7 +807,7 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
                   rawInput ? 'translate-x-6' : 'translate-x-1'
                 }`}
               />
-            </button>
+            </Switch>
           </div>
 
           {/* Windows速度 */}
@@ -839,14 +842,12 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
 
           {/* マウス加速 */}
           <div className="flex items-center justify-between p-4 bg-[rgb(var(--muted))] rounded-lg">
-            <label htmlFor="mouseAccel" className="font-semibold">マウス加速</label>
-            <button
-              type="button"
-              role="switch"
-              aria-checked={mouseAcceleration}
-              onClick={() => setMouseAcceleration(!mouseAcceleration)}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                mouseAcceleration ? 'bg-blue-600' : 'bg-[rgb(var(--border))]'
+            <label className="font-semibold">マウス加速</label>
+            <Switch
+              checked={mouseAcceleration}
+              onChange={setMouseAcceleration}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
+                mouseAcceleration ? 'bg-primary' : 'bg-[rgb(var(--border))]'
               }`}
             >
               <span
@@ -854,12 +855,12 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
                   mouseAcceleration ? 'translate-x-6' : 'translate-x-1'
                 }`}
               />
-            </button>
+            </Switch>
           </div>
         </div>
 
         {/* 振り向き計算結果（常時表示） */}
-        <div className="mt-4 p-4 bg-blue-500/10 rounded-lg border border-blue-500/20">
+        <div className="mt-4 p-4 bg-primary/10 rounded-lg border border-primary/20">
           <div className="flex items-center justify-between">
             <span className="font-semibold text-base">振り向き（cm/180°）</span>
             <span className="text-xl font-bold">
@@ -912,174 +913,107 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
         </div>
       </section>
 
-      {/* プレイヤー環境設定 */}
+      {/* アイテム配置設定 */}
       <section className="bg-[rgb(var(--card))] p-6 rounded-lg border border-[rgb(var(--border))]">
-        <h2 className="text-xl font-bold mb-4">プレイヤー環境設定</h2>
-
-        <div className="space-y-4">
-          {/* ゲーム内の言語 */}
-          <div className="relative" ref={languageDropdownRef}>
-            <label className="font-semibold text-base mb-2 block">ゲーム内の言語</label>
-            <div className="relative">
-              <input
-                type="text"
-                value={showLanguageDropdown ? languageSearch : selectedLanguageLabel}
-                onChange={(e) => {
-                  setLanguageSearch(e.target.value);
-                  setGameLanguage(e.target.value);
-                  if (!showLanguageDropdown) setShowLanguageDropdown(true);
-                }}
-                onFocus={() => {
-                  setShowLanguageDropdown(true);
-                  setLanguageSearch('');
-                }}
-                placeholder="言語を選択または入力"
-                className="w-full px-3 py-2 text-base border border-[rgb(var(--border))] rounded bg-[rgb(var(--background))]"
-              />
-              {showLanguageDropdown && (
-                <div className="absolute z-10 w-full mt-1 max-h-64 overflow-y-auto bg-[rgb(var(--card))] border border-[rgb(var(--border))] rounded-lg shadow-lg">
-                  {filteredLanguages.length > 0 ? (
-                    filteredLanguages.map((lang) => (
-                      <button
-                        key={lang.value}
-                        type="button"
-                        onClick={() => {
-                          setGameLanguage(lang.value);
-                          setShowLanguageDropdown(false);
-                          setLanguageSearch('');
-                        }}
-                        className="w-full px-3 py-2 text-left text-sm hover:bg-[rgb(var(--muted))] focus:bg-[rgb(var(--muted))] focus:outline-none"
-                      >
-                        {lang.label}
-                      </button>
-                    ))
-                  ) : (
-                    <div className="px-3 py-2 text-sm text-[rgb(var(--muted-foreground))]">
-                      検索結果なし
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-            {gameLanguage && (
-              <p className="text-xs text-[rgb(var(--muted-foreground))] mt-1">
-                現在の選択: {selectedLanguageLabel}
-              </p>
-            )}
-          </div>
-
-          {/* マウス */}
-          <div>
-            <label htmlFor="mouseModel" className="font-semibold text-base mb-2 block">マウス</label>
-            <input
-              id="mouseModel"
-              type="text"
-              value={mouseModel}
-              onChange={(e) => setMouseModel(e.target.value)}
-              placeholder="例: Logicool G Pro X Superlight"
-              className="w-full px-3 py-2 text-base border border-[rgb(var(--border))] rounded bg-[rgb(var(--background))]"
-            />
-          </div>
-
-          {/* キーボード */}
-          <div>
-            <label htmlFor="keyboardModel" className="font-semibold text-base mb-2 block">キーボード</label>
-            <input
-              id="keyboardModel"
-              type="text"
-              value={keyboardModel}
-              onChange={(e) => setKeyboardModel(e.target.value)}
-              placeholder="例: Keychron K8 Pro"
-              className="w-full px-3 py-2 text-base border border-[rgb(var(--border))] rounded bg-[rgb(var(--background))]"
-            />
-          </div>
-
-          {/* 自由使用欄 */}
-          <div>
-            <label htmlFor="notes" className="font-semibold text-base mb-2 block">コメント</label>
-            <textarea
-              id="notes"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="その他のメモや補足情報など"
-              rows={4}
-              className="w-full px-3 py-2 text-base border border-[rgb(var(--border))] rounded bg-[rgb(var(--background))] resize-y"
-            />
-          </div>
-        </div>
+        <h2 className="text-xl font-bold mb-4">アイテム配置設定</h2>
+        <ItemLayoutEditor uuid={uuid} ref={itemLayoutEditorRef} hideSaveButton />
       </section>
 
       {/* リマップと外部ツールは仮想キーボードのモーダルから設定可能 */}
 
-      <div className="flex gap-4 justify-between">
-        <button
-          type="button"
-          onClick={() => setShowDeleteConfirm(true)}
-          disabled={deleting}
-          className="px-6 py-3 border border-red-500 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          設定を削除
-        </button>
-        <div className="flex gap-4">
-          <button
-            type="button"
-            onClick={() => router.back()}
-            className="px-6 py-3 border border-[rgb(var(--border))] rounded-lg hover:bg-[rgb(var(--muted))] transition-colors"
+      {/* 固定ボタンエリア */}
+      <div className="fixed bottom-0 left-0 right-0 bg-[rgb(var(--background))]/95 backdrop-blur-sm border-t border-[rgb(var(--border))] z-40">
+        <div className="container mx-auto px-4 py-4 flex gap-4 justify-between items-center">
+          <Button
+            onClick={() => setShowDeleteConfirm(true)}
+            disabled={deleting}
+            variant="danger-outline"
+            size="lg"
+            className="p-3"
+            title="設定を削除"
           >
-            キャンセル
-          </button>
-          <button
-            type="button"
-            onClick={handleSubmit}
-            disabled={saving}
-            className="bg-blue-600 text-white hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed font-semibold py-3 px-6 rounded-lg transition-colors flex items-center gap-2"
-          >
-            {saving && (
-              <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-            )}
-            {saving ? '保存中...' : '保存'}
-          </button>
+            <TrashIcon className="h-5 w-5" />
+          </Button>
+          <div className="flex gap-4">
+            <Button
+              onClick={() => router.back()}
+              variant="outline"
+              size="lg"
+            >
+              キャンセル
+            </Button>
+            <Button
+              onClick={handleSubmit}
+              disabled={saving}
+              size="lg"
+              className="flex items-center gap-2 min-w-32"
+            >
+              {saving && <LoadingSpinner size="sm" variant="light" />}
+              {saving ? '保存中...' : '保存'}
+            </Button>
+          </div>
         </div>
       </div>
 
       {/* 削除確認ダイアログ */}
-      {showDeleteConfirm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setShowDeleteConfirm(false)}>
-          <div className="bg-[rgb(var(--card))] p-6 rounded-lg border border-[rgb(var(--border))] max-w-md w-full mx-4" onClick={(e) => e.stopPropagation()}>
-            <h3 className="text-xl font-bold mb-4">設定を削除しますか？</h3>
-            <p className="text-[rgb(var(--muted-foreground))] mb-6">
-              この操作は取り消せません。すべてのキーバインド設定が削除されます。
-            </p>
-            <div className="flex gap-4 justify-end">
-              <button
-                type="button"
-                onClick={() => setShowDeleteConfirm(false)}
-                disabled={deleting}
-                className="px-6 py-3 border border-[rgb(var(--border))] rounded-lg hover:bg-[rgb(var(--muted))] transition-colors disabled:opacity-50"
-              >
-                キャンセル
-              </button>
-              <button
-                type="button"
-                onClick={handleDelete}
-                disabled={deleting}
-                className="bg-red-600 text-white hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed font-semibold py-3 px-6 rounded-lg transition-colors flex items-center gap-2"
-              >
-                {deleting && (
-                  <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                )}
-                {deleting ? '削除中...' : '削除する'}
-              </button>
-            </div>
+      <Transition show={showDeleteConfirm} as={Fragment}>
+        <Dialog onClose={() => setShowDeleteConfirm(false)} className="relative z-50">
+          {/* Backdrop */}
+          <TransitionChild
+            as={Fragment}
+            enter="ease-out duration-300"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="ease-in duration-200"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+          >
+            <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" aria-hidden="true" />
+          </TransitionChild>
+
+          {/* Full-screen container to center the panel */}
+          <div className="fixed inset-0 flex items-center justify-center p-4">
+            <TransitionChild
+              as={Fragment}
+              enter="ease-out duration-300"
+              enterFrom="opacity-0 scale-95"
+              enterTo="opacity-100 scale-100"
+              leave="ease-in duration-200"
+              leaveFrom="opacity-100 scale-100"
+              leaveTo="opacity-0 scale-95"
+            >
+              <DialogPanel className="bg-gradient-to-r from-primary/5 via-secondary/5 to-transparent rounded-2xl border border-border max-w-md w-full shadow-lg max-h-[90vh] flex flex-col">
+                <div className="p-8 overflow-y-auto flex-1">
+                  <DialogTitle className="text-2xl font-bold mb-4">設定を削除しますか？</DialogTitle>
+                  <p className="text-[rgb(var(--muted-foreground))] text-sm">
+                    この操作は取り消せません。すべてのキーバインド設定が削除されます。
+                  </p>
+                </div>
+                <div className="flex gap-3 justify-end px-8 pb-8 pt-6 border-t border-border/50">
+                  <Button
+                    onClick={() => setShowDeleteConfirm(false)}
+                    disabled={deleting}
+                    variant="secondary"
+                    size="lg"
+                  >
+                    キャンセル
+                  </Button>
+                  <Button
+                    onClick={handleDelete}
+                    disabled={deleting}
+                    variant="danger"
+                    size="lg"
+                    className="flex items-center gap-2"
+                  >
+                    {deleting && <LoadingSpinner size="sm" variant="light" />}
+                    {deleting ? '削除中...' : '削除する'}
+                  </Button>
+                </div>
+              </DialogPanel>
+            </TransitionChild>
           </div>
-        </div>
-      )}
+        </Dialog>
+      </Transition>
     </div>
   );
 }

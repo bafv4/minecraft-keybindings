@@ -12,6 +12,21 @@
     --border: 229 229 229;
     --muted: 245 245 245;
     --muted-foreground: 115 115 115;
+    --input: 255 255 255;
+    --ring: 37 99 235;
+    --accent: 245 245 245;
+
+    /* ロゴカラー - ダイヤモンド青 */
+    --primary: 37 99 235; /* #2563eb */
+    --primary-foreground: 255 255 255;
+    --primary-light: 71 161 212; /* #47a1d4 */
+    --primary-lighter: 94 193 245; /* #5ec1f5 */
+
+    /* ロゴカラー - ネザーゲート紫 */
+    --secondary: 139 92 246; /* #8b5cf6 */
+    --secondary-foreground: 255 255 255;
+    --secondary-dark: 107 33 168; /* #6b21a8 */
+    --secondary-light: 167 139 250; /* #a78bfa */
   }
 
   @media (prefers-color-scheme: dark) {
@@ -23,6 +38,21 @@
       --border: 38 38 38;
       --muted: 38 38 38;
       --muted-foreground: 163 163 163;
+      --input: 23 23 23;
+      --ring: 71 161 212;
+      --accent: 38 38 38;
+
+      /* ロゴカラー - ダイヤモンド青（ダークモード）*/
+      --primary: 71 161 212; /* #47a1d4 - より明るい青 */
+      --primary-foreground: 10 10 10;
+      --primary-light: 94 193 245; /* #5ec1f5 */
+      --primary-lighter: 96 165 250; /* #60a5fa */
+
+      /* ロゴカラー - ネザーゲート紫（ダークモード） */
+      --secondary: 167 139 250; /* #a78bfa - より明るい紫 */
+      --secondary-foreground: 10 10 10;
+      --secondary-dark: 139 92 246; /* #8b5cf6 */
+      --secondary-light: 192 132 252; /* #c084fc */
     }
   }
 
@@ -31,17 +61,40 @@
     background-color: rgb(var(--background));
     color: rgb(var(--foreground));
     font-feature-settings: "rlig" 1, "calt" 1;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  /* テキスト入力系要素は選択可能に */
+  input,
+  textarea,
+  [contenteditable="true"] {
+    user-select: text;
+    -webkit-user-select: text;
   }
 
   /* スムーズなスクロール */
   html {
     scroll-behavior: smooth;
   }
+
+  /* アニメーション削減設定（低スペックデバイス・アクセシビリティ対応） */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
 }
 
 /* 選択時のスタイル */
 ::selection {
-  background-color: rgb(37 99 235 / 0.3);
+  background-color: rgb(var(--primary) / 0.3);
+  color: rgb(var(--primary-foreground));
 }
 
 /* スクロールバーのスタイル（Webkit） */
@@ -64,7 +117,7 @@
 
 /* フォーカス時のアウトライン */
 *:focus-visible {
-  outline: 2px solid rgb(37 99 235);
+  outline: 2px solid rgb(var(--ring));
   outline-offset: 2px;
 }
 
@@ -90,4 +143,87 @@
 
 .animate-fade-in {
   animation: fadeIn 0.3s ease-out;
+}
+
+/* スライドダウンアニメーション */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-down {
+  animation: slideDown 0.3s ease-out;
+}
+
+/* Vuetify v-progress-circular style loading animation */
+@keyframes circularRotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-circular-rotate {
+  animation: circularRotate 1.4s cubic-bezier(0.4, 0.0, 0.2, 1) infinite;
+  transform-origin: center center;
+}
+
+/* Circular progress dash animation (expanding and contracting arc) */
+@keyframes circularDash {
+  0% {
+    stroke-dashoffset: calc(var(--circumference) * 0.85);
+  }
+  50% {
+    stroke-dashoffset: calc(var(--circumference) * 0.15);
+  }
+  100% {
+    stroke-dashoffset: calc(var(--circumference) * 0.85);
+  }
+}
+
+.animate-circular-dash {
+  animation: circularDash 1.4s ease-in-out infinite;
+}
+
+/* ガラスモーフィズム効果（透かし + ブラー） */
+.glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+@media (prefers-color-scheme: dark) {
+  .glass {
+    background: rgba(23, 23, 23, 0.7);
+  }
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+@media (prefers-color-scheme: dark) {
+  .glass-card {
+    background: rgba(23, 23, 23, 0.98);
+  }
+}
+
+/* スクロールバーを非表示 */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
 }

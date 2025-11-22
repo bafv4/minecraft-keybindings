@@ -39,7 +39,22 @@
       "Bash(tee:*)",
       "Bash(pnpm prisma format:*)",
       "Bash(node check-keys.js:*)",
-      "Bash(del:*)"
+      "Bash(del:*)",
+      "Bash(pnpm fetch-devices:*)",
+      "Bash(find:*)",
+      "Bash(copy:*)",
+      "Bash(git commit:*)",
+      "Bash(git push)",
+      "Bash(git restore:*)",
+      "Bash(set DATABASE_URL=%DATABASE_URL%)",
+      "Bash(tsx scripts/migrate-to-new-schema.ts:*)",
+      "Bash(pnpm tsx:*)",
+      "Bash(chmod:*)",
+      "Bash(tasklist:*)",
+      "Bash(findstr:*)",
+      "Bash(node:*)",
+      "Bash(cd:*)",
+      "Bash(rm:*)"
     ],
     "deny": [],
     "ask": []

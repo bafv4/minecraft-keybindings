@@ -1,7 +1,11 @@
-import { prisma } from '@/lib/db';
 import dynamic from 'next/dynamic';
 import type { User } from '@/types/player';
 import type { Metadata } from 'next';
+import { getPlayersList } from '@/lib/playerData';
+import { PlayerListSkeleton } from '@/components/PlayerListSkeleton';
+
+// ISR: 5分ごとに再生成
+export const revalidate = 300;
 
 export const metadata: Metadata = {
   title: 'プレイヤー一覧 | MCSRer Hotkeys',
@@ -19,21 +23,11 @@ export const metadata: Metadata = {
 
 const PlayerListView = dynamic(() => import('@/components/PlayerListView').then(mod => ({ default: mod.PlayerListView })), {
   ssr: true,
-  loading: () => <div className="flex items-center justify-center py-12"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div></div>
+  loading: () => <PlayerListSkeleton />
 });
 
 export default async function HomePage() {
-  // 設定があるユーザーのみを取得
-  const users = await prisma.user.findMany({
-    where: {
-      settings: {
-        isNot: null,
-      },
-    },
-    include: {
-      settings: true,
-    },
-  });
+  const users = await getPlayersList();
 
   return <PlayerListView users={users as User[]} />;
 }

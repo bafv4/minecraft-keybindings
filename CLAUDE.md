@@ -30,6 +30,11 @@ pnpm prisma db push     # Push schema changes to database (development)
 pnpm prisma studio      # Open Prisma Studio GUI
 ```
 
+### Device Data Management
+```bash
+pnpm fetch-devices      # Fetch gaming mice and keyboards from Rakuten API
+```
+
 ## Environment Variables
 
 Required in `.env.local`:
@@ -39,6 +44,7 @@ Required in `.env.local`:
 - `DISCORD_CLIENT_ID` - Discord app client ID
 - `DISCORD_CLIENT_SECRET` - Discord app client secret
 - `CRON_SECRET` - Secret for Vercel Cron job authentication (generated via `openssl rand -base64 32`)
+- `RAKUTEN_APP_ID` - Rakuten API Application ID (optional, for device data fetching)
 
 ## Architecture
 

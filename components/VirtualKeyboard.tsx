@@ -4,10 +4,11 @@ import { useState, useEffect, memo } from 'react';
 import { KeybindingModal } from './KeybindingModal';
 import { EllipsisVerticalIcon, PlusIcon } from '@heroicons/react/24/outline';
 import type { Finger, FingerAssignments, CustomKey } from '@/types/player';
+import { minecraftToWeb } from '@/lib/keyConversion';
 
 interface VirtualKeyboardProps {
   bindings: {
-    [action: string]: string;
+    [action: string]: string | string[];
   };
   onKeyClick?: (key: string) => void;
   mode?: 'display' | 'edit';
@@ -18,7 +19,7 @@ interface VirtualKeyboardProps {
   externalTools?: { [key: string]: string }; // keyCode -> action名
   fingerAssignments?: FingerAssignments;
   onUpdateConfig?: (key: string, config: {
-    action?: string;
+    actions?: string[];
     remap?: string;
     externalTool?: string; // アクション名
     finger?: Finger[];
@@ -36,102 +37,102 @@ interface VirtualKeyboardProps {
 const KEYBOARD_LAYOUT_JIS = [
   // Fキー列
   [
-    { key: 'key.keyboard.escape', label: 'Esc', width: 'w-16' },
+    { key: 'key.keyboard.escape', label: 'Esc', width: 'w-20' },
     { key: 'spacer', width: 'w-4' },
-    { key: 'key.keyboard.f1', label: 'F1', width: 'w-16' },
-    { key: 'key.keyboard.f2', label: 'F2', width: 'w-16' },
-    { key: 'key.keyboard.f3', label: 'F3', width: 'w-16' },
-    { key: 'key.keyboard.f4', label: 'F4', width: 'w-16' },
+    { key: 'key.keyboard.f1', label: 'F1', width: 'w-20' },
+    { key: 'key.keyboard.f2', label: 'F2', width: 'w-20' },
+    { key: 'key.keyboard.f3', label: 'F3', width: 'w-20' },
+    { key: 'key.keyboard.f4', label: 'F4', width: 'w-20' },
     { key: 'spacer', width: 'w-4' },
-    { key: 'key.keyboard.f5', label: 'F5', width: 'w-16' },
-    { key: 'key.keyboard.f6', label: 'F6', width: 'w-16' },
-    { key: 'key.keyboard.f7', label: 'F7', width: 'w-16' },
-    { key: 'key.keyboard.f8', label: 'F8', width: 'w-16' },
+    { key: 'key.keyboard.f5', label: 'F5', width: 'w-20' },
+    { key: 'key.keyboard.f6', label: 'F6', width: 'w-20' },
+    { key: 'key.keyboard.f7', label: 'F7', width: 'w-20' },
+    { key: 'key.keyboard.f8', label: 'F8', width: 'w-20' },
     { key: 'spacer', width: 'w-4' },
-    { key: 'key.keyboard.f9', label: 'F9', width: 'w-16' },
-    { key: 'key.keyboard.f10', label: 'F10', width: 'w-16' },
-    { key: 'key.keyboard.f11', label: 'F11', width: 'w-16' },
-    { key: 'key.keyboard.f12', label: 'F12', width: 'w-16' },
+    { key: 'key.keyboard.f9', label: 'F9', width: 'w-20' },
+    { key: 'key.keyboard.f10', label: 'F10', width: 'w-20' },
+    { key: 'key.keyboard.f11', label: 'F11', width: 'w-20' },
+    { key: 'key.keyboard.f12', label: 'F12', width: 'w-20' },
   ],
   // 数字列
   [
-    { key: 'key.keyboard.grave.accent', label: '半角', width: 'w-16' },
-    { key: 'key.keyboard.1', label: '1', width: 'w-16' },
-    { key: 'key.keyboard.2', label: '2', width: 'w-16' },
-    { key: 'key.keyboard.3', label: '3', width: 'w-16' },
-    { key: 'key.keyboard.4', label: '4', width: 'w-16' },
-    { key: 'key.keyboard.5', label: '5', width: 'w-16' },
-    { key: 'key.keyboard.6', label: '6', width: 'w-16' },
-    { key: 'key.keyboard.7', label: '7', width: 'w-16' },
-    { key: 'key.keyboard.8', label: '8', width: 'w-16' },
-    { key: 'key.keyboard.9', label: '9', width: 'w-16' },
-    { key: 'key.keyboard.0', label: '0', width: 'w-16' },
-    { key: 'key.keyboard.minus', label: '-', width: 'w-16' },
-    { key: 'key.keyboard.equal', label: '^', width: 'w-16' },
-    { key: 'key.keyboard.backslash', label: '¥', width: 'w-16' },
-    { key: 'key.keyboard.backspace', label: 'BS', width: 'w-20' },
+    { key: 'key.keyboard.grave.accent', label: '半角', width: 'w-20' },
+    { key: 'key.keyboard.1', label: '1', width: 'w-20' },
+    { key: 'key.keyboard.2', label: '2', width: 'w-20' },
+    { key: 'key.keyboard.3', label: '3', width: 'w-20' },
+    { key: 'key.keyboard.4', label: '4', width: 'w-20' },
+    { key: 'key.keyboard.5', label: '5', width: 'w-20' },
+    { key: 'key.keyboard.6', label: '6', width: 'w-20' },
+    { key: 'key.keyboard.7', label: '7', width: 'w-20' },
+    { key: 'key.keyboard.8', label: '8', width: 'w-20' },
+    { key: 'key.keyboard.9', label: '9', width: 'w-20' },
+    { key: 'key.keyboard.0', label: '0', width: 'w-20' },
+    { key: 'key.keyboard.minus', label: '-', width: 'w-20' },
+    { key: 'key.keyboard.equal', label: '^', width: 'w-20' },
+    { key: 'key.keyboard.backslash', label: '¥', width: 'w-20' },
+    { key: 'key.keyboard.backspace', label: 'BS', width: 'w-24' },
   ],
   // QWERTY列
   [
-    { key: 'key.keyboard.tab', label: 'Tab', width: 'w-20' },
-    { key: 'key.keyboard.q', label: 'Q', width: 'w-16' },
-    { key: 'key.keyboard.w', label: 'W', width: 'w-16' },
-    { key: 'key.keyboard.e', label: 'E', width: 'w-16' },
-    { key: 'key.keyboard.r', label: 'R', width: 'w-16' },
-    { key: 'key.keyboard.t', label: 'T', width: 'w-16' },
-    { key: 'key.keyboard.y', label: 'Y', width: 'w-16' },
-    { key: 'key.keyboard.u', label: 'U', width: 'w-16' },
-    { key: 'key.keyboard.i', label: 'I', width: 'w-16' },
-    { key: 'key.keyboard.o', label: 'O', width: 'w-16' },
-    { key: 'key.keyboard.p', label: 'P', width: 'w-16' },
-    { key: 'key.keyboard.left.bracket', label: '@', width: 'w-16' },
-    { key: 'key.keyboard.right.bracket', label: '[', width: 'w-16' },
+    { key: 'key.keyboard.tab', label: 'Tab', width: 'w-28' },
+    { key: 'key.keyboard.q', label: 'Q', width: 'w-20' },
+    { key: 'key.keyboard.w', label: 'W', width: 'w-20' },
+    { key: 'key.keyboard.e', label: 'E', width: 'w-20' },
+    { key: 'key.keyboard.r', label: 'R', width: 'w-20' },
+    { key: 'key.keyboard.t', label: 'T', width: 'w-20' },
+    { key: 'key.keyboard.y', label: 'Y', width: 'w-20' },
+    { key: 'key.keyboard.u', label: 'U', width: 'w-20' },
+    { key: 'key.keyboard.i', label: 'I', width: 'w-20' },
+    { key: 'key.keyboard.o', label: 'O', width: 'w-20' },
+    { key: 'key.keyboard.p', label: 'P', width: 'w-20' },
+    { key: 'key.keyboard.left.bracket', label: '@', width: 'w-20' },
+    { key: 'key.keyboard.right.bracket', label: '[', width: 'w-20' },
   ],
   // ASDF列
   [
-    { key: 'key.keyboard.caps.lock', label: 'Caps', width: 'w-24' },
-    { key: 'key.keyboard.a', label: 'A', width: 'w-16' },
-    { key: 'key.keyboard.s', label: 'S', width: 'w-16' },
-    { key: 'key.keyboard.d', label: 'D', width: 'w-16' },
-    { key: 'key.keyboard.f', label: 'F', width: 'w-16' },
-    { key: 'key.keyboard.g', label: 'G', width: 'w-16' },
-    { key: 'key.keyboard.h', label: 'H', width: 'w-16' },
-    { key: 'key.keyboard.j', label: 'J', width: 'w-16' },
-    { key: 'key.keyboard.k', label: 'K', width: 'w-16' },
-    { key: 'key.keyboard.l', label: 'L', width: 'w-16' },
-    { key: 'key.keyboard.semicolon', label: ';', width: 'w-16' },
-    { key: 'key.keyboard.apostrophe', label: ':', width: 'w-16' },
-    { key: 'key.keyboard.enter', label: 'Enter', width: 'w-24' },
+    { key: 'key.keyboard.caps.lock', label: 'Caps', width: 'w-36' },
+    { key: 'key.keyboard.a', label: 'A', width: 'w-20' },
+    { key: 'key.keyboard.s', label: 'S', width: 'w-20' },
+    { key: 'key.keyboard.d', label: 'D', width: 'w-20' },
+    { key: 'key.keyboard.f', label: 'F', width: 'w-20' },
+    { key: 'key.keyboard.g', label: 'G', width: 'w-20' },
+    { key: 'key.keyboard.h', label: 'H', width: 'w-20' },
+    { key: 'key.keyboard.j', label: 'J', width: 'w-20' },
+    { key: 'key.keyboard.k', label: 'K', width: 'w-20' },
+    { key: 'key.keyboard.l', label: 'L', width: 'w-20' },
+    { key: 'key.keyboard.semicolon', label: ';', width: 'w-20' },
+    { key: 'key.keyboard.apostrophe', label: ':', width: 'w-20' },
+    { key: 'key.keyboard.enter', label: 'Enter', width: 'w-30' },
   ],
   // ZXCV列
   [
-    { key: 'key.keyboard.left.shift', label: 'Shift', width: 'w-28' },
-    { key: 'key.keyboard.z', label: 'Z', width: 'w-16' },
-    { key: 'key.keyboard.x', label: 'X', width: 'w-16' },
-    { key: 'key.keyboard.c', label: 'C', width: 'w-16' },
-    { key: 'key.keyboard.v', label: 'V', width: 'w-16' },
-    { key: 'key.keyboard.b', label: 'B', width: 'w-16' },
-    { key: 'key.keyboard.n', label: 'N', width: 'w-16' },
-    { key: 'key.keyboard.m', label: 'M', width: 'w-16' },
-    { key: 'key.keyboard.comma', label: ',', width: 'w-16' },
-    { key: 'key.keyboard.period', label: '.', width: 'w-16' },
-    { key: 'key.keyboard.slash', label: '/', width: 'w-16' },
-    { key: 'key.keyboard.backslash', label: '\\', width: 'w-16' },
-    { key: 'key.keyboard.right.shift', label: 'Shift', width: 'w-20' },
+    { key: 'key.keyboard.left.shift', label: 'Shift', width: 'w-36' },
+    { key: 'key.keyboard.z', label: 'Z', width: 'w-20' },
+    { key: 'key.keyboard.x', label: 'X', width: 'w-20' },
+    { key: 'key.keyboard.c', label: 'C', width: 'w-20' },
+    { key: 'key.keyboard.v', label: 'V', width: 'w-20' },
+    { key: 'key.keyboard.b', label: 'B', width: 'w-20' },
+    { key: 'key.keyboard.n', label: 'N', width: 'w-20' },
+    { key: 'key.keyboard.m', label: 'M', width: 'w-20' },
+    { key: 'key.keyboard.comma', label: ',', width: 'w-20' },
+    { key: 'key.keyboard.period', label: '.', width: 'w-20' },
+    { key: 'key.keyboard.slash', label: '/', width: 'w-20' },
+    { key: 'key.keyboard.backslash', label: '\\', width: 'w-20' },
+    { key: 'key.keyboard.right.shift', label: 'Shift', width: 'w-24' },
   ],
   // 最下段
   [
-    { key: 'key.keyboard.left.control', label: 'Ctrl', width: 'w-20' },
-    { key: 'key.keyboard.left.win', label: 'Win', width: 'w-16' },
-    { key: 'key.keyboard.left.alt', label: 'Alt', width: 'w-16' },
-    { key: 'key.keyboard.nonconvert', label: '無変換', width: 'w-24' },
-    { key: 'key.keyboard.space', label: 'Space', width: 'w-48' },
-    { key: 'key.keyboard.convert', label: '変換', width: 'w-24' },
-    { key: 'key.keyboard.kana', label: 'かな', width: 'w-16' },
-    { key: 'key.keyboard.right.alt', label: 'Alt', width: 'w-16' },
-    { key: 'key.keyboard.right.win', label: 'Win', width: 'w-16' },
-    { key: 'key.keyboard.menu', label: 'Fn', width: 'w-16' },
-    { key: 'key.keyboard.right.control', label: 'Ctrl', width: 'w-20' },
+    { key: 'key.keyboard.left.control', label: 'Ctrl', width: 'w-28' },
+    { key: 'key.keyboard.left.win', label: 'Win', width: 'w-20' },
+    { key: 'key.keyboard.left.alt', label: 'Alt', width: 'w-20' },
+    { key: 'key.keyboard.nonconvert', label: '無変換', width: 'w-32' },
+    { key: 'key.keyboard.space', label: 'Space', width: 'w-64' },
+    { key: 'key.keyboard.convert', label: '変換', width: 'w-32' },
+    { key: 'key.keyboard.kana', label: 'かな', width: 'w-20' },
+    { key: 'key.keyboard.right.alt', label: 'Alt', width: 'w-20' },
+    { key: 'key.keyboard.right.win', label: 'Win', width: 'w-20' },
+    { key: 'key.keyboard.menu', label: 'Fn', width: 'w-20' },
+    { key: 'key.keyboard.right.control', label: 'Ctrl', width: 'w-28' },
   ],
 ];
 
@@ -139,153 +140,153 @@ const KEYBOARD_LAYOUT_JIS = [
 const KEYBOARD_LAYOUT_US = [
   // Fキー列
   [
-    { key: 'key.keyboard.escape', label: 'Esc', width: 'w-16' },
+    { key: 'key.keyboard.escape', label: 'Esc', width: 'w-20' },
     { key: 'spacer', width: 'w-4' },
-    { key: 'key.keyboard.f1', label: 'F1', width: 'w-16' },
-    { key: 'key.keyboard.f2', label: 'F2', width: 'w-16' },
-    { key: 'key.keyboard.f3', label: 'F3', width: 'w-16' },
-    { key: 'key.keyboard.f4', label: 'F4', width: 'w-16' },
+    { key: 'key.keyboard.f1', label: 'F1', width: 'w-20' },
+    { key: 'key.keyboard.f2', label: 'F2', width: 'w-20' },
+    { key: 'key.keyboard.f3', label: 'F3', width: 'w-20' },
+    { key: 'key.keyboard.f4', label: 'F4', width: 'w-20' },
     { key: 'spacer', width: 'w-4' },
-    { key: 'key.keyboard.f5', label: 'F5', width: 'w-16' },
-    { key: 'key.keyboard.f6', label: 'F6', width: 'w-16' },
-    { key: 'key.keyboard.f7', label: 'F7', width: 'w-16' },
-    { key: 'key.keyboard.f8', label: 'F8', width: 'w-16' },
+    { key: 'key.keyboard.f5', label: 'F5', width: 'w-20' },
+    { key: 'key.keyboard.f6', label: 'F6', width: 'w-20' },
+    { key: 'key.keyboard.f7', label: 'F7', width: 'w-20' },
+    { key: 'key.keyboard.f8', label: 'F8', width: 'w-20' },
     { key: 'spacer', width: 'w-4' },
-    { key: 'key.keyboard.f9', label: 'F9', width: 'w-16' },
-    { key: 'key.keyboard.f10', label: 'F10', width: 'w-16' },
-    { key: 'key.keyboard.f11', label: 'F11', width: 'w-16' },
-    { key: 'key.keyboard.f12', label: 'F12', width: 'w-16' },
+    { key: 'key.keyboard.f9', label: 'F9', width: 'w-20' },
+    { key: 'key.keyboard.f10', label: 'F10', width: 'w-20' },
+    { key: 'key.keyboard.f11', label: 'F11', width: 'w-20' },
+    { key: 'key.keyboard.f12', label: 'F12', width: 'w-20' },
   ],
   // 数字列
   [
-    { key: 'key.keyboard.grave.accent', label: '`', width: 'w-16' },
-    { key: 'key.keyboard.1', label: '1', width: 'w-16' },
-    { key: 'key.keyboard.2', label: '2', width: 'w-16' },
-    { key: 'key.keyboard.3', label: '3', width: 'w-16' },
-    { key: 'key.keyboard.4', label: '4', width: 'w-16' },
-    { key: 'key.keyboard.5', label: '5', width: 'w-16' },
-    { key: 'key.keyboard.6', label: '6', width: 'w-16' },
-    { key: 'key.keyboard.7', label: '7', width: 'w-16' },
-    { key: 'key.keyboard.8', label: '8', width: 'w-16' },
-    { key: 'key.keyboard.9', label: '9', width: 'w-16' },
-    { key: 'key.keyboard.0', label: '0', width: 'w-16' },
-    { key: 'key.keyboard.minus', label: '-', width: 'w-16' },
-    { key: 'key.keyboard.equal', label: '=', width: 'w-16' },
-    { key: 'key.keyboard.backspace', label: 'Back', width: 'w-24' },
+    { key: 'key.keyboard.grave.accent', label: '`', width: 'w-20' },
+    { key: 'key.keyboard.1', label: '1', width: 'w-20' },
+    { key: 'key.keyboard.2', label: '2', width: 'w-20' },
+    { key: 'key.keyboard.3', label: '3', width: 'w-20' },
+    { key: 'key.keyboard.4', label: '4', width: 'w-20' },
+    { key: 'key.keyboard.5', label: '5', width: 'w-20' },
+    { key: 'key.keyboard.6', label: '6', width: 'w-20' },
+    { key: 'key.keyboard.7', label: '7', width: 'w-20' },
+    { key: 'key.keyboard.8', label: '8', width: 'w-20' },
+    { key: 'key.keyboard.9', label: '9', width: 'w-20' },
+    { key: 'key.keyboard.0', label: '0', width: 'w-20' },
+    { key: 'key.keyboard.minus', label: '-', width: 'w-20' },
+    { key: 'key.keyboard.equal', label: '=', width: 'w-20' },
+    { key: 'key.keyboard.backspace', label: 'BS', width: 'w-32' },
   ],
   // QWERTY列
   [
-    { key: 'key.keyboard.tab', label: 'Tab', width: 'w-20' },
-    { key: 'key.keyboard.q', label: 'Q', width: 'w-16' },
-    { key: 'key.keyboard.w', label: 'W', width: 'w-16' },
-    { key: 'key.keyboard.e', label: 'E', width: 'w-16' },
-    { key: 'key.keyboard.r', label: 'R', width: 'w-16' },
-    { key: 'key.keyboard.t', label: 'T', width: 'w-16' },
-    { key: 'key.keyboard.y', label: 'Y', width: 'w-16' },
-    { key: 'key.keyboard.u', label: 'U', width: 'w-16' },
-    { key: 'key.keyboard.i', label: 'I', width: 'w-16' },
-    { key: 'key.keyboard.o', label: 'O', width: 'w-16' },
-    { key: 'key.keyboard.p', label: 'P', width: 'w-16' },
-    { key: 'key.keyboard.left.bracket', label: '[', width: 'w-16' },
-    { key: 'key.keyboard.right.bracket', label: ']', width: 'w-16' },
-    { key: 'key.keyboard.backslash', label: '\\', width: 'w-20' },
+    { key: 'key.keyboard.tab', label: 'Tab', width: 'w-28' },
+    { key: 'key.keyboard.q', label: 'Q', width: 'w-20' },
+    { key: 'key.keyboard.w', label: 'W', width: 'w-20' },
+    { key: 'key.keyboard.e', label: 'E', width: 'w-20' },
+    { key: 'key.keyboard.r', label: 'R', width: 'w-20' },
+    { key: 'key.keyboard.t', label: 'T', width: 'w-20' },
+    { key: 'key.keyboard.y', label: 'Y', width: 'w-20' },
+    { key: 'key.keyboard.u', label: 'U', width: 'w-20' },
+    { key: 'key.keyboard.i', label: 'I', width: 'w-20' },
+    { key: 'key.keyboard.o', label: 'O', width: 'w-20' },
+    { key: 'key.keyboard.p', label: 'P', width: 'w-20' },
+    { key: 'key.keyboard.left.bracket', label: '[', width: 'w-20' },
+    { key: 'key.keyboard.right.bracket', label: ']', width: 'w-20' },
+    { key: 'key.keyboard.backslash', label: '\\', width: 'w-24' },
   ],
   // ASDF列
   [
-    { key: 'key.keyboard.caps.lock', label: 'Caps', width: 'w-24' },
-    { key: 'key.keyboard.a', label: 'A', width: 'w-16' },
-    { key: 'key.keyboard.s', label: 'S', width: 'w-16' },
-    { key: 'key.keyboard.d', label: 'D', width: 'w-16' },
-    { key: 'key.keyboard.f', label: 'F', width: 'w-16' },
-    { key: 'key.keyboard.g', label: 'G', width: 'w-16' },
-    { key: 'key.keyboard.h', label: 'H', width: 'w-16' },
-    { key: 'key.keyboard.j', label: 'J', width: 'w-16' },
-    { key: 'key.keyboard.k', label: 'K', width: 'w-16' },
-    { key: 'key.keyboard.l', label: 'L', width: 'w-16' },
-    { key: 'key.keyboard.semicolon', label: ';', width: 'w-16' },
-    { key: 'key.keyboard.apostrophe', label: "'", width: 'w-16' },
-    { key: 'key.keyboard.enter', label: 'Enter', width: 'w-24' },
+    { key: 'key.keyboard.caps.lock', label: 'Caps', width: 'w-36' },
+    { key: 'key.keyboard.a', label: 'A', width: 'w-20' },
+    { key: 'key.keyboard.s', label: 'S', width: 'w-20' },
+    { key: 'key.keyboard.d', label: 'D', width: 'w-20' },
+    { key: 'key.keyboard.f', label: 'F', width: 'w-20' },
+    { key: 'key.keyboard.g', label: 'G', width: 'w-20' },
+    { key: 'key.keyboard.h', label: 'H', width: 'w-20' },
+    { key: 'key.keyboard.j', label: 'J', width: 'w-20' },
+    { key: 'key.keyboard.k', label: 'K', width: 'w-20' },
+    { key: 'key.keyboard.l', label: 'L', width: 'w-20' },
+    { key: 'key.keyboard.semicolon', label: ';', width: 'w-20' },
+    { key: 'key.keyboard.apostrophe', label: "'", width: 'w-20' },
+    { key: 'key.keyboard.enter', label: 'Enter', width: 'w-36' },
   ],
   // ZXCV列
   [
-    { key: 'key.keyboard.left.shift', label: 'Shift', width: 'w-32' },
-    { key: 'key.keyboard.z', label: 'Z', width: 'w-16' },
-    { key: 'key.keyboard.x', label: 'X', width: 'w-16' },
-    { key: 'key.keyboard.c', label: 'C', width: 'w-16' },
-    { key: 'key.keyboard.v', label: 'V', width: 'w-16' },
-    { key: 'key.keyboard.b', label: 'B', width: 'w-16' },
-    { key: 'key.keyboard.n', label: 'N', width: 'w-16' },
-    { key: 'key.keyboard.m', label: 'M', width: 'w-16' },
-    { key: 'key.keyboard.comma', label: ',', width: 'w-16' },
-    { key: 'key.keyboard.period', label: '.', width: 'w-16' },
-    { key: 'key.keyboard.slash', label: '/', width: 'w-16' },
-    { key: 'key.keyboard.right.shift', label: 'Shift', width: 'w-28' },
+    { key: 'key.keyboard.left.shift', label: 'Shift', width: 'w-40' },
+    { key: 'key.keyboard.z', label: 'Z', width: 'w-20' },
+    { key: 'key.keyboard.x', label: 'X', width: 'w-20' },
+    { key: 'key.keyboard.c', label: 'C', width: 'w-20' },
+    { key: 'key.keyboard.v', label: 'V', width: 'w-20' },
+    { key: 'key.keyboard.b', label: 'B', width: 'w-20' },
+    { key: 'key.keyboard.n', label: 'N', width: 'w-20' },
+    { key: 'key.keyboard.m', label: 'M', width: 'w-20' },
+    { key: 'key.keyboard.comma', label: ',', width: 'w-20' },
+    { key: 'key.keyboard.period', label: '.', width: 'w-20' },
+    { key: 'key.keyboard.slash', label: '/', width: 'w-20' },
+    { key: 'key.keyboard.right.shift', label: 'Shift', width: 'w-36' },
   ],
   // 最下段
   [
-    { key: 'key.keyboard.left.control', label: 'Ctrl', width: 'w-20' },
-    { key: 'key.keyboard.left.win', label: 'Win', width: 'w-16' },
-    { key: 'key.keyboard.left.alt', label: 'Alt', width: 'w-16' },
-    { key: 'key.keyboard.space', label: 'Space', width: 'w-64' },
-    { key: 'key.keyboard.right.alt', label: 'Alt', width: 'w-16' },
-    { key: 'key.keyboard.right.win', label: 'Win', width: 'w-16' },
-    { key: 'key.keyboard.menu', label: 'Fn', width: 'w-16' },
-    { key: 'key.keyboard.right.control', label: 'Ctrl', width: 'w-20' },
+    { key: 'key.keyboard.left.control', label: 'Ctrl', width: 'w-28' },
+    { key: 'key.keyboard.left.win', label: 'Win', width: 'w-20' },
+    { key: 'key.keyboard.left.alt', label: 'Alt', width: 'w-20' },
+    { key: 'key.keyboard.space', label: 'Space', width: 'w-[36em]' },
+    { key: 'key.keyboard.right.alt', label: 'Alt', width: 'w-20' },
+    { key: 'key.keyboard.right.win', label: 'Win', width: 'w-20' },
+    { key: 'key.keyboard.menu', label: 'Fn', width: 'w-20' },
+    { key: 'key.keyboard.right.control', label: 'Ctrl', width: 'w-28' },
   ],
 ];
 
 // 編集キー + 矢印キー
 const EDIT_KEYS = [
   [
-    { key: 'key.keyboard.insert', label: 'Ins', width: 'w-16' },
-    { key: 'key.keyboard.home', label: 'Home', width: 'w-16' },
-    { key: 'key.keyboard.page.up', label: 'PgUp', width: 'w-16' },
+    { key: 'key.keyboard.insert', label: 'Ins', width: 'w-20' },
+    { key: 'key.keyboard.home', label: 'Home', width: 'w-20' },
+    { key: 'key.keyboard.page.up', label: 'PgUp', width: 'w-20' },
   ],
   [
-    { key: 'key.keyboard.delete', label: 'Del', width: 'w-16' },
-    { key: 'key.keyboard.end', label: 'End', width: 'w-16' },
-    { key: 'key.keyboard.page.down', label: 'PgDn', width: 'w-16' },
+    { key: 'key.keyboard.delete', label: 'Del', width: 'w-20' },
+    { key: 'key.keyboard.end', label: 'End', width: 'w-20' },
+    { key: 'key.keyboard.page.down', label: 'PgDn', width: 'w-20' },
   ],
   [
-    { key: 'spacer', width: 'w-16' },
-    { key: 'key.keyboard.up', label: '↑', width: 'w-16' },
-    { key: 'spacer', width: 'w-16' },
+    { key: 'spacer', width: 'w-20' },
+    { key: 'key.keyboard.up', label: '↑', width: 'w-20' },
+    { key: 'spacer', width: 'w-20' },
   ],
   [
-    { key: 'key.keyboard.left', label: '←', width: 'w-16' },
-    { key: 'key.keyboard.down', label: '↓', width: 'w-16' },
-    { key: 'key.keyboard.right', label: '→', width: 'w-16' },
+    { key: 'key.keyboard.left', label: '←', width: 'w-20' },
+    { key: 'key.keyboard.down', label: '↓', width: 'w-20' },
+    { key: 'key.keyboard.right', label: '→', width: 'w-20' },
   ],
 ];
 
 // テンキー
 const NUMPAD_KEYS = [
   [
-    { key: 'key.keyboard.num.lock', label: 'NumLock', width: 'w-16' },
-    { key: 'key.keyboard.keypad.divide', label: '/', width: 'w-16' },
-    { key: 'key.keyboard.keypad.multiply', label: '*', width: 'w-16' },
-    { key: 'key.keyboard.keypad.subtract', label: '-', width: 'w-16' },
+    { key: 'key.keyboard.num.lock', label: 'NumLock', width: 'w-20' },
+    { key: 'key.keyboard.keypad.divide', label: '/', width: 'w-20' },
+    { key: 'key.keyboard.keypad.multiply', label: '*', width: 'w-20' },
+    { key: 'key.keyboard.keypad.subtract', label: '-', width: 'w-20' },
   ],
   [
-    { key: 'key.keyboard.keypad.7', label: '7', width: 'w-16' },
-    { key: 'key.keyboard.keypad.8', label: '8', width: 'w-16' },
-    { key: 'key.keyboard.keypad.9', label: '9', width: 'w-16' },
-    { key: 'key.keyboard.keypad.add', label: '+', width: 'w-16', rowspan: 2 },
+    { key: 'key.keyboard.keypad.7', label: '7', width: 'w-20' },
+    { key: 'key.keyboard.keypad.8', label: '8', width: 'w-20' },
+    { key: 'key.keyboard.keypad.9', label: '9', width: 'w-20' },
+    { key: 'key.keyboard.keypad.add', label: '+', width: 'w-20', rowspan: 2 },
   ],
   [
-    { key: 'key.keyboard.keypad.4', label: '4', width: 'w-16' },
-    { key: 'key.keyboard.keypad.5', label: '5', width: 'w-16' },
-    { key: 'key.keyboard.keypad.6', label: '6', width: 'w-16' },
+    { key: 'key.keyboard.keypad.4', label: '4', width: 'w-20' },
+    { key: 'key.keyboard.keypad.5', label: '5', width: 'w-20' },
+    { key: 'key.keyboard.keypad.6', label: '6', width: 'w-20' },
   ],
   [
-    { key: 'key.keyboard.keypad.1', label: '1', width: 'w-16' },
-    { key: 'key.keyboard.keypad.2', label: '2', width: 'w-16' },
-    { key: 'key.keyboard.keypad.3', label: '3', width: 'w-16' },
-    { key: 'key.keyboard.keypad.enter', label: 'Enter', width: 'w-16', rowspan: 2 },
+    { key: 'key.keyboard.keypad.1', label: '1', width: 'w-20' },
+    { key: 'key.keyboard.keypad.2', label: '2', width: 'w-20' },
+    { key: 'key.keyboard.keypad.3', label: '3', width: 'w-20' },
+    { key: 'key.keyboard.keypad.enter', label: 'Enter', width: 'w-20', rowspan: 2 },
   ],
   [
     { key: 'key.keyboard.keypad.0', label: '0', width: 'w-[132px]' },
-    { key: 'key.keyboard.keypad.decimal', label: '.', width: 'w-16' },
+    { key: 'key.keyboard.keypad.decimal', label: '.', width: 'w-20' },
   ],
 ];
 
@@ -298,19 +299,19 @@ const MOUSE_BUTTONS = [
   { key: 'key.mouse.5', label: 'MB5', disabled: false },
 ];
 
-// 指ごとの色定義（パステルカラー）
+// 指ごとの色定義（ライトモードはコントラスト強め、ダークモードは柔らかめ）
 const getFingerColor = (finger: Finger): string => {
   const colorMap: Record<Finger, string> = {
-    'left-pinky': 'bg-pink-200/70 border-pink-300 dark:bg-pink-300/40 dark:border-pink-400',
-    'left-ring': 'bg-purple-200/70 border-purple-300 dark:bg-purple-300/40 dark:border-purple-400',
-    'left-middle': 'bg-blue-200/70 border-blue-300 dark:bg-blue-300/40 dark:border-blue-400',
-    'left-index': 'bg-green-200/70 border-green-300 dark:bg-green-300/40 dark:border-green-400',
-    'left-thumb': 'bg-yellow-200/70 border-yellow-300 dark:bg-yellow-300/40 dark:border-yellow-400',
-    'right-thumb': 'bg-orange-200/70 border-orange-300 dark:bg-orange-300/40 dark:border-orange-400',
-    'right-index': 'bg-red-200/70 border-red-300 dark:bg-red-300/40 dark:border-red-400',
-    'right-middle': 'bg-rose-200/70 border-rose-300 dark:bg-rose-300/40 dark:border-rose-400',
-    'right-ring': 'bg-indigo-200/70 border-indigo-300 dark:bg-indigo-300/40 dark:border-indigo-400',
-    'right-pinky': 'bg-cyan-200/70 border-cyan-300 dark:bg-cyan-300/40 dark:border-cyan-400',
+    'left-pinky': 'bg-pink-400 border-pink-600 dark:bg-pink-300/40 dark:border-pink-400',
+    'left-ring': 'bg-purple-400 border-purple-600 dark:bg-purple-300/40 dark:border-purple-400',
+    'left-middle': 'bg-blue-400 border-blue-600 dark:bg-blue-300/40 dark:border-blue-400',
+    'left-index': 'bg-green-400 border-green-600 dark:bg-green-300/40 dark:border-green-400',
+    'left-thumb': 'bg-yellow-400 border-yellow-600 dark:bg-yellow-300/40 dark:border-yellow-400',
+    'right-thumb': 'bg-orange-400 border-orange-600 dark:bg-orange-300/40 dark:border-orange-400',
+    'right-index': 'bg-red-400 border-red-600 dark:bg-red-300/40 dark:border-red-400',
+    'right-middle': 'bg-rose-400 border-rose-600 dark:bg-rose-300/40 dark:border-rose-400',
+    'right-ring': 'bg-indigo-400 border-indigo-600 dark:bg-indigo-300/40 dark:border-indigo-400',
+    'right-pinky': 'bg-cyan-400 border-cyan-600 dark:bg-cyan-300/40 dark:border-cyan-400',
   };
   return colorMap[finger];
 };
@@ -437,8 +438,23 @@ const VirtualKeyboardComponent = ({
 
   // キーに割り当てられたアクションを取得
   const getActionsForKey = (keyCode: string): string[] => {
+    // keyCodeがMinecraft形式の場合、Web標準形式に変換してから比較
+    const webKeyCode = minecraftToWeb(keyCode);
+
     return Object.entries(bindings)
-      .filter(([_, key]) => key === keyCode)
+      .filter(([_, key]) => {
+        // 空文字列や空配列をスキップ
+        if (!key || (Array.isArray(key) && key.length === 0)) {
+          return false;
+        }
+        // bindingsの値が配列の場合と文字列の場合の両方に対応
+        if (Array.isArray(key)) {
+          return key.some(k => k && minecraftToWeb(k) === webKeyCode);
+        }
+        // bindingsの値をWeb標準形式に変換して比較
+        const bindingWebKey = minecraftToWeb(key);
+        return bindingWebKey === webKeyCode;
+      })
       .map(([action, _]) => {
         // アクション名を日本語に変換
         const actionNames: { [key: string]: string } = {
@@ -490,7 +506,7 @@ const VirtualKeyboardComponent = ({
 
   // モーダルから保存された設定を処理
   const handleModalSave = (config: {
-    action?: string;
+    actions?: string[];
     remap?: string;
     externalTool?: string;
     finger?: Finger[];
@@ -611,93 +627,89 @@ const VirtualKeyboardComponent = ({
       return <div key={Math.random()} className={keyDef.width} />;
     }
 
+    // keyDef.keyはMinecraft形式なので、Web標準形式に変換してから各マップにアクセス
+    const webKeyCode = minecraftToWeb(keyDef.key);
+
     const actions = getActionsForKey(keyDef.key);
     const hasBinding = actions.length > 0;
     const isHovered = hoveredKey === keyDef.key;
-    const hasRemap = !!remappings[keyDef.key];
-    const hasExternalTool = !!externalTools[keyDef.key];
-    const remapTarget = remappings[keyDef.key];
-    const externalTool = externalTools[keyDef.key];
-    const assignedFingers = fingerAssignments[keyDef.key] || [];
+    const hasRemap = !!remappings[webKeyCode];
+    const hasExternalTool = !!externalTools[webKeyCode];
+    const remapTarget = remappings[webKeyCode];
+    const externalTool = externalTools[webKeyCode];
+    const assignedFingers = fingerAssignments[webKeyCode] || [];
 
     const handleClick = () => {
       if (mode === 'edit') {
         // 編集モードの場合はモーダルを開く
         handleOpenModal(keyDef.key);
       } else if (mode === 'display' && onKeyClick) {
-        // 表示モードでonKeyClickが指定されている場合は呼び出す
-        onKeyClick(keyDef.key);
+        // 表示モードでonKeyClickが指定されている場合は呼び出す（Web形式で返す）
+        onKeyClick(minecraftToWeb(keyDef.key));
       }
     };
 
     // 背景色のロジック：
-    // 1. 指の割り当てがある場合 → 指の色（複数の場合は切り替え）
-    // 2. 指の割り当てがないが、何らかのマッピングがある場合 → Primaryカラー（黒系/白系）
-    // 3. 何もない場合 → デフォルト色
+    // 1. 何らかのマッピングがある場合 → Primaryカラー（黒系/白系）
+    // 2. 何もない場合 → デフォルト色
+    // 注: 指の色はチップで表示するため、背景色には反映しない
     const isDisabled = remapTarget === 'key.keyboard.disabled';
     const hasAnyMapping = hasBinding || hasRemap || hasExternalTool;
     const primaryColorClass = 'bg-gray-900/10 border-gray-900 dark:bg-gray-100/10 dark:border-gray-100';
     const defaultColorClass = 'bg-[rgb(var(--card))] border-[rgb(var(--border))]';
 
-    // 複数の指が割り当てられている場合は、colorCycleIndexを使って色を切り替える
-    const currentFingerIndex = assignedFingers.length > 0 ? colorCycleIndex % assignedFingers.length : -1;
-    const currentFinger = currentFingerIndex >= 0 ? assignedFingers[currentFingerIndex] : undefined;
-    const fingerColorClass = showFingerColors && currentFinger ? getFingerColor(currentFinger) : '';
-
     let backgroundClass = defaultColorClass;
-    if (fingerColorClass) {
-      backgroundClass = fingerColorClass;
-    } else if (hasAnyMapping) {
+    if (hasAnyMapping) {
       backgroundClass = primaryColorClass;
     }
 
-    // Tooltip用の詳細情報
-    const tooltipContent = () => {
-      const parts = [];
-      if (hasRemap && remapTarget) {
-        parts.push(`リマップ: ${formatKeyLabel(keyDef.key)} → ${formatKeyLabel(remapTarget)}`);
-      }
-      if (actions.length > 0) {
-        parts.push(`操作: ${actions.join(', ')}`);
-      }
-      if (hasExternalTool && externalTool) {
-        parts.push(`外部ツール・Mod: ${externalTool}`);
-      }
-      if (assignedFingers.length > 0) {
-        const fingerLabels: Record<string, string> = {
-          'left-pinky': '左手小指',
-          'left-ring': '左手薬指',
-          'left-middle': '左手中指',
-          'left-index': '左手人差し指',
-          'left-thumb': '左手親指',
-          'right-thumb': '右手親指',
-          'right-index': '右手人差し指',
-          'right-middle': '右手中指',
-          'right-ring': '右手薬指',
-          'right-pinky': '右手小指',
-        };
-        const fingerNames = assignedFingers.map(f => fingerLabels[f] || f).join(', ');
-        parts.push(`指: ${fingerNames}`);
-      }
-      return parts.join('\n');
+    // Tooltip用の構造化データ
+    const fingerLabels: Record<string, string> = {
+      'left-pinky': '左手小指',
+      'left-ring': '左手薬指',
+      'left-middle': '左手中指',
+      'left-index': '左手人差し指',
+      'left-thumb': '左手親指',
+      'right-thumb': '右手親指',
+      'right-index': '右手人差し指',
+      'right-middle': '右手中指',
+      'right-ring': '右手薬指',
+      'right-pinky': '右手小指',
     };
 
-    // rowspan サポート: 2行分の場合は高さを2倍 + gap分（4px）
-    // h-16 = 64px, gap-1 = 4px, so 2 rows = 64*2 + 4 = 132px
+    const tooltipData = (hasAnyMapping || assignedFingers.length > 0) ? {
+      remap: hasRemap && remapTarget ? {
+        from: formatKeyLabel(keyDef.key),
+        to: formatKeyLabel(remapTarget)
+      } : undefined,
+      actions: actions.length > 0 ? actions : undefined,
+      externalTool: hasExternalTool && externalTool ? externalTool : undefined,
+      fingers: assignedFingers.length > 0 ? assignedFingers.map(f => fingerLabels[f] || f) : undefined,
+    } : null;
+
+    // rowspan サポート: 2行分の場合は高さを2倍 + gap分（8px）
+    // h-20 = 80px, gap-2 = 8px, so 2 rows = 80*2 + 8 = 168px
     // ただし、keyDef.heightが指定されている場合はそれを優先（Grid用のh-fullなど）
-    const heightClass = keyDef.height || (keyDef.rowspan === 2 ? 'h-[132px]' : 'h-16');
+    const heightClass = keyDef.height || (keyDef.rowspan === 2 ? 'h-[168px]' : 'h-20');
+
+    // ツールチップ用のテキストを生成
+    const titleText = tooltipData ? [
+      tooltipData.remap ? `リマップ: ${tooltipData.remap.from} → ${tooltipData.remap.to}` : null,
+      tooltipData.actions?.length ? `操作: ${tooltipData.actions.join(', ')}` : null,
+      tooltipData.externalTool ? `外部ツール: ${tooltipData.externalTool}` : null,
+      tooltipData.fingers?.length ? `指: ${tooltipData.fingers.join(', ')}` : null,
+    ].filter(Boolean).join('\n') : undefined;
 
     return (
-      <button
-        key={keyDef.key}
-        type="button"
-        onClick={handleClick}
-        onMouseEnter={() => setHoveredKey(keyDef.key)}
-        onMouseLeave={() => setHoveredKey(null)}
-        disabled={mode === 'display' && !onKeyClick}
-        title={mode === 'display' && (hasAnyMapping || assignedFingers.length > 0) ? tooltipContent() : undefined}
-        className={`${keyDef.width} ${heightClass} rounded border text-sm font-medium transition-all relative ${backgroundClass} ${(mode === 'edit' || (mode === 'display' && onKeyClick)) ? 'hover:border-blue-500 cursor-pointer' : 'cursor-default'} ${isHovered && (hasAnyMapping || assignedFingers.length > 0) ? 'ring-2 ring-blue-500' : ''} ${isDisabled ? 'opacity-30' : ''}`}
-      >
+        <button
+          key={keyDef.key}
+          title={mode === 'display' ? titleText : undefined}
+          type="button"
+          onClick={handleClick}
+          onMouseEnter={() => setHoveredKey(keyDef.key)}
+          onMouseLeave={() => setHoveredKey(null)}
+          className={`${keyDef.width} ${heightClass} rounded border text-sm font-medium transition-all relative ${backgroundClass} ${(mode === 'edit' || (mode === 'display' && onKeyClick)) ? 'hover:border-blue-500 cursor-pointer' : 'cursor-default'} ${isDisabled ? 'opacity-30' : ''}`}
+        >
         {/* リマップ表示：左上にもともとのキー名（低コントラスト）とリマップ後のキー名（大きく） */}
         {hasRemap && remapTarget ? (
           <div className="absolute top-0.5 left-1 text-xs flex flex-col gap-0 items-start">
@@ -706,6 +718,33 @@ const VirtualKeyboardComponent = ({
           </div>
         ) : (
             <div className="absolute top-1 left-1.5 text-[14px]">{keyDef.label}</div>
+        )}
+
+        {/* 指のチップ表示 - 右上 */}
+        {showFingerColors && assignedFingers.length > 0 && (
+          <div className="absolute top-1 right-1 flex gap-0.5">
+            {assignedFingers.map((finger, idx) => (
+              <div
+                key={idx}
+                className={`w-2 h-2 rounded-full border ${getFingerColor(finger)}`}
+                title={(() => {
+                  const fingerLabels: Record<string, string> = {
+                    'left-pinky': '左手小指',
+                    'left-ring': '左手薬指',
+                    'left-middle': '左手中指',
+                    'left-index': '左手人差し指',
+                    'left-thumb': '左手親指',
+                    'right-thumb': '右手親指',
+                    'right-index': '右手人差し指',
+                    'right-middle': '右手中指',
+                    'right-ring': '右手薬指',
+                    'right-pinky': '右手小指',
+                  };
+                  return fingerLabels[finger] || finger;
+                })()}
+              />
+            ))}
+          </div>
         )}
 
         <div className="absolute bottom-1 left-1 right-1 flex flex-col gap-0.5">
@@ -728,87 +767,88 @@ const VirtualKeyboardComponent = ({
             </div>
           )}
         </div>
-      </button>
+        </button>
     );
   };
 
   // マウスボタンをレンダリング（簡潔な表示）
   const renderMouseButton = (btn: typeof MOUSE_BUTTONS[0], customSize?: { width: string; height: string }) => {
+    // btn.keyはMinecraft形式なので、Web標準形式に変換してから各マップにアクセス
+    const webKeyCode = minecraftToWeb(btn.key);
+
     const actions = getActionsForKey(btn.key);
     const hasBinding = actions.length > 0;
-    const hasRemap = !!remappings[btn.key];
-    const hasExternalTool = !!externalTools[btn.key];
-    const remapTarget = remappings[btn.key];
-    const externalTool = externalTools[btn.key];
-    const assignedFingers = fingerAssignments[btn.key] || [];
+    const hasRemap = !!remappings[webKeyCode];
+    const hasExternalTool = !!externalTools[webKeyCode];
+    const remapTarget = remappings[webKeyCode];
+    const externalTool = externalTools[webKeyCode];
+    const assignedFingers = fingerAssignments[webKeyCode] || [];
 
     // 背景色のロジック：renderKeyと同じ
+    // 注: 指の色はチップで表示するため、背景色には反映しない
     const isDisabled = remapTarget === 'key.keyboard.disabled';
     const hasAnyMapping = hasBinding || hasRemap || hasExternalTool;
     const primaryColorClass = 'bg-gray-900/10 border-gray-900 dark:bg-gray-100/10 dark:border-gray-100';
     const defaultColorClass = 'bg-[rgb(var(--card))] border-[rgb(var(--border))]';
 
-    // 複数の指が割り当てられている場合は、colorCycleIndexを使って色を切り替える
-    const currentFingerIndex = assignedFingers.length > 0 ? colorCycleIndex % assignedFingers.length : -1;
-    const currentFinger = currentFingerIndex >= 0 ? assignedFingers[currentFingerIndex] : undefined;
-    const fingerColorClass = showFingerColors && currentFinger ? getFingerColor(currentFinger) : '';
-
     let backgroundClass = defaultColorClass;
-    if (fingerColorClass) {
-      backgroundClass = fingerColorClass;
-    } else if (hasAnyMapping) {
+    if (hasAnyMapping) {
       backgroundClass = primaryColorClass;
     }
 
-    // Tooltip用の詳細情報
-    const tooltipContent = () => {
-      const parts = [];
-      if (hasRemap && remapTarget) {
-        parts.push(`リマップ: ${formatKeyLabel(btn.key)} → ${formatKeyLabel(remapTarget)}`);
-      }
-      if (actions.length > 0) {
-        parts.push(`操作: ${actions.join(', ')}`);
-      }
-      if (hasExternalTool && externalTool) {
-        parts.push(`外部ツール・Mod割り当て: ${externalTool}`);
-      }
-      if (assignedFingers.length > 0) {
-        const fingerLabels: Record<string, string> = {
-          'left-pinky': '左手小指',
-          'left-ring': '左手薬指',
-          'left-middle': '左手中指',
-          'left-index': '左手人差し指',
-          'left-thumb': '左手親指',
-          'right-thumb': '右手親指',
-          'right-index': '右手人差し指',
-          'right-middle': '右手中指',
-          'right-ring': '右手薬指',
-          'right-pinky': '右手小指',
-        };
-        const fingerNames = assignedFingers.map(f => fingerLabels[f] || f).join(', ');
-        parts.push(`指: ${fingerNames}`);
-      }
-      return parts.join('\n');
+    // Tooltip用の構造化データ
+    const fingerLabels: Record<string, string> = {
+      'left-pinky': '左手小指',
+      'left-ring': '左手薬指',
+      'left-middle': '左手中指',
+      'left-index': '左手人差し指',
+      'left-thumb': '左手親指',
+      'right-thumb': '右手親指',
+      'right-index': '右手人差し指',
+      'right-middle': '右手中指',
+      'right-ring': '右手薬指',
+      'right-pinky': '右手小指',
     };
 
-    const sizeClass = customSize ? `${customSize.width} ${customSize.height}` : 'w-28 h-16';
+    const tooltipData = (hasAnyMapping || assignedFingers.length > 0) ? {
+      remap: hasRemap && remapTarget ? {
+        from: formatKeyLabel(btn.key),
+        to: formatKeyLabel(remapTarget)
+      } : undefined,
+      actions: actions.length > 0 ? actions : undefined,
+      externalTool: hasExternalTool && externalTool ? externalTool : undefined,
+      fingers: assignedFingers.length > 0 ? assignedFingers.map(f => fingerLabels[f] || f) : undefined,
+    } : null;
+
+    const isHovered = hoveredKey === btn.key;
+    const sizeClass = customSize ? `${customSize.width} ${customSize.height}` : 'w-36 h-20';
+
+    // ツールチップ用のテキストを生成
+    const titleText = tooltipData ? [
+      tooltipData.remap ? `リマップ: ${tooltipData.remap.from} → ${tooltipData.remap.to}` : null,
+      tooltipData.actions?.length ? `操作: ${tooltipData.actions.join(', ')}` : null,
+      tooltipData.externalTool ? `外部ツール: ${tooltipData.externalTool}` : null,
+      tooltipData.fingers?.length ? `指: ${tooltipData.fingers.join(', ')}` : null,
+    ].filter(Boolean).join('\n') : undefined;
 
     return (
-      <button
-        key={btn.key}
-        type="button"
-        onClick={() => {
-          if (btn.disabled) return;
-          if (mode === 'edit') {
-            handleOpenModal(btn.key);
-          } else if (mode === 'display' && onKeyClick) {
-            onKeyClick(btn.key);
-          }
-        }}
-        disabled={(mode === 'display' && !onKeyClick) || btn.disabled}
-        title={mode === 'display' && (hasAnyMapping || assignedFingers.length > 0) ? tooltipContent() : undefined}
-        className={`${sizeClass} rounded border text-sm font-medium transition-all relative ${backgroundClass} ${((mode === 'edit' || (mode === 'display' && onKeyClick)) && !btn.disabled) ? 'hover:border-blue-500 cursor-pointer' : 'cursor-default'} ${isDisabled ? 'opacity-30' : ''}`}
-      >
+        <button
+          key={btn.key}
+          title={mode === 'display' ? titleText : undefined}
+          type="button"
+          onClick={() => {
+            if (btn.disabled) return;
+            if (mode === 'edit') {
+              handleOpenModal(btn.key);
+            } else if (mode === 'display' && onKeyClick) {
+              onKeyClick(minecraftToWeb(btn.key));
+            }
+          }}
+          onMouseEnter={() => setHoveredKey(btn.key)}
+          onMouseLeave={() => setHoveredKey(null)}
+          disabled={btn.disabled}
+          className={`${sizeClass} rounded border text-sm font-medium transition-all relative ${backgroundClass} ${((mode === 'edit' || (mode === 'display' && onKeyClick)) && !btn.disabled) ? 'hover:border-blue-500 cursor-pointer' : 'cursor-default'} ${isDisabled ? 'opacity-30' : ''}`}
+        >
         {/* リマップ表示：左上にもともとのキー名（低コントラスト）とリマップ後のキー名（大きく） */}
         {hasRemap && remapTarget ? (
           <div className="absolute top-0.5 left-1 text-xs flex flex-col gap-0 items-start">
@@ -817,6 +857,33 @@ const VirtualKeyboardComponent = ({
           </div>
         ) : (
           <div className="absolute top-1 left-1.5 text-xs">{btn.label}</div>
+        )}
+
+        {/* 指のチップ表示 - 右上 */}
+        {showFingerColors && assignedFingers.length > 0 && (
+          <div className="absolute top-1 right-1 flex gap-0.5">
+            {assignedFingers.map((finger, idx) => (
+              <div
+                key={idx}
+                className={`w-2 h-2 rounded-full border ${getFingerColor(finger)}`}
+                title={(() => {
+                  const fingerLabels: Record<string, string> = {
+                    'left-pinky': '左手小指',
+                    'left-ring': '左手薬指',
+                    'left-middle': '左手中指',
+                    'left-index': '左手人差し指',
+                    'left-thumb': '左手親指',
+                    'right-thumb': '右手親指',
+                    'right-index': '右手人差し指',
+                    'right-middle': '右手中指',
+                    'right-ring': '右手薬指',
+                    'right-pinky': '右手小指',
+                  };
+                  return fingerLabels[finger] || finger;
+                })()}
+              />
+            ))}
+          </div>
         )}
 
         <div className="absolute bottom-1 left-1 right-1 flex flex-col gap-0.5">
@@ -839,14 +906,14 @@ const VirtualKeyboardComponent = ({
             </div>
           )}
         </div>
-      </button>
+        </button>
     );
   };
 
   return (
     <div className="space-y-4">
       {/* キーボード本体 */}
-      <div className="bg-[rgb(var(--card))] p-4 rounded-lg border border-[rgb(var(--border))]">
+      <div className="bg-[rgb(var(--card))] p-6 rounded-lg border border-[rgb(var(--border))]">
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-sm font-semibold">キーボード ({keyboardLayout})</h3>
           {mode === 'edit' && (
@@ -874,9 +941,9 @@ const VirtualKeyboardComponent = ({
           )}
         </div>
         <div className="overflow-x-auto -mx-4 px-4">
-          <div className="space-y-1 min-w-max">
+          <div className="space-y-2 min-w-max">
             {KEYBOARD_LAYOUT.map((row, i) => (
-              <div key={i} className="flex gap-1">
+              <div key={i} className="flex gap-2">
                 {row.map(renderKey)}
               </div>
             ))}
@@ -897,7 +964,7 @@ const VirtualKeyboardComponent = ({
               })}
               {addingKeySection === 'keyboard' && (
                 <div className="w-full">
-                  <div className="h-16 rounded border-2 border-dashed border-blue-500 bg-blue-50 dark:bg-blue-950 flex flex-col items-center justify-center gap-1 p-1">
+                  <div className="h-16 rounded border-2 border-dashed border-blue-500 bg-blue-50 dark:bg-blue-950 flex flex-col items-center justify-center gap-2 p-1">
                     <input
                       type="text"
                       value={newKeyLabel}
@@ -911,7 +978,7 @@ const VirtualKeyboardComponent = ({
                       maxLength={6}
                       className="w-full px-1 py-0.5 text-xs text-center border border-blue-300 rounded bg-white dark:bg-gray-800 focus:outline-none focus:ring-1 focus:ring-blue-500"
                     />
-                    <div className="flex gap-1">
+                    <div className="flex gap-2">
                       <button
                         type="button"
                         onClick={handleConfirmAddCustomKey}
@@ -938,7 +1005,7 @@ const VirtualKeyboardComponent = ({
       {/* 編集キー・テンキー・マウス（3段組み） */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* 編集キー */}
-        <div className="bg-[rgb(var(--card))] p-4 rounded-lg border border-[rgb(var(--border))]">
+        <div className="bg-[rgb(var(--card))] p-6 rounded-lg border border-[rgb(var(--border))]">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-semibold">編集キー</h3>
             {mode === 'edit' && (
@@ -965,9 +1032,9 @@ const VirtualKeyboardComponent = ({
               </div>
             )}
           </div>
-          <div className="space-y-1">
+          <div className="space-y-2">
             {EDIT_KEYS.map((row, i) => (
-              <div key={i} className="flex gap-1">
+              <div key={i} className="flex gap-2">
                 {row.map(renderKey)}
               </div>
             ))}
@@ -987,7 +1054,7 @@ const VirtualKeyboardComponent = ({
                 })}
                 {addingKeySection === 'edit' && (
                   <div className="w-full">
-                    <div className="h-16 rounded border-2 border-dashed border-blue-500 bg-blue-50 dark:bg-blue-950 flex flex-col items-center justify-center gap-1 p-1">
+                    <div className="h-16 rounded border-2 border-dashed border-blue-500 bg-blue-50 dark:bg-blue-950 flex flex-col items-center justify-center gap-2 p-1">
                       <input
                         type="text"
                         value={newKeyLabel}
@@ -1001,7 +1068,7 @@ const VirtualKeyboardComponent = ({
                         maxLength={6}
                         className="w-full px-1 py-0.5 text-xs text-center border border-blue-300 rounded bg-white dark:bg-gray-800 focus:outline-none focus:ring-1 focus:ring-blue-500"
                       />
-                      <div className="flex gap-1">
+                      <div className="flex gap-2">
                         <button
                           type="button"
                           onClick={handleConfirmAddCustomKey}
@@ -1027,7 +1094,7 @@ const VirtualKeyboardComponent = ({
 
         {/* テンキー（TKLでない場合のみ表示） */}
         {!isTenkeyless && (
-          <div className="bg-[rgb(var(--card))] p-4 rounded-lg border border-[rgb(var(--border))]">
+          <div className="bg-[rgb(var(--card))] p-6 rounded-lg border border-[rgb(var(--border))]">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-sm font-semibold">テンキー</h3>
               {mode === 'edit' && (
@@ -1054,7 +1121,7 @@ const VirtualKeyboardComponent = ({
                 </div>
               )}
             </div>
-            <div className="grid grid-cols-[repeat(4,64px)] gap-1 auto-rows-[64px]">
+            <div className="grid grid-cols-[repeat(4,64px)] gap-2 auto-rows-[64px]">
               {/* Row 0: NumLock, /, *, - */}
               {renderKey({ ...NUMPAD_KEYS[0][0], width: 'w-full', height: 'h-full' })}
               {renderKey({ ...NUMPAD_KEYS[0][1], width: 'w-full', height: 'h-full' })}
@@ -1103,7 +1170,7 @@ const VirtualKeyboardComponent = ({
                   })}
                   {addingKeySection === 'numpad' && (
                     <div className="w-full">
-                      <div className="h-16 rounded border-2 border-dashed border-blue-500 bg-blue-50 dark:bg-blue-950 flex flex-col items-center justify-center gap-1 p-1">
+                      <div className="h-16 rounded border-2 border-dashed border-blue-500 bg-blue-50 dark:bg-blue-950 flex flex-col items-center justify-center gap-2 p-1">
                         <input
                           type="text"
                           value={newKeyLabel}
@@ -1117,7 +1184,7 @@ const VirtualKeyboardComponent = ({
                           maxLength={6}
                           className="w-full px-1 py-0.5 text-xs text-center border border-blue-300 rounded bg-white dark:bg-gray-800 focus:outline-none focus:ring-1 focus:ring-blue-500"
                         />
-                        <div className="flex gap-1">
+                        <div className="flex gap-2">
                           <button
                             type="button"
                             onClick={handleConfirmAddCustomKey}
@@ -1143,7 +1210,7 @@ const VirtualKeyboardComponent = ({
         )}
 
         {/* マウス */}
-        <div className="bg-[rgb(var(--card))] p-4 rounded-lg border border-[rgb(var(--border))]">
+        <div className="bg-[rgb(var(--card))] p-6 rounded-lg border border-[rgb(var(--border))]">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-semibold">マウス</h3>
             {mode === 'edit' && (
@@ -1170,16 +1237,16 @@ const VirtualKeyboardComponent = ({
               </div>
             )}
           </div>
-          <div className="flex flex-col items-center gap-2 max-w-[200px] mx-auto">
+          <div className="flex flex-col items-center gap-2 max-w-[320px] mx-auto">
             {/* 上部：左クリック、ホイール、右クリック */}
-            <div className="flex gap-1">
+            <div className="flex gap-2">
               {/* 左クリック */}
               <button
                 type="button"
                 disabled={true}
-                className="w-16 h-20 rounded-tl-2xl rounded-bl-lg border bg-[rgb(var(--card))] border-[rgb(var(--border))] cursor-default relative"
+                className="w-20 h-[100px] rounded-tl-2xl rounded-bl-lg border bg-[rgb(var(--card))] border-[rgb(var(--border))] cursor-default relative"
               >
-                <div className="absolute top-1 left-1.5 text-[10px]">左</div>
+                <div className="absolute top-1 left-1.5 text-xs">左</div>
                 <div className="absolute bottom-1 left-1 right-1 flex justify-center">
                   <span className="px-1 py-0 text-[8px] font-medium bg-gray-300 dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded whitespace-nowrap">
                     {getActionsForKey('key.mouse.left').slice(0, 1)[0] || '攻撃'}
@@ -1188,15 +1255,15 @@ const VirtualKeyboardComponent = ({
               </button>
 
               {/* ホイール（中央） */}
-              {renderMouseButton(MOUSE_BUTTONS[2], { width: 'w-16', height: 'h-20' })} {/* ホイール */}
+              {renderMouseButton(MOUSE_BUTTONS[2], { width: 'w-[100px]', height: 'h-[100px]' })} {/* ホイール */}
 
               {/* 右クリック */}
               <button
                 type="button"
                 disabled={true}
-                className="w-16 h-20 rounded-tr-2xl rounded-br-lg border bg-[rgb(var(--card))] border-[rgb(var(--border))] cursor-default relative"
+                className="w-20 h-[100px] rounded-tr-2xl rounded-br-lg border bg-[rgb(var(--card))] border-[rgb(var(--border))] cursor-default relative"
               >
-                <div className="absolute top-1 right-1.5 text-[10px]">右</div>
+                <div className="absolute top-1 right-1.5 text-xs">右</div>
                 <div className="absolute bottom-1 left-1 right-1 flex justify-center">
                   <span className="px-1 py-0 text-[8px] font-medium bg-gray-300 dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded whitespace-nowrap">
                     {getActionsForKey('key.mouse.right').slice(0, 1)[0] || '使う'}
@@ -1206,9 +1273,9 @@ const VirtualKeyboardComponent = ({
             </div>
 
             {/* 下部：MB4, MB5（サイドボタン） */}
-            <div className="flex gap-1">
-              {renderMouseButton(MOUSE_BUTTONS[3], { width: 'w-16', height: 'h-16' })} {/* MB4 */}
-              {renderMouseButton(MOUSE_BUTTONS[4], { width: 'w-16', height: 'h-16' })} {/* MB5 */}
+            <div className="flex gap-2">
+              {renderMouseButton(MOUSE_BUTTONS[3], { width: 'w-[100px]', height: 'h-20' })} {/* MB4 */}
+              {renderMouseButton(MOUSE_BUTTONS[4], { width: 'w-[100px]', height: 'h-20' })} {/* MB5 */}
             </div>
           </div>
           <div className="text-xs text-[rgb(var(--muted-foreground))] text-center mt-3">
@@ -1230,7 +1297,7 @@ const VirtualKeyboardComponent = ({
                 })}
                 {addingKeySection === 'mouse' && (
                   <div className="w-full">
-                    <div className="h-16 rounded border-2 border-dashed border-blue-500 bg-blue-50 dark:bg-blue-950 flex flex-col items-center justify-center gap-1 p-1">
+                    <div className="h-16 rounded border-2 border-dashed border-blue-500 bg-blue-50 dark:bg-blue-950 flex flex-col items-center justify-center gap-2 p-1">
                       <input
                         type="text"
                         value={newKeyLabel}
@@ -1244,7 +1311,7 @@ const VirtualKeyboardComponent = ({
                         maxLength={6}
                         className="w-full px-1 py-0.5 text-xs text-center border border-blue-300 rounded bg-white dark:bg-gray-800 focus:outline-none focus:ring-1 focus:ring-blue-500"
                       />
-                      <div className="flex gap-1">
+                      <div className="flex gap-2">
                         <button
                           type="button"
                           onClick={handleConfirmAddCustomKey}
@@ -1274,13 +1341,13 @@ const VirtualKeyboardComponent = ({
       { !stats && (
         <div className="text-xs text-[rgb(var(--muted-foreground))] space-y-2">
           <div className="flex items-center gap-4 flex-wrap">
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-2">
               <span className="px-1 py-0 text-[8px] font-medium bg-gray-300 dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded">
                 例
               </span>
               <span>マイクラ操作</span>
             </div>
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-2">
               <span className="px-1 py-0 text-[8px] font-medium bg-gray-400/30 dark:bg-gray-600/30 text-gray-800 dark:text-gray-200 rounded-sm border border-gray-500/40 dark:border-gray-500/40">
                 例
               </span>
@@ -1293,43 +1360,43 @@ const VirtualKeyboardComponent = ({
             <div className="border-t border-[rgb(var(--border))] pt-2">
               <div className="font-semibold mb-2 text-[rgb(var(--foreground))]">指の色分け</div>
               <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-2.5">
                   <div className="w-4 h-4 rounded border bg-pink-200/70 border-pink-300 dark:bg-pink-300/40 dark:border-pink-400"></div>
                   <span>左手小指</span>
                 </div>
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-2.5">
                   <div className="w-4 h-4 rounded border bg-purple-200/70 border-purple-300 dark:bg-purple-300/40 dark:border-purple-400"></div>
                   <span>左手薬指</span>
                 </div>
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-2.5">
                   <div className="w-4 h-4 rounded border bg-blue-200/70 border-blue-300 dark:bg-blue-300/40 dark:border-blue-400"></div>
                   <span>左手中指</span>
                 </div>
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-2.5">
                   <div className="w-4 h-4 rounded border bg-green-200/70 border-green-300 dark:bg-green-300/40 dark:border-green-400"></div>
                   <span>左手人差し指</span>
                 </div>
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-2.5">
                   <div className="w-4 h-4 rounded border bg-yellow-200/70 border-yellow-300 dark:bg-yellow-300/40 dark:border-yellow-400"></div>
                   <span>左手親指</span>
                 </div>
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-2.5">
                   <div className="w-4 h-4 rounded border bg-orange-200/70 border-orange-300 dark:bg-orange-300/40 dark:border-orange-400"></div>
                   <span>右手親指</span>
                 </div>
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-2.5">
                   <div className="w-4 h-4 rounded border bg-red-200/70 border-red-300 dark:bg-red-300/40 dark:border-red-400"></div>
                   <span>右手人差し指</span>
                 </div>
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-2.5">
                   <div className="w-4 h-4 rounded border bg-rose-200/70 border-rose-300 dark:bg-rose-300/40 dark:border-rose-400"></div>
                   <span>右手中指</span>
                 </div>
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-2.5">
                   <div className="w-4 h-4 rounded border bg-indigo-200/70 border-indigo-300 dark:bg-indigo-300/40 dark:border-indigo-400"></div>
                   <span>右手薬指</span>
                 </div>
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-2.5">
                   <div className="w-4 h-4 rounded border bg-cyan-200/70 border-cyan-300 dark:bg-cyan-300/40 dark:border-cyan-400"></div>
                   <span>右手小指</span>
                 </div>
@@ -1345,7 +1412,9 @@ const VirtualKeyboardComponent = ({
 
       {/* モーダル */}
       {selectedKey && (() => {
-        const customKey = customKeys?.find(k => k.keyCode === selectedKey);
+        // selectedKeyをWeb標準形式に変換してから各マップにアクセス
+        const webSelectedKey = minecraftToWeb(selectedKey);
+        const customKey = customKeys?.find(k => k.keyCode === webSelectedKey);
         const isCustom = !!customKey;
 
         return (
@@ -1353,12 +1422,29 @@ const VirtualKeyboardComponent = ({
             isOpen={modalOpen}
             onClose={handleCloseModal}
             selectedKey={selectedKey}
-            currentAction={
-              Object.entries(bindings).find(([_, key]) => key === selectedKey)?.[0] || null
-            }
-            currentRemap={remappings[selectedKey]}
-            currentExternalTool={externalTools[selectedKey]}
-            currentFinger={fingerAssignments[selectedKey]}
+            currentAction={(() => {
+              // Find all actions bound to this key
+              const boundActions = Object.entries(bindings)
+                .filter(([_, keyBinding]) => {
+                  // 空文字列や空配列をスキップ
+                  if (!keyBinding || (Array.isArray(keyBinding) && keyBinding.length === 0)) {
+                    return false;
+                  }
+                  if (Array.isArray(keyBinding)) {
+                    return keyBinding.some(k => k && k === selectedKey);
+                  }
+                  return keyBinding === selectedKey;
+                })
+                .map(([action]) => action);
+
+              // Return array if multiple, single string if one, null if none
+              if (boundActions.length === 0) return null;
+              if (boundActions.length === 1) return boundActions[0];
+              return boundActions;
+            })()}
+            currentRemap={remappings[webSelectedKey]}
+            currentExternalTool={externalTools[webSelectedKey]}
+            currentFinger={fingerAssignments[webSelectedKey]}
             onSave={handleModalSave}
             isCustomKey={isCustom}
             customKeyLabel={customKey?.label || ''}

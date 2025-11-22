@@ -48,48 +48,48 @@ export interface ExternalToolsConfig {
   [keyCode: string]: string; // keyCode -> action (例: "key.keyboard.f" -> "リセット")
 }
 
-// キーバインディングの型定義
+// キーバインディングの型定義（各キーに単一または複数のアクションを割り当て可能）
 export interface Keybinding {
   // 移動
-  forward: string;
-  back: string;
-  left: string;
-  right: string;
-  jump: string;
-  sneak: string;
-  sprint: string;
+  forward: string | string[];
+  back: string | string[];
+  left: string | string[];
+  right: string | string[];
+  jump: string | string[];
+  sneak: string | string[];
+  sprint: string | string[];
 
   // アクション
-  attack: string;
-  use: string;
-  pickBlock: string;
-  drop: string;
+  attack: string | string[];
+  use: string | string[];
+  pickBlock: string | string[];
+  drop: string | string[];
 
   // インベントリ
-  inventory: string;
-  swapHands: string;
-  hotbar1: string;
-  hotbar2: string;
-  hotbar3: string;
-  hotbar4: string;
-  hotbar5: string;
-  hotbar6: string;
-  hotbar7: string;
-  hotbar8: string;
-  hotbar9: string;
+  inventory: string | string[];
+  swapHands: string | string[];
+  hotbar1: string | string[];
+  hotbar2: string | string[];
+  hotbar3: string | string[];
+  hotbar4: string | string[];
+  hotbar5: string | string[];
+  hotbar6: string | string[];
+  hotbar7: string | string[];
+  hotbar8: string | string[];
+  hotbar9: string | string[];
 
   // ビュー・UI操作
-  togglePerspective?: string;
-  fullscreen?: string;
-  chat?: string;
-  command?: string;
-  toggleHud?: string;
+  togglePerspective?: string | string[];
+  fullscreen?: string | string[];
+  chat?: string | string[];
+  command?: string | string[];
+  toggleHud?: string | string[];
 }
 
 // 追加設定の型定義
 export interface AdditionalSettings {
-  reset?: string;
-  playerList?: string;
+  reset?: string | string[];
+  playerList?: string | string[];
   customKeys?: CustomKeysConfig;
   [key: string]: unknown;
 }
@@ -102,6 +102,11 @@ export interface PlayerSettings extends Keybinding, MouseSettings {
   externalTools?: ExternalToolsConfig | null;
   fingerAssignments?: FingerAssignments | null;
   additionalSettings?: AdditionalSettings | null;
+
+  // ゲーム設定（手動設定が必要）
+  toggleSprint?: boolean | null;
+  toggleSneak?: boolean | null;
+  autoJump?: boolean | null;
 
   // プレイヤー環境設定
   gameLanguage?: string | null;
@@ -122,4 +127,5 @@ export interface User {
   createdAt: Date;
   updatedAt: Date;
   settings?: PlayerSettings | null;
+  customKeys?: Array<{ keyCode: string; keyName: string }>;
 }
