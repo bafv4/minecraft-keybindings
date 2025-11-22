@@ -21,6 +21,7 @@ const SPEEDRUN_ITEMS = [
   { id: 'minecraft:iron_shovel', name: 'シャベル', category: 'tools' },
   { id: 'minecraft:iron_sword', name: '剣', category: 'tools' },
   { id: 'minecraft:golden_pickaxe', name: '金ピッケル', category: 'tools' },
+  { id: 'minecraft:bucket', name: 'バケツ', category: 'tools' },
 
   // ブロック
   { id: 'minecraft:dirt', name: 'ブロック（不動）', category: 'blocks' },
@@ -29,14 +30,17 @@ const SPEEDRUN_ITEMS = [
   { id: 'minecraft:gold_block', name: '金ブロック', category: 'blocks' },
   { id: 'minecraft:crafting_table', name: '作業台', category: 'blocks' },
   { id: 'minecraft:iron_bars', name: '鉄格子', category: 'blocks' },
+  { id: 'minecraft:tnt', name: 'TNT', category: 'blocks' },
 
   // レッドストーン系
   { id: 'minecraft:oak_door', name: 'ドア', category: 'redstone' },
   { id: 'minecraft:stone_pressure_plate', name: '感圧板', category: 'redstone' },
 
-  // 食料・ベッド
+  // 食料・ベッド・ポーション
   { id: 'minecraft:cooked_porkchop', name: '食料', category: 'consumables' },
   { id: 'minecraft:red_bed', name: 'ベッド', category: 'consumables' },
+  { id: 'minecraft:potion', name: '耐火のポーション', category: 'consumables' },
+  { id: 'minecraft:splash_potion', name: '耐火のスプラッシュポーション', category: 'consumables' },
 
   // 武器・戦闘
   { id: 'minecraft:bow', name: '弓', category: 'combat' },
@@ -50,6 +54,9 @@ const SPEEDRUN_ITEMS = [
   { id: 'minecraft:ender_pearl', name: 'エンダーパール', category: 'misc' },
   { id: 'minecraft:ender_eye', name: 'エンダーアイ', category: 'misc' },
   { id: 'minecraft:oak_boat', name: 'ボート', category: 'misc' },
+  { id: 'minecraft:blaze_rod', name: 'ブレイズロッド', category: 'misc' },
+  { id: 'minecraft:blaze_powder', name: 'ブレイズパウダー', category: 'misc' },
+  { id: 'minecraft:string', name: '糸', category: 'misc' },
 
   // 特殊
   { id: 'any', name: 'なんでも', category: 'special' },
