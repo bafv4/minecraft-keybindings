@@ -63,6 +63,15 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
   const [mouseAcceleration, setMouseAcceleration] = useState(initialSettings?.mouseAcceleration || false);
   const [rawInput, setRawInput] = useState(initialSettings?.rawInput ?? true);
 
+  // ゲーム設定（移動）
+  const [sprintMode, setSprintMode] = useState<'hold' | 'toggle'>(
+    initialSettings?.toggleSprint === true ? 'toggle' : 'hold'
+  );
+  const [sneakMode, setSneakMode] = useState<'hold' | 'toggle'>(
+    initialSettings?.toggleSneak === true ? 'toggle' : 'hold'
+  );
+  const [autoJump, setAutoJump] = useState(initialSettings?.autoJump ?? false);
+
   // プレイヤー環境設定
   const [gameLanguage, setGameLanguage] = useState(initialSettings?.gameLanguage || '');
   const [mouseModel, setMouseModel] = useState(initialSettings?.mouseModel || '');
@@ -479,6 +488,9 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
           mouseAcceleration,
           rawInput,
           cm360,
+          toggleSprint: sprintMode === 'toggle',
+          toggleSneak: sneakMode === 'toggle',
+          autoJump,
           fingerAssignments: Object.keys(fingerAssignments).length > 0 ? fingerAssignments : undefined,
           gameLanguage: gameLanguage.trim() || undefined,
           mouseModel: mouseModel.trim() || undefined,
@@ -910,6 +922,54 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
               マウス加速が有効のため計算できません
             </p>
           )}
+        </div>
+      </section>
+
+      {/* 移動設定 */}
+      <section className="bg-[rgb(var(--card))] p-6 rounded-lg border border-[rgb(var(--border))]">
+        <h2 className="text-xl font-bold mb-4">移動設定</h2>
+        <div className="space-y-4">
+          {/* Sprint */}
+          <RadioGroup
+            label="Sprint"
+            value={sprintMode}
+            onChange={(value) => setSprintMode(value as 'hold' | 'toggle')}
+            options={[
+              { value: 'hold', label: 'Hold' },
+              { value: 'toggle', label: 'Toggle' },
+            ]}
+            orientation="horizontal"
+          />
+
+          {/* Sneak */}
+          <RadioGroup
+            label="Sneak"
+            value={sneakMode}
+            onChange={(value) => setSneakMode(value as 'hold' | 'toggle')}
+            options={[
+              { value: 'hold', label: 'Hold' },
+              { value: 'toggle', label: 'Toggle' },
+            ]}
+            orientation="horizontal"
+          />
+
+          {/* Auto Jump */}
+          <div className="flex items-center justify-between p-4 bg-[rgb(var(--muted))] rounded-lg">
+            <label className="font-semibold">Auto Jump</label>
+            <Switch
+              checked={autoJump}
+              onChange={setAutoJump}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
+                autoJump ? 'bg-primary' : 'bg-[rgb(var(--border))]'
+              }`}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  autoJump ? 'translate-x-6' : 'translate-x-1'
+                }`}
+              />
+            </Switch>
+          </div>
         </div>
       </section>
 
