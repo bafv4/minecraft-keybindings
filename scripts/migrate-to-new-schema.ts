@@ -373,6 +373,7 @@ async function migrate() {
           const firstEntry = Object.entries(toolsData)[0];
           const isFormat1 =
             firstEntry &&
+            firstEntry[1] !== null &&
             typeof firstEntry[1] === 'object' &&
             !Array.isArray(firstEntry[1]) &&
             'actions' in firstEntry[1];
