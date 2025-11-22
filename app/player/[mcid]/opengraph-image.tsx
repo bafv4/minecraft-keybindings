@@ -74,7 +74,7 @@ export default async function Image({ params }: Props) {
       const iconPath = join(process.cwd(), 'public', 'icon.svg');
       const iconSvg = await readFile(iconPath);
       const iconPng = await sharp(iconSvg)
-        .resize(40, 40)
+        .resize(56, 56)
         .png()
         .toBuffer();
       iconDataUri = `data:image/png;base64,${iconPng.toString('base64')}`;
@@ -156,23 +156,31 @@ export default async function Image({ params }: Props) {
           >
             <div
               style={{
-                fontSize: 32,
+                fontSize: 48,
                 fontWeight: 700,
                 display: 'flex',
                 alignItems: 'center',
-                gap: '12px',
+                gap: '16px',
               }}
             >
               {/* アイコン */}
               {iconDataUri ? (
-                <div style={{ width: '40px', height: '40px', display: 'flex' }}>
+                <div style={{ width: '56px', height: '56px', display: 'flex' }}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={iconDataUri} alt="icon" width={40} height={40} />
+                  <img src={iconDataUri} alt="icon" width={56} height={56} />
                 </div>
               ) : (
                 <span>🎮</span>
               )}
-              <span>MCSRer Hotkeys</span>
+              <span
+                style={{
+                  backgroundImage: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+                  backgroundClip: 'text',
+                  color: 'transparent',
+                }}
+              >
+                MCSRer Hotkeys
+              </span>
             </div>
           </div>
 
@@ -189,8 +197,8 @@ export default async function Image({ params }: Props) {
             {avatarDataUri ? (
               <div
                 style={{
-                  width: '80px',
-                  height: '80px',
+                  width: '96px',
+                  height: '96px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -200,20 +208,20 @@ export default async function Image({ params }: Props) {
                 <img
                   src={avatarDataUri}
                   alt={displayName}
-                  width={80}
-                  height={80}
+                  width={96}
+                  height={96}
                   style={{ imageRendering: 'pixelated' }}
                 />
               </div>
             ) : (
               <div
                 style={{
-                  width: '80px',
-                  height: '80px',
+                  width: '96px',
+                  height: '96px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  fontSize: 40,
+                  fontSize: 56,
                 }}
               >
                 👤
@@ -222,9 +230,9 @@ export default async function Image({ params }: Props) {
 
             {/* 名前 */}
             <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <div style={{ fontSize: 40, fontWeight: 700 }}>{displayName}</div>
+              <div style={{ fontSize: 56, fontWeight: 700 }}>{displayName}</div>
               {user.displayName && user.displayName !== user.mcid && (
-                <div style={{ fontSize: 20, opacity: 0.6 }}>{user.mcid}</div>
+                <div style={{ fontSize: 28, opacity: 0.6 }}>{user.mcid}</div>
               )}
             </div>
           </div>
@@ -244,20 +252,23 @@ export default async function Image({ params }: Props) {
           >
             {/* ホットバー */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{ fontSize: 16, fontWeight: 700, opacity: 0.7, width: '100px' }}>ホットバー</div>
-              <div style={{ display: 'flex', gap: '6px' }}>
+              <div style={{ fontSize: 22, fontWeight: 700, opacity: 0.7, width: '130px' }}>ホットバー</div>
+              <div style={{ display: 'flex', gap: '8px' }}>
                 {hotbarKeys.map((key, i) => (
                   <div
                     key={i}
                     style={{
                       background: 'rgba(100, 116, 139, 0.12)',
-                      borderRadius: '6px',
-                      padding: '6px',
-                      fontSize: 16,
+                      borderRadius: '8px',
+                      padding: '8px',
+                      fontSize: 20,
                       fontWeight: 700,
-                      minWidth: '32px',
+                      minWidth: '40px',
                       textAlign: 'center',
                       border: '1px solid rgba(100, 116, 139, 0.2)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
                     }}
                   >
                     {key}
@@ -268,15 +279,18 @@ export default async function Image({ params }: Props) {
 
             {/* オフハンド */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{ fontSize: 16, fontWeight: 700, opacity: 0.7, width: '100px' }}>オフハンド</div>
+              <div style={{ fontSize: 22, fontWeight: 700, opacity: 0.7, width: '130px' }}>オフハンド</div>
               <div
                 style={{
                   background: 'rgba(100, 116, 139, 0.12)',
-                  borderRadius: '6px',
-                  padding: '6px 12px',
-                  fontSize: 16,
+                  borderRadius: '8px',
+                  padding: '8px 16px',
+                  fontSize: 20,
                   fontWeight: 700,
                   border: '1px solid rgba(100, 116, 139, 0.2)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
                 }}
               >
                 {actionKeys.swapHands}
@@ -285,20 +299,23 @@ export default async function Image({ params }: Props) {
 
             {/* 移動 */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{ fontSize: 16, fontWeight: 700, opacity: 0.7, width: '100px' }}>移動</div>
-              <div style={{ display: 'flex', gap: '6px' }}>
+              <div style={{ fontSize: 22, fontWeight: 700, opacity: 0.7, width: '130px' }}>移動</div>
+              <div style={{ display: 'flex', gap: '8px' }}>
                 {Object.entries(movementKeys).map(([action, key]) => (
                   <div
                     key={action}
                     style={{
                       background: 'rgba(100, 116, 139, 0.12)',
-                      borderRadius: '6px',
-                      padding: '6px 12px',
-                      fontSize: 16,
+                      borderRadius: '8px',
+                      padding: '8px 16px',
+                      fontSize: 20,
                       fontWeight: 700,
-                      minWidth: '40px',
+                      minWidth: '50px',
                       textAlign: 'center',
                       border: '1px solid rgba(100, 116, 139, 0.2)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
                     }}
                   >
                     {key}
@@ -309,54 +326,63 @@ export default async function Image({ params }: Props) {
 
             {/* アクション */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{ fontSize: 16, fontWeight: 700, opacity: 0.7, width: '100px' }}>アクション</div>
-              <div style={{ display: 'flex', gap: '12px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <div style={{ fontSize: 14, opacity: 0.6 }}>ジャンプ</div>
+              <div style={{ fontSize: 22, fontWeight: 700, opacity: 0.7, width: '130px' }}>アクション</div>
+              <div style={{ display: 'flex', gap: '16px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div style={{ fontSize: 18, opacity: 0.6 }}>ジャンプ</div>
                   <div
                     style={{
                       background: 'rgba(100, 116, 139, 0.12)',
-                      borderRadius: '6px',
-                      padding: '6px 12px',
-                      fontSize: 16,
+                      borderRadius: '8px',
+                      padding: '8px 16px',
+                      fontSize: 20,
                       fontWeight: 700,
-                      minWidth: '60px',
+                      minWidth: '75px',
                       textAlign: 'center',
                       border: '1px solid rgba(100, 116, 139, 0.2)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
                     }}
                   >
                     {actionKeys.jump}
                   </div>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <div style={{ fontSize: 14, opacity: 0.6 }}>ダッシュ</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div style={{ fontSize: 18, opacity: 0.6 }}>ダッシュ</div>
                   <div
                     style={{
                       background: 'rgba(100, 116, 139, 0.12)',
-                      borderRadius: '6px',
-                      padding: '6px 12px',
-                      fontSize: 16,
+                      borderRadius: '8px',
+                      padding: '8px 16px',
+                      fontSize: 20,
                       fontWeight: 700,
-                      minWidth: '60px',
+                      minWidth: '75px',
                       textAlign: 'center',
                       border: '1px solid rgba(100, 116, 139, 0.2)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
                     }}
                   >
                     {actionKeys.sprint}
                   </div>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <div style={{ fontSize: 14, opacity: 0.6 }}>スニーク</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div style={{ fontSize: 18, opacity: 0.6 }}>スニーク</div>
                   <div
                     style={{
                       background: 'rgba(100, 116, 139, 0.12)',
-                      borderRadius: '6px',
-                      padding: '6px 12px',
-                      fontSize: 16,
+                      borderRadius: '8px',
+                      padding: '8px 16px',
+                      fontSize: 20,
                       fontWeight: 700,
-                      minWidth: '60px',
+                      minWidth: '75px',
                       textAlign: 'center',
                       border: '1px solid rgba(100, 116, 139, 0.2)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
                     }}
                   >
                     {actionKeys.sneak}
@@ -367,54 +393,63 @@ export default async function Image({ params }: Props) {
 
             {/* 設定 */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{ fontSize: 16, fontWeight: 700, opacity: 0.7, width: '100px' }}>設定</div>
-              <div style={{ display: 'flex', gap: '12px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <div style={{ fontSize: 14, opacity: 0.6 }}>Sprint</div>
+              <div style={{ fontSize: 22, fontWeight: 700, opacity: 0.7, width: '130px' }}>設定</div>
+              <div style={{ display: 'flex', gap: '16px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div style={{ fontSize: 18, opacity: 0.6 }}>Sprint</div>
                   <div
                     style={{
                       background: 'rgba(100, 116, 139, 0.12)',
-                      borderRadius: '6px',
-                      padding: '6px 12px',
-                      fontSize: 14,
+                      borderRadius: '8px',
+                      padding: '8px 16px',
+                      fontSize: 18,
                       fontWeight: 700,
-                      minWidth: '60px',
+                      minWidth: '75px',
                       textAlign: 'center',
                       border: '1px solid rgba(100, 116, 139, 0.2)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
                     }}
                   >
                     {toggleSettings.sprint}
                   </div>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <div style={{ fontSize: 14, opacity: 0.6 }}>Sneak</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div style={{ fontSize: 18, opacity: 0.6 }}>Sneak</div>
                   <div
                     style={{
                       background: 'rgba(100, 116, 139, 0.12)',
-                      borderRadius: '6px',
-                      padding: '6px 12px',
-                      fontSize: 14,
+                      borderRadius: '8px',
+                      padding: '8px 16px',
+                      fontSize: 18,
                       fontWeight: 700,
-                      minWidth: '60px',
+                      minWidth: '75px',
                       textAlign: 'center',
                       border: '1px solid rgba(100, 116, 139, 0.2)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
                     }}
                   >
                     {toggleSettings.sneak}
                   </div>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <div style={{ fontSize: 14, opacity: 0.6 }}>AutoJump</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div style={{ fontSize: 18, opacity: 0.6 }}>AutoJump</div>
                   <div
                     style={{
                       background: 'rgba(100, 116, 139, 0.12)',
-                      borderRadius: '6px',
-                      padding: '6px 12px',
-                      fontSize: 14,
+                      borderRadius: '8px',
+                      padding: '8px 16px',
+                      fontSize: 18,
                       fontWeight: 700,
-                      minWidth: '60px',
+                      minWidth: '75px',
                       textAlign: 'center',
                       border: '1px solid rgba(100, 116, 139, 0.2)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
                     }}
                   >
                     {toggleSettings.autoJump}
