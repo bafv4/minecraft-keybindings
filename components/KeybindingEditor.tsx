@@ -271,37 +271,9 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
     externalTool?: string;
     finger?: Finger[];
   }) => {
-    // Helper function to add a key to an action's binding
-    const addKeyToAction = (currentValue: string | string[], keyToAdd: string): string | string[] => {
-      if (Array.isArray(currentValue)) {
-        // Already an array - add if not present
-        return currentValue.includes(keyToAdd) ? currentValue : [...currentValue, keyToAdd];
-      } else if (currentValue) {
-        // Single value - convert to array if different from current
-        return currentValue === keyToAdd ? currentValue : [currentValue, keyToAdd];
-      } else {
-        // Empty - just set the key
-        return keyToAdd;
-      }
-    };
-
-    // Helper function to remove a key from an action's binding
-    const removeKeyFromAction = (currentValue: string | string[], keyToRemove: string, defaultValue: string): string | string[] => {
-      if (Array.isArray(currentValue)) {
-        const filtered = currentValue.filter(k => k !== keyToRemove);
-        // Return single string if only one left, default value if none, array otherwise
-        if (filtered.length === 0) return defaultValue;
-        if (filtered.length === 1) return filtered[0];
-        return filtered;
-      } else if (currentValue === keyToRemove) {
-        return defaultValue;
-      }
-      return currentValue;
-    };
-
-    // アクション割り当て処理
+    // アクション割り当て処理（1アクション1キーのみ - 配列ヘルパー関数不要）
     if ('actions' in config) {
-      const setters: { [key: string]: (value: string | string[]) => void } = {
+      const setters: { [key: string]: (value: string) => void } = {
         forward: setForward, back: setBack, left: setLeft, right: setRight,
         jump: setJump, sneak: setSneak, sprint: setSprint,
         attack: setAttack, use: setUse, pickBlock: setPickBlock, drop: setDrop,
@@ -314,7 +286,7 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
         playerList: setPlayerList, reset: setReset,
       };
 
-      const getters: { [key: string]: string | string[] } = {
+      const getters: { [key: string]: string } = {
         forward, back, left, right, jump, sneak, sprint,
         attack, use, pickBlock, drop,
         inventory, swapHands,
@@ -336,14 +308,9 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
         playerList: 'key.keyboard.tab', reset: 'key.keyboard.f6',
       };
 
-      // Find which actions are currently bound to this key
+      // Find which actions are currently bound to this key（1アクション1キーのみ）
       const currentActionsForKey = Object.entries(getters)
-        .filter(([_, keyBinding]) => {
-          if (Array.isArray(keyBinding)) {
-            return keyBinding.includes(keyCode);
-          }
-          return keyBinding === keyCode;
-        })
+        .filter(([_, keyBinding]) => keyBinding === keyCode)
         .map(([action]) => action);
 
       const newActions = config.actions || [];
@@ -354,22 +321,20 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
       // Find actions to remove (in currentActionsForKey but not in newActions)
       const actionsToRemove = currentActionsForKey.filter(action => !newActions.includes(action));
 
-      // Add key to new actions
+      // Add key to new actions（1アクション1キーのみ - 直接設定）
       for (const action of actionsToAdd) {
         const setter = setters[action];
-        const currentValue = getters[action];
         if (setter) {
-          setter(addKeyToAction(currentValue, keyCode));
+          setter(keyCode); // 直接キーコードを設定（配列不要）
         }
       }
 
-      // Remove key from removed actions
+      // Remove key from removed actions（1アクション1キーのみ - デフォルト値に戻す）
       for (const action of actionsToRemove) {
         const setter = setters[action];
-        const currentValue = getters[action];
-        const defaultValue = defaults[action] || 'key.keyboard.unknown';
+        const defaultValue = defaults[action] || '';
         if (setter) {
-          setter(removeKeyFromAction(currentValue, keyCode, defaultValue));
+          setter(defaultValue); // デフォルト値または空文字列に戻す
         }
       }
     }
