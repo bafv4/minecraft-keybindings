@@ -7,6 +7,7 @@ import { getLanguageName } from '@/lib/languages';
 import dynamic from 'next/dynamic';
 import type { Metadata } from 'next';
 import { KeybindingDisplaySkeleton } from '@/components/KeybindingDisplaySkeleton';
+import { ShareButton } from '@/components/ShareButton';
 
 const KeybindingDisplay = dynamic(() => import('@/components/KeybindingDisplay').then(mod => ({ default: mod.KeybindingDisplay })), {
   ssr: true,
@@ -93,7 +94,12 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
   return (
     <div className="pb-6 space-y-8">
       {/* プレイヤーヘッダー */}
-      <div className="bg-gradient-to-r from-primary/5 via-secondary/5 to-transparent rounded-2xl border border-border shadow-sm p-6 space-y-6">
+      <div className="bg-gradient-to-r from-primary/5 via-secondary/5 to-transparent rounded-2xl border border-border shadow-sm p-6 space-y-6 relative">
+        {/* 共有ボタン */}
+        <div className="absolute top-4 right-4">
+          <ShareButton mcid={mcid} />
+        </div>
+
         {/* プレイヤー情報 */}
         <div className="flex items-center gap-6">
           <div className="relative">
