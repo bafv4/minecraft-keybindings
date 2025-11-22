@@ -21,7 +21,13 @@ export default async function Image({ params }: Props) {
     const { mcid } = await params;
 
     // プレイヤーデータを取得
-    const playerData = await getPlayerData(mcid);
+    let playerData;
+    try {
+      playerData = await getPlayerData(mcid);
+    } catch (error) {
+      console.error('Failed to fetch player data:', error);
+      playerData = null;
+    }
 
     if (!playerData) {
       // デフォルト画像を返す
@@ -51,10 +57,6 @@ export default async function Image({ params }: Props) {
 
     const { user, settings } = playerData;
     const displayName = user.displayName && user.displayName.trim() !== '' ? user.displayName : user.mcid;
-
-    const baseUrl = process.env.NEXTAUTH_URL || 'https://mchotkeys-stg.vercel.app';
-    const avatarUrl = `${baseUrl}/api/avatar?uuid=${user.uuid}&size=128`;
-    const iconUrl = `${baseUrl}/icon.svg`;
 
     // 主要なキーバインド
     const hotbarKeys = [
@@ -90,11 +92,6 @@ export default async function Image({ params }: Props) {
       autoJump: settings?.autoJump ? 'ON' : 'OFF',
     };
 
-    // Noto Sans JP フォントを読み込む（Zen Kaku Gothic の代替）
-    const fontData = await fetch(
-      'https://fonts.gstatic.com/s/notosansjp/v52/-F6jfjtqLzI2JPCgQBnw7HFyzSD-AsregP8VFBEi75vY0rw-oME.woff',
-    ).then((res) => res.arrayBuffer());
-
     return new ImageResponse(
       (
         <div
@@ -106,7 +103,6 @@ export default async function Image({ params }: Props) {
             background: 'linear-gradient(135deg, #e0e7ff 0%, #f0f4f8 100%)',
             padding: '48px',
             color: '#1e293b',
-            fontFamily: '"Noto Sans JP", sans-serif',
           }}
         >
           {/* ヘッダー */}
@@ -114,7 +110,6 @@ export default async function Image({ params }: Props) {
             style={{
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'space-between',
               marginBottom: '32px',
             }}
           >
@@ -127,11 +122,7 @@ export default async function Image({ params }: Props) {
                 gap: '12px',
               }}
             >
-              {/* アイコン */}
-              <div style={{ width: '40px', height: '40px', display: 'flex' }}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={iconUrl} alt="icon" width={40} height={40} />
-              </div>
+              <span>🎮</span>
               <span>MCSRer Hotkeys</span>
             </div>
           </div>
@@ -140,42 +131,14 @@ export default async function Image({ params }: Props) {
           <div
             style={{
               display: 'flex',
-              alignItems: 'center',
-              gap: '20px',
+              flexDirection: 'column',
               marginBottom: '32px',
             }}
           >
-            {/* アバター */}
-            <div
-              style={{
-                width: '80px',
-                height: '80px',
-                borderRadius: '12px',
-                background: 'rgba(100, 116, 139, 0.1)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                overflow: 'hidden',
-                border: '2px solid rgba(100, 116, 139, 0.2)',
-              }}
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={avatarUrl}
-                alt={displayName}
-                width={80}
-                height={80}
-                style={{ imageRendering: 'pixelated' }}
-              />
-            </div>
-
-            {/* 名前 */}
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <div style={{ fontSize: 40, fontWeight: 700 }}>{displayName}</div>
-              {user.displayName && user.displayName !== user.mcid && (
-                <div style={{ fontSize: 20, opacity: 0.6 }}>{user.mcid}</div>
-              )}
-            </div>
+            <div style={{ fontSize: 40, fontWeight: 700 }}>{displayName}</div>
+            {user.displayName && user.displayName !== user.mcid && (
+              <div style={{ fontSize: 20, opacity: 0.6 }}>{user.mcid}</div>
+            )}
           </div>
 
           {/* キーバインド */}
@@ -376,20 +339,12 @@ export default async function Image({ params }: Props) {
       ),
       {
         ...size,
-        fonts: [
-          {
-            name: 'Noto Sans JP',
-            data: fontData,
-            weight: 700,
-            style: 'normal',
-          },
-        ],
       }
     );
   } catch (error) {
     console.error('OG Image generation error:', error);
 
-    // エラー時のフォールバック画像
+    // エラー時のフォールバック画像（最もシンプルな形式）
     return new ImageResponse(
       (
         <div
@@ -400,14 +355,14 @@ export default async function Image({ params }: Props) {
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            background: 'linear-gradient(135deg, #f0f4f8 0%, #d9e2ec 100%)',
+            background: '#f0f4f8',
             color: '#334155',
           }}
         >
-          <div style={{ fontSize: 60, fontWeight: 'bold', marginBottom: '20px' }}>
+          <div style={{ fontSize: 60, fontWeight: 'bold' }}>
             MCSRer Hotkeys
           </div>
-          <div style={{ fontSize: 24, opacity: 0.6 }}>
+          <div style={{ fontSize: 24, marginTop: '20px', opacity: 0.6 }}>
             Error generating preview
           </div>
         </div>
