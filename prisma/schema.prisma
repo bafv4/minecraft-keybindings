@@ -93,7 +93,7 @@ model Keybinding {
 
   user User @relation(fields: [uuid], references: [uuid], onDelete: Cascade)
 
-  @@unique([uuid, action]) // 1ユーザー1アクション1レコード
+  @@unique([uuid, action]) // 1ユーザー1アクション1キー（複数キー割り当て禁止）
   @@index([uuid])
   @@index([action])
   @@index([keyCode])
