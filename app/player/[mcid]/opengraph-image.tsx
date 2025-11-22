@@ -63,6 +63,10 @@ export default async function Image({ params }: Props) {
     const baseUrl = process.env.NEXTAUTH_URL || 'https://mchotkeys-stg.vercel.app';
     const avatarUrl = `${baseUrl}/api/avatar?uuid=${user.uuid}&size=128`;
 
+    // フォントを読み込み
+    const fontBold = await readFile(join(process.cwd(), 'fonts', 'ZenKakuGothicAntique-Bold.ttf'));
+    const fontRegular = await readFile(join(process.cwd(), 'fonts', 'ZenKakuGothicAntique-Regular.ttf'));
+
     // アイコンSVGを読み込んでPNGに変換
     let iconDataUri: string | undefined;
     try {
@@ -139,6 +143,7 @@ export default async function Image({ params }: Props) {
             background: 'linear-gradient(135deg, #e0e7ff 0%, #f0f4f8 100%)',
             padding: '48px',
             color: '#1e293b',
+            fontFamily: 'Zen Kaku Gothic Antique',
           }}
         >
           {/* ヘッダー */}
@@ -422,6 +427,20 @@ export default async function Image({ params }: Props) {
       ),
       {
         ...size,
+        fonts: [
+          {
+            name: 'Zen Kaku Gothic Antique',
+            data: fontBold,
+            style: 'normal',
+            weight: 700,
+          },
+          {
+            name: 'Zen Kaku Gothic Antique',
+            data: fontRegular,
+            style: 'normal',
+            weight: 400,
+          },
+        ],
       }
     );
   } catch (error) {
@@ -440,6 +459,7 @@ export default async function Image({ params }: Props) {
             justifyContent: 'center',
             background: '#f0f4f8',
             color: '#334155',
+            fontFamily: 'Zen Kaku Gothic Antique',
           }}
         >
           <div style={{ fontSize: 60, fontWeight: 'bold' }}>
