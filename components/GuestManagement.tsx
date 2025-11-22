@@ -136,7 +136,7 @@ export function GuestManagement() {
               onChange={(e) => setMcid(e.target.value)}
               placeholder="例: Dream"
               required
-              help="Minecraftのユーザー名を入力してください。UUIDは自動的に取得されます。"
+              description="Minecraftのユーザー名を入力してください。UUIDは自動的に取得されます。"
             />
             <Input
               label="表示名（オプション）"
