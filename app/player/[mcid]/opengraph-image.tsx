@@ -58,6 +58,10 @@ export default async function Image({ params }: Props) {
     const { user, settings } = playerData;
     const displayName = user.displayName && user.displayName.trim() !== '' ? user.displayName : user.mcid;
 
+    const baseUrl = process.env.NEXTAUTH_URL || 'https://mchotkeys-stg.vercel.app';
+    const avatarUrl = `${baseUrl}/api/avatar?uuid=${user.uuid}&size=128`;
+    const iconUrl = `${baseUrl}/icon.svg`;
+
     // 主要なキーバインド
     const hotbarKeys = [
       settings?.hotbar1 || 'key.keyboard.1',
@@ -122,7 +126,11 @@ export default async function Image({ params }: Props) {
                 gap: '12px',
               }}
             >
-              <span>🎮</span>
+              {/* アイコン */}
+              <div style={{ width: '40px', height: '40px', display: 'flex' }}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={iconUrl} alt="icon" width={40} height={40} />
+              </div>
               <span>MCSRer Hotkeys</span>
             </div>
           </div>
@@ -131,14 +139,42 @@ export default async function Image({ params }: Props) {
           <div
             style={{
               display: 'flex',
-              flexDirection: 'column',
+              alignItems: 'center',
+              gap: '20px',
               marginBottom: '32px',
             }}
           >
-            <div style={{ fontSize: 40, fontWeight: 700 }}>{displayName}</div>
-            {user.displayName && user.displayName !== user.mcid && (
-              <div style={{ fontSize: 20, opacity: 0.6 }}>{user.mcid}</div>
-            )}
+            {/* アバター */}
+            <div
+              style={{
+                width: '80px',
+                height: '80px',
+                borderRadius: '12px',
+                background: 'rgba(100, 116, 139, 0.1)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                overflow: 'hidden',
+                border: '2px solid rgba(100, 116, 139, 0.2)',
+              }}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={avatarUrl}
+                alt={displayName}
+                width={80}
+                height={80}
+                style={{ imageRendering: 'pixelated' }}
+              />
+            </div>
+
+            {/* 名前 */}
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <div style={{ fontSize: 40, fontWeight: 700 }}>{displayName}</div>
+              {user.displayName && user.displayName !== user.mcid && (
+                <div style={{ fontSize: 20, opacity: 0.6 }}>{user.mcid}</div>
+              )}
+            </div>
           </div>
 
           {/* キーバインド */}
