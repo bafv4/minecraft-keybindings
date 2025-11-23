@@ -246,6 +246,8 @@ export async function getKeyboardStatsData() {
       displayName: user.displayName,
       settings,
       keyRemaps: user.keyRemaps,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
     };
   });
 }
@@ -273,6 +275,8 @@ export async function getMousePageData() {
       mcid: user.mcid,
       displayName: user.displayName,
       settings,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
     };
   });
 }
