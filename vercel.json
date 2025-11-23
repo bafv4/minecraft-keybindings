@@ -1,4 +1,5 @@
 {
+  "buildCommand": "pnpm prisma generate && pnpm next build",
   "crons": [
     {
       "path": "/api/sync-mcid",
