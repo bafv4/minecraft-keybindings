@@ -94,6 +94,11 @@ export function minecraftToKeyName(mcKey: string): string | null {
     return null;
   }
 
+  // 特殊文字キーの場合は文字部分のみ返す（サーチクラフト用）
+  if (mcKey.startsWith('Char_')) {
+    return mcKey.substring(5); // "Char_å" → "å"
+  }
+
   // 既にMinecraft形式でない場合はそのまま返す
   if (!mcKey.startsWith('key.')) {
     return mcKey;

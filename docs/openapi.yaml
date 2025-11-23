@@ -1,0 +1,755 @@
+openapi: 3.0.3
+info:
+  title: Minecraft Keybindings API
+  description: |
+    Minecraft Keybindingsアプリケーションで提供されるプレイヤー情報取得API。
+    Minecraftプレイヤーのキーバインド設定、マウス設定、デバイス情報などを取得できます。
+  version: 1.0.0
+  contact:
+    name: Minecraft Keybindings
+    url: https://github.com/your-repo/minecraft-keybindings
+
+servers:
+  - url: http://localhost:3000
+    description: 開発環境
+  - url: https://your-domain.vercel.app
+    description: 本番環境
+
+tags:
+  - name: Players
+    description: プレイヤー情報の取得
+
+paths:
+  /api/player/{mcid}:
+    get:
+      tags:
+        - Players
+      summary: 個別プレイヤー情報取得
+      description: |
+        指定したMCID（Minecraftユーザー名）のプレイヤー情報と設定を取得します。
+        キーバインド、マウス設定、デバイス情報、アイテム配置などの詳細情報が含まれます。
+      operationId: getPlayerByMcid
+      parameters:
+        - name: mcid
+          in: path
+          required: true
+          description: Minecraftユーザー名
+          schema:
+            type: string
+            example: Notch
+      responses:
+        '200':
+          description: プレイヤー情報の取得に成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlayerData'
+              examples:
+                basicPlayer:
+                  summary: 基本的なプレイヤー情報
+                  value:
+                    user:
+                      uuid: "069a79f4-44e9-4726-a5be-fca90e38aaf5"
+                      mcid: "Notch"
+                      displayName: "Notch"
+                      isGuest: false
+                      createdAt: "2024-01-01T00:00:00.000Z"
+                      updatedAt: "2024-01-02T00:00:00.000Z"
+                    settings:
+                      uuid: "069a79f4-44e9-4726-a5be-fca90e38aaf5"
+                      keyboardLayout: "JIS"
+                      mouseDpi: 800
+                      gameSensitivity: 0.5
+                      windowsSpeed: 10
+                      mouseAcceleration: false
+                      rawInput: true
+                      cm360: 42.5
+                      toggleSprint: false
+                      toggleSneak: false
+                      autoJump: false
+                      gameLanguage: "ja_jp"
+                      mouseModel: "Logitech G Pro X Superlight"
+                      keyboardModel: "Ducky One 2 Mini"
+                      notes: "マウス設定のメモ"
+                      forward: "key.keyboard.w"
+                      back: "key.keyboard.s"
+                      left: "key.keyboard.a"
+                      right: "key.keyboard.d"
+                      jump: "key.keyboard.space"
+                      sneak: "key.keyboard.left.shift"
+                      sprint: "key.keyboard.left.control"
+                      attack: "key.mouse.left"
+                      use: "key.mouse.right"
+                      inventory: "key.keyboard.e"
+                    customKeys: []
+                    remappings: {}
+                    externalTools: {}
+                    rawKeybindings: []
+                    rawCustomKeys: []
+                    rawKeyRemaps: []
+                    rawExternalTools: []
+                    itemLayouts: []
+        '400':
+          description: MCIDが指定されていない
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "MCID is required"
+        '404':
+          description: プレイヤーが見つからない、または設定が存在しない
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Player not found or has no settings"
+        '500':
+          description: サーバー内部エラー
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: "Internal server error"
+
+  /api/players:
+    get:
+      tags:
+        - Players
+      summary: 全プレイヤーリスト取得
+      description: |
+        設定を持つ全プレイヤーのリストを取得します。
+        各プレイヤーの基本情報と設定の概要が含まれます。
+      operationId: getAllPlayers
+      responses:
+        '200':
+          description: プレイヤーリストの取得に成功
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PlayerListItem'
+        '500':
+          description: サーバー内部エラー
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    User:
+      type: object
+      required:
+        - uuid
+        - mcid
+        - displayName
+        - isGuest
+        - createdAt
+        - updatedAt
+      properties:
+        uuid:
+          type: string
+          format: uuid
+          description: プレイヤーのUUID（主キー）
+          example: "069a79f4-44e9-4726-a5be-fca90e38aaf5"
+        mcid:
+          type: string
+          description: Minecraft ID（ユーザー名）
+          example: "Notch"
+        displayName:
+          type: string
+          description: 表示名
+          example: "Notch"
+        isGuest:
+          type: boolean
+          description: ゲストユーザーフラグ
+          example: false
+        createdAt:
+          type: string
+          format: date-time
+          description: アカウント作成日時
+          example: "2024-01-01T00:00:00.000Z"
+        updatedAt:
+          type: string
+          format: date-time
+          description: 最終更新日時
+          example: "2024-01-02T00:00:00.000Z"
+
+    PlayerSettings:
+      type: object
+      required:
+        - uuid
+        - keyboardLayout
+        - mouseAcceleration
+        - rawInput
+        - createdAt
+        - updatedAt
+      properties:
+        uuid:
+          type: string
+          format: uuid
+          example: "069a79f4-44e9-4726-a5be-fca90e38aaf5"
+        keyboardLayout:
+          type: string
+          enum: [JIS, US]
+          description: キーボードレイアウト
+          example: "JIS"
+        mouseDpi:
+          type: number
+          nullable: true
+          description: マウスDPI
+          example: 800
+        gameSensitivity:
+          type: number
+          nullable: true
+          description: ゲーム内感度（0.0-1.0）
+          example: 0.5
+        windowsSpeed:
+          type: number
+          nullable: true
+          description: Windows マウス速度（1-20）
+          example: 10
+        mouseAcceleration:
+          type: boolean
+          description: マウス加速の有無
+          example: false
+        rawInput:
+          type: boolean
+          description: RawInput使用の有無
+          example: true
+        cm360:
+          type: number
+          nullable: true
+          description: 360度回転に必要な距離（cm）
+          example: 42.5
+        toggleSprint:
+          type: boolean
+          nullable: true
+          description: スプリント切り替えモード
+          example: false
+        toggleSneak:
+          type: boolean
+          nullable: true
+          description: スニーク切り替えモード
+          example: false
+        autoJump:
+          type: boolean
+          nullable: true
+          description: 自動ジャンプ
+          example: false
+        fingerAssignments:
+          type: object
+          nullable: true
+          description: 指の割り当て設定
+          additionalProperties:
+            type: array
+            items:
+              type: string
+        gameLanguage:
+          type: string
+          nullable: true
+          description: ゲーム言語
+          example: "ja_jp"
+        mouseModel:
+          type: string
+          nullable: true
+          description: マウスモデル名
+          example: "Logitech G Pro X Superlight"
+        keyboardModel:
+          type: string
+          nullable: true
+          description: キーボードモデル名
+          example: "Ducky One 2 Mini"
+        notes:
+          type: string
+          nullable: true
+          description: メモ・コメント
+          example: "マウス設定のメモ"
+        forward:
+          oneOf:
+            - type: string
+            - type: array
+              items:
+                type: string
+          description: 前進キー（Minecraft形式）
+          example: "key.keyboard.w"
+        back:
+          oneOf:
+            - type: string
+            - type: array
+              items:
+                type: string
+          description: 後退キー
+          example: "key.keyboard.s"
+        left:
+          oneOf:
+            - type: string
+            - type: array
+              items:
+                type: string
+          description: 左移動キー
+          example: "key.keyboard.a"
+        right:
+          oneOf:
+            - type: string
+            - type: array
+              items:
+                type: string
+          description: 右移動キー
+          example: "key.keyboard.d"
+        jump:
+          oneOf:
+            - type: string
+            - type: array
+              items:
+                type: string
+          description: ジャンプキー
+          example: "key.keyboard.space"
+        sneak:
+          oneOf:
+            - type: string
+            - type: array
+              items:
+                type: string
+          description: スニークキー
+          example: "key.keyboard.left.shift"
+        sprint:
+          oneOf:
+            - type: string
+            - type: array
+              items:
+                type: string
+          description: スプリントキー
+          example: "key.keyboard.left.control"
+        attack:
+          oneOf:
+            - type: string
+            - type: array
+              items:
+                type: string
+          description: 攻撃キー
+          example: "key.mouse.left"
+        use:
+          oneOf:
+            - type: string
+            - type: array
+              items:
+                type: string
+          description: 使用キー
+          example: "key.mouse.right"
+        pickBlock:
+          oneOf:
+            - type: string
+            - type: array
+              items:
+                type: string
+          description: ブロック選択キー
+          example: "key.mouse.middle"
+        drop:
+          oneOf:
+            - type: string
+            - type: array
+              items:
+                type: string
+          description: ドロップキー
+          example: "key.keyboard.q"
+        inventory:
+          oneOf:
+            - type: string
+            - type: array
+              items:
+                type: string
+          description: インベントリキー
+          example: "key.keyboard.e"
+        swapHands:
+          oneOf:
+            - type: string
+            - type: array
+              items:
+                type: string
+          description: 手の持ち替えキー
+          example: "key.keyboard.f"
+        hotbar1:
+          oneOf:
+            - type: string
+            - type: array
+              items:
+                type: string
+          description: ホットバー1キー
+          example: "key.keyboard.1"
+        hotbar2:
+          oneOf:
+            - type: string
+            - type: array
+              items:
+                type: string
+          example: "key.keyboard.2"
+        hotbar3:
+          oneOf:
+            - type: string
+            - type: array
+              items:
+                type: string
+          example: "key.keyboard.3"
+        hotbar4:
+          oneOf:
+            - type: string
+            - type: array
+              items:
+                type: string
+          example: "key.keyboard.4"
+        hotbar5:
+          oneOf:
+            - type: string
+            - type: array
+              items:
+                type: string
+          example: "key.keyboard.5"
+        hotbar6:
+          oneOf:
+            - type: string
+            - type: array
+              items:
+                type: string
+          example: "key.keyboard.6"
+        hotbar7:
+          oneOf:
+            - type: string
+            - type: array
+              items:
+                type: string
+          example: "key.keyboard.7"
+        hotbar8:
+          oneOf:
+            - type: string
+            - type: array
+              items:
+                type: string
+          example: "key.keyboard.8"
+        hotbar9:
+          oneOf:
+            - type: string
+            - type: array
+              items:
+                type: string
+          example: "key.keyboard.9"
+        togglePerspective:
+          oneOf:
+            - type: string
+            - type: array
+              items:
+                type: string
+          example: "key.keyboard.f5"
+        fullscreen:
+          oneOf:
+            - type: string
+            - type: array
+              items:
+                type: string
+          example: "key.keyboard.f11"
+        chat:
+          oneOf:
+            - type: string
+            - type: array
+              items:
+                type: string
+          example: "key.keyboard.t"
+        command:
+          oneOf:
+            - type: string
+            - type: array
+              items:
+                type: string
+          example: "key.keyboard.slash"
+        toggleHud:
+          oneOf:
+            - type: string
+            - type: array
+              items:
+                type: string
+          example: "key.keyboard.f1"
+        createdAt:
+          type: string
+          format: date-time
+          example: "2024-01-01T00:00:00.000Z"
+        updatedAt:
+          type: string
+          format: date-time
+          example: "2024-01-02T00:00:00.000Z"
+
+    CustomKey:
+      type: object
+      required:
+        - id
+        - label
+        - keyCode
+      properties:
+        id:
+          type: string
+          description: カスタムキーの一意ID
+          example: "key.custom.1"
+        label:
+          type: string
+          description: 表示名
+          example: "F13"
+        keyCode:
+          type: string
+          description: 内部キーコード
+          example: "key.custom.1"
+
+    Keybinding:
+      type: object
+      required:
+        - uuid
+        - action
+        - keyCode
+      properties:
+        uuid:
+          type: string
+          format: uuid
+          example: "069a79f4-44e9-4726-a5be-fca90e38aaf5"
+        action:
+          type: string
+          description: アクション名
+          example: "forward"
+        keyCode:
+          type: string
+          description: キーコード（Minecraft形式）
+          example: "key.keyboard.w"
+
+    CustomKeyRaw:
+      type: object
+      required:
+        - uuid
+        - keyCode
+        - keyName
+        - category
+      properties:
+        uuid:
+          type: string
+          format: uuid
+          example: "069a79f4-44e9-4726-a5be-fca90e38aaf5"
+        keyCode:
+          type: string
+          example: "key.custom.1"
+        keyName:
+          type: string
+          example: "F13"
+        category:
+          type: string
+          example: "extra"
+
+    KeyRemap:
+      type: object
+      required:
+        - uuid
+        - sourceKey
+        - targetKey
+      properties:
+        uuid:
+          type: string
+          format: uuid
+          example: "069a79f4-44e9-4726-a5be-fca90e38aaf5"
+        sourceKey:
+          type: string
+          description: リマップ元のキー
+          example: "CapsLock"
+        targetKey:
+          type: string
+          nullable: true
+          description: リマップ先のキー
+          example: "LeftControl"
+
+    ExternalTool:
+      type: object
+      required:
+        - uuid
+        - triggerKey
+        - actionName
+      properties:
+        uuid:
+          type: string
+          format: uuid
+          example: "069a79f4-44e9-4726-a5be-fca90e38aaf5"
+        triggerKey:
+          type: string
+          description: トリガーとなるキー
+          example: "key.keyboard.f"
+        actionName:
+          type: string
+          description: アクション名
+          example: "リセット"
+
+    ItemLayout:
+      type: object
+      required:
+        - uuid
+        - segment
+      properties:
+        uuid:
+          type: string
+          format: uuid
+          example: "069a79f4-44e9-4726-a5be-fca90e38aaf5"
+        segment:
+          type: integer
+          description: セグメント番号
+          example: 1
+        slot1:
+          type: string
+          nullable: true
+          description: スロット1のアイテム
+          example: "ender_pearl"
+        slot2:
+          type: string
+          nullable: true
+          example: "flint_and_steel"
+        slot3:
+          type: string
+          nullable: true
+          example: "water_bucket"
+        slot4:
+          type: string
+          nullable: true
+          example: "lava_bucket"
+        slot5:
+          type: string
+          nullable: true
+          example: "crafting_table"
+        slot6:
+          type: string
+          nullable: true
+          example: "planks"
+        slot7:
+          type: string
+          nullable: true
+          example: "golden_apple"
+        slot8:
+          type: string
+          nullable: true
+          example: "bed"
+        slot9:
+          type: string
+          nullable: true
+          example: "iron_pickaxe"
+
+    PlayerData:
+      type: object
+      required:
+        - user
+        - settings
+        - customKeys
+        - remappings
+        - externalTools
+        - rawKeybindings
+        - rawCustomKeys
+        - rawKeyRemaps
+        - rawExternalTools
+        - itemLayouts
+      properties:
+        user:
+          $ref: '#/components/schemas/User'
+        settings:
+          $ref: '#/components/schemas/PlayerSettings'
+        customKeys:
+          type: array
+          items:
+            $ref: '#/components/schemas/CustomKey'
+          description: カスタムキー定義（変換済み）
+        remappings:
+          type: object
+          additionalProperties:
+            type: string
+          description: キーリマップ設定（変換済み）
+          example:
+            CapsLock: "LeftControl"
+        externalTools:
+          type: object
+          additionalProperties:
+            type: string
+          description: 外部ツール設定（変換済み）
+          example:
+            "key.keyboard.f": "リセット"
+        rawKeybindings:
+          type: array
+          items:
+            $ref: '#/components/schemas/Keybinding'
+          description: キーバインド生データ
+        rawCustomKeys:
+          type: array
+          items:
+            $ref: '#/components/schemas/CustomKeyRaw'
+          description: カスタムキー生データ
+        rawKeyRemaps:
+          type: array
+          items:
+            $ref: '#/components/schemas/KeyRemap'
+          description: キーリマップ生データ
+        rawExternalTools:
+          type: array
+          items:
+            $ref: '#/components/schemas/ExternalTool'
+          description: 外部ツール生データ
+        itemLayouts:
+          type: array
+          items:
+            $ref: '#/components/schemas/ItemLayout'
+          description: アイテム配置設定
+
+    PlayerListItem:
+      type: object
+      required:
+        - uuid
+        - mcid
+        - displayName
+        - isGuest
+        - createdAt
+        - updatedAt
+        - settings
+        - customKeys
+      properties:
+        uuid:
+          type: string
+          format: uuid
+          example: "069a79f4-44e9-4726-a5be-fca90e38aaf5"
+        mcid:
+          type: string
+          example: "Notch"
+        displayName:
+          type: string
+          example: "Notch"
+        isGuest:
+          type: boolean
+          example: false
+        createdAt:
+          type: string
+          format: date-time
+          example: "2024-01-01T00:00:00.000Z"
+        updatedAt:
+          type: string
+          format: date-time
+          example: "2024-01-02T00:00:00.000Z"
+        settings:
+          $ref: '#/components/schemas/PlayerSettings'
+        customKeys:
+          type: array
+          items:
+            type: object
+            properties:
+              keyCode:
+                type: string
+              keyName:
+                type: string
+
+    Error:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          description: エラーメッセージ
+          example: "Player not found or has no settings"

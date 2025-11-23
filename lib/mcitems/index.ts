@@ -3,7 +3,7 @@ export { MinecraftItemIcon } from './MinecraftItemIcon';
 export type { MinecraftItemIconProps } from './MinecraftItemIcon';
 
 // Re-export item data
-export { MINECRAFT_ITEMS, getAllItems, getItemsByCategory, ITEM_CATEGORIES } from './items';
+export { MINECRAFT_ITEMS, getAllItems, getItemsByCategory, ITEM_CATEGORIES, getCraftableItems, getCraftableItemsByCategory } from './items';
 
 // Re-export potion effects
 export { POTION_EFFECTS, getPotionEffectInfo, formatPotionName, formatPotionEffect } from './potionEffects';

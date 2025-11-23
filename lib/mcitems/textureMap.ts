@@ -5,6 +5,29 @@ import texture_acacia_boat from './assets/textures/1.16.1/items/minecraft_acacia
 // Manual additions for block textures
 import texture_gold_block from './assets/textures/1.16.1/blocks/minecraft_gold_block.png';
 import texture_iron_bars from './assets/textures/1.16.1/blocks/minecraft_iron_bars.png';
+import texture_respawn_anchor from './assets/textures/1.16.1/blocks/minecraft_respawn_anchor.png';
+import texture_lodestone from './assets/textures/1.16.1/blocks/minecraft_lodestone.png';
+import texture_campfire from './assets/textures/1.16.1/blocks/minecraft_campfire.png';
+import texture_soul_campfire from './assets/textures/1.16.1/blocks/minecraft_soul_campfire.png';
+import texture_lantern from './assets/textures/1.16.1/blocks/minecraft_lantern.png';
+import texture_soul_lantern from './assets/textures/1.16.1/blocks/minecraft_soul_lantern.png';
+import texture_coarse_dirt from './assets/textures/1.16.1/blocks/minecraft_coarse_dirt.png';
+import texture_white_wool from './assets/textures/1.16.1/blocks/minecraft_white_wool.png';
+import texture_orange_wool from './assets/textures/1.16.1/blocks/minecraft_orange_wool.png';
+import texture_magenta_wool from './assets/textures/1.16.1/blocks/minecraft_magenta_wool.png';
+import texture_light_blue_wool from './assets/textures/1.16.1/blocks/minecraft_light_blue_wool.png';
+import texture_yellow_wool from './assets/textures/1.16.1/blocks/minecraft_yellow_wool.png';
+import texture_lime_wool from './assets/textures/1.16.1/blocks/minecraft_lime_wool.png';
+import texture_pink_wool from './assets/textures/1.16.1/blocks/minecraft_pink_wool.png';
+import texture_gray_wool from './assets/textures/1.16.1/blocks/minecraft_gray_wool.png';
+import texture_light_gray_wool from './assets/textures/1.16.1/blocks/minecraft_light_gray_wool.png';
+import texture_cyan_wool from './assets/textures/1.16.1/blocks/minecraft_cyan_wool.png';
+import texture_purple_wool from './assets/textures/1.16.1/blocks/minecraft_purple_wool.png';
+import texture_blue_wool from './assets/textures/1.16.1/blocks/minecraft_blue_wool.png';
+import texture_brown_wool from './assets/textures/1.16.1/blocks/minecraft_brown_wool.png';
+import texture_green_wool from './assets/textures/1.16.1/blocks/minecraft_green_wool.png';
+import texture_red_wool from './assets/textures/1.16.1/blocks/minecraft_red_wool.png';
+import texture_black_wool from './assets/textures/1.16.1/blocks/minecraft_black_wool.png';
 import texture_acacia_door from './assets/textures/1.16.1/items/minecraft_acacia_door.png';
 import texture_acacia_log from './assets/textures/1.16.1/items/minecraft_acacia_log.png';
 import texture_acacia_planks from './assets/textures/1.16.1/items/minecraft_acacia_planks.png';
@@ -892,6 +915,29 @@ export const TEXTURE_MAP: Record<string, StaticImageData> = {
   // Manual additions for block textures
   'gold_block': texture_gold_block,
   'iron_bars': texture_iron_bars,
+  'respawn_anchor': texture_respawn_anchor,
+  'lodestone': texture_lodestone,
+  'campfire': texture_campfire,
+  'soul_campfire': texture_soul_campfire,
+  'lantern': texture_lantern,
+  'soul_lantern': texture_soul_lantern,
+  'coarse_dirt': texture_coarse_dirt,
+  'white_wool': texture_white_wool,
+  'orange_wool': texture_orange_wool,
+  'magenta_wool': texture_magenta_wool,
+  'light_blue_wool': texture_light_blue_wool,
+  'yellow_wool': texture_yellow_wool,
+  'lime_wool': texture_lime_wool,
+  'pink_wool': texture_pink_wool,
+  'gray_wool': texture_gray_wool,
+  'light_gray_wool': texture_light_gray_wool,
+  'cyan_wool': texture_cyan_wool,
+  'purple_wool': texture_purple_wool,
+  'blue_wool': texture_blue_wool,
+  'brown_wool': texture_brown_wool,
+  'green_wool': texture_green_wool,
+  'red_wool': texture_red_wool,
+  'black_wool': texture_black_wool,
 };
 
 /**

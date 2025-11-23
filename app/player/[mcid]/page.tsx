@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import { prisma } from '@/lib/db';
 import { MinecraftAvatar } from '@/components/MinecraftAvatar';
 import { ItemLayoutsDisplay } from '@/components/ItemLayoutsDisplay';
+import { SearchCraftDisplay } from '@/components/SearchCraftDisplay';
 import { getPlayerData } from '@/lib/playerData';
 import { getLanguageName } from '@/lib/languages';
 import dynamic from 'next/dynamic';
@@ -34,19 +35,17 @@ export async function generateMetadata({ params }: PlayerPageProps): Promise<Met
 
   const displayName = user.displayName && user.displayName.trim() !== '' ? user.displayName : user.mcid;
   const avatarUrl = `/api/avatar?uuid=${user.uuid}&size=128`;
-  const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
-  const fullAvatarUrl = `${baseUrl}${avatarUrl}`;
-  const ogImageUrl = `${baseUrl}/player/${mcid}/opengraph-image`;
+  const ogImageUrl = `/player/${mcid}/opengraph-image`;
 
   return {
     title: `${displayName} | MCSRer Hotkeys`,
     description: `${displayName} (${user.mcid}) のキーボード・マウス設定`,
     icons: {
       icon: [
-        { url: fullAvatarUrl, type: 'image/png' },
+        { url: avatarUrl, type: 'image/png' },
       ],
       apple: [
-        { url: fullAvatarUrl, type: 'image/png' },
+        { url: avatarUrl, type: 'image/png' },
       ],
     },
     openGraph: {
@@ -79,7 +78,7 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
     notFound();
   }
 
-  const { user, settings, rawKeybindings, rawCustomKeys, rawKeyRemaps, rawExternalTools, itemLayouts } = playerData;
+  const { user, settings, rawKeybindings, rawCustomKeys, rawKeyRemaps, rawExternalTools, itemLayouts, searchCrafts } = playerData;
 
   const showDisplayName = user.displayName && user.displayName.trim() !== '';
 
@@ -160,7 +159,7 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
       {settings ? (
         <>
           <KeybindingDisplay
-            settings={settings}
+            settings={settings as any}
             keybindings={rawKeybindings}
             customKeys={rawCustomKeys}
             keyRemaps={rawKeyRemaps}
@@ -171,18 +170,25 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
           <ItemLayoutsDisplay
             itemLayouts={itemLayouts}
             keybinds={{
-              hotbar1: settings.hotbar1,
-              hotbar2: settings.hotbar2,
-              hotbar3: settings.hotbar3,
-              hotbar4: settings.hotbar4,
-              hotbar5: settings.hotbar5,
-              hotbar6: settings.hotbar6,
-              hotbar7: settings.hotbar7,
-              hotbar8: settings.hotbar8,
-              hotbar9: settings.hotbar9,
-              swapHands: settings.swapHands,
+              hotbar1: (settings as any).hotbar1,
+              hotbar2: (settings as any).hotbar2,
+              hotbar3: (settings as any).hotbar3,
+              hotbar4: (settings as any).hotbar4,
+              hotbar5: (settings as any).hotbar5,
+              hotbar6: (settings as any).hotbar6,
+              hotbar7: (settings as any).hotbar7,
+              hotbar8: (settings as any).hotbar8,
+              hotbar9: (settings as any).hotbar9,
+              swapHands: (settings as any).swapHands,
             }}
             customKeys={rawCustomKeys}
+          />
+
+          {/* サーチクラフト表示 */}
+          <SearchCraftDisplay
+            searchCrafts={searchCrafts}
+            keyRemaps={rawKeyRemaps}
+            fingerAssignments={(settings.fingerAssignments as any) || {}}
           />
         </>
       ) : (

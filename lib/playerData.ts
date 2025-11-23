@@ -90,6 +90,9 @@ export async function getPlayerData(mcid: string) {
       itemLayouts: {
         orderBy: { segment: 'asc' },
       },
+      searchCrafts: {
+        orderBy: { sequence: 'asc' },
+      },
     },
   });
 
@@ -151,6 +154,7 @@ export async function getPlayerData(mcid: string) {
     rawKeyRemaps: user.keyRemaps,
     rawExternalTools: user.externalTools,
     itemLayouts: user.itemLayouts,
+    searchCrafts: user.searchCrafts,
   };
 }
 
@@ -242,6 +246,8 @@ export async function getKeyboardStatsData() {
       displayName: user.displayName,
       settings,
       keyRemaps: user.keyRemaps,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
     };
   });
 }
@@ -269,6 +275,8 @@ export async function getMousePageData() {
       mcid: user.mcid,
       displayName: user.displayName,
       settings,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
     };
   });
 }

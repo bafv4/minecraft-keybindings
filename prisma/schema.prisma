@@ -31,6 +31,7 @@ model User {
   keyRemaps     KeyRemap[]
   externalTools ExternalTool[]
   itemLayouts   ItemLayout[]
+  searchCrafts  SearchCraft[] // サーチクラフト設定
 
   // 旧スキーマ（移行用・削除予定）
   playerSettings PlayerSettings? @relation("playerSettings")
@@ -187,6 +188,37 @@ model ItemLayout {
   user User @relation(fields: [uuid], references: [uuid], onDelete: Cascade)
 
   @@id([uuid, segment])
+  @@index([uuid])
+}
+
+// ========================================
+// サーチクラフトテーブル（クラフトアイテムとキー入力の登録）
+// ========================================
+model SearchCraft {
+  id       String @id @default(cuid())
+  uuid     String // User UUID
+  sequence Int // 連番（1から始まる）
+
+  // クラフト対象アイテム（最大3個）
+  item1 String?
+  item2 String?
+  item3 String?
+
+  // 押すキー（Web形式、最大4キー）
+  key1 String?
+  key2 String?
+  key3 String?
+  key4 String?
+
+  // コメント（任意）
+  comment String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [uuid], references: [uuid], onDelete: Cascade)
+
+  @@unique([uuid, sequence])
   @@index([uuid])
 }
 

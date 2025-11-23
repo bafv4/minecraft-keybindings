@@ -1,19 +1,26 @@
 'use client';
 
-import { useState, Fragment, useRef } from 'react';
+import { useState, Fragment, useRef, useEffect, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Switch, Dialog, DialogPanel, DialogTitle, Transition, TransitionChild } from '@headlessui/react';
-import { TrashIcon } from '@heroicons/react/24/outline';
+import { TrashIcon, ArrowUturnLeftIcon, ArrowUturnRightIcon, ArrowDownTrayIcon } from '@heroicons/react/24/outline';
 import { calculateCm360, calculateCursorSpeed } from '@/lib/utils';
 import type { PlayerSettings, Finger, FingerAssignments, CustomKey } from '@/types/player';
 import { VirtualKeyboard } from './VirtualKeyboard';
 import { ItemLayoutEditor } from './ItemLayoutEditor';
+import { SearchCraftEditor, type SearchCraftEditorRef } from './SearchCraftEditor';
 import { Input, Textarea, Button } from '@/components/ui';
 import { Combobox } from '@/components/ui/Combobox';
 import { RadioGroup } from '@/components/ui/RadioGroup';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { minecraftToWeb } from '@/lib/keyConversion';
 import { MINECRAFT_LANGUAGES } from '@/lib/languages';
+import { useAutoSave } from '@/hooks/useAutoSave';
+import { useUndoRedo } from '@/hooks/useUndoRedo';
+import { useBlockNavigation } from '@/hooks/useBlockNavigation';
+import { DraftRestoreDialog } from './DraftRestoreDialog';
+import { UnsavedChangesDialog } from './UnsavedChangesDialog';
+import { AutoHotKeyExportDialog } from './AutoHotKeyExportDialog';
 
 // キーボードレイアウトオプション
 const KEYBOARD_LAYOUT_OPTIONS = [
@@ -35,9 +42,11 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showAutoHotKeyDialog, setShowAutoHotKeyDialog] = useState(false);
   const [selectedAction, setSelectedAction] = useState<string | null>(null);
   const [syncingMcid, setSyncingMcid] = useState(false);
   const itemLayoutEditorRef = useRef<{ save: () => Promise<boolean> }>(null);
+  const searchCraftEditorRef = useRef<SearchCraftEditorRef>(null);
 
   // ヘルパー関数: 配列を文字列に正規化（後方互換性のため）
   const normalizeKeyBinding = (value: string | string[] | undefined, defaultValue: string): string => {
@@ -167,6 +176,224 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
 
   // 指の色分け表示のトグル
   const [showFingerColors, setShowFingerColors] = useState(true);
+
+  // ローカルストレージ関連
+  const [showDraftDialog, setShowDraftDialog] = useState(false);
+  const [draftTimestamp, setDraftTimestamp] = useState<Date | null>(null);
+  const [isRestoringDraft, setIsRestoringDraft] = useState(false);
+
+  // ページ遷移警告関連
+  const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
+  const [pendingNavigation, setPendingNavigation] = useState<(() => void) | null>(null);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+
+  // Undo/Redo適用中フラグ（履歴の重複追加を防ぐ）
+  const isApplyingHistoryRef = useRef(false);
+
+  // 全てのフォームデータをまとめたオブジェクト（自動保存用）
+  const formData = useMemo(() => ({
+    displayName,
+    keyboardLayout,
+    mouseDpi,
+    sensitivityPercent,
+    sensitivityRaw,
+    windowsSpeed,
+    mouseAcceleration,
+    rawInput,
+    sprintMode,
+    sneakMode,
+    autoJump,
+    gameLanguage,
+    mouseModel,
+    keyboardModel,
+    notes,
+    forward, back, left, right, jump, sneak, sprint,
+    attack, use, pickBlock, drop,
+    inventory, swapHands,
+    hotbar1, hotbar2, hotbar3, hotbar4, hotbar5, hotbar6, hotbar7, hotbar8, hotbar9,
+    togglePerspective, fullscreen, chat, command, toggleHud,
+    reset, playerList,
+    remappings,
+    externalTools,
+    fingerAssignments,
+    customKeys,
+  }), [
+    displayName, keyboardLayout, mouseDpi, sensitivityPercent, sensitivityRaw, windowsSpeed,
+    mouseAcceleration, rawInput, sprintMode, sneakMode, autoJump, gameLanguage, mouseModel,
+    keyboardModel, notes, forward, back, left, right, jump, sneak, sprint, attack, use,
+    pickBlock, drop, inventory, swapHands, hotbar1, hotbar2, hotbar3, hotbar4, hotbar5,
+    hotbar6, hotbar7, hotbar8, hotbar9, togglePerspective, fullscreen, chat, command,
+    toggleHud, reset, playerList, remappings, externalTools, fingerAssignments, customKeys,
+  ]);
+
+  // ローカルストレージキー（ユーザーごとに異なるキーを使用）
+  const storageKey = `keybinding-draft-${uuid}`;
+
+  // 自動保存フック
+  const { load: loadDraft, clear: clearDraft } = useAutoSave({
+    key: storageKey,
+    data: formData,
+    delay: 2000, // 2秒のデバウンス
+    enabled: !isRestoringDraft, // 復元中は自動保存を無効化
+  });
+
+  // Undo/Redoフック
+  const {
+    state: historyState,
+    set: setHistoryState,
+    undo,
+    redo,
+    canUndo,
+    canRedo,
+    reset: resetHistory,
+  } = useUndoRedo({
+    initialState: formData,
+    maxHistorySize: 50,
+  });
+
+  // ページ遷移警告フック
+  useBlockNavigation({
+    when: hasUnsavedChanges,
+    onBlock: () => {
+      // ブロック時の処理（必要に応じて実装）
+    },
+  });
+
+  // 下書きから復元する関数
+  const restoreDraft = (draftData: any) => {
+    setIsRestoringDraft(true);
+
+    // 全てのstateを復元
+    if (draftData.displayName !== undefined) setDisplayName(draftData.displayName);
+    if (draftData.keyboardLayout !== undefined) setKeyboardLayout(draftData.keyboardLayout);
+    if (draftData.mouseDpi !== undefined) setMouseDpi(draftData.mouseDpi);
+    if (draftData.sensitivityPercent !== undefined) setSensitivityPercent(draftData.sensitivityPercent);
+    if (draftData.sensitivityRaw !== undefined) setSensitivityRaw(draftData.sensitivityRaw);
+    if (draftData.windowsSpeed !== undefined) setWindowsSpeed(draftData.windowsSpeed);
+    if (draftData.mouseAcceleration !== undefined) setMouseAcceleration(draftData.mouseAcceleration);
+    if (draftData.rawInput !== undefined) setRawInput(draftData.rawInput);
+    if (draftData.sprintMode !== undefined) setSprintMode(draftData.sprintMode);
+    if (draftData.sneakMode !== undefined) setSneakMode(draftData.sneakMode);
+    if (draftData.autoJump !== undefined) setAutoJump(draftData.autoJump);
+    if (draftData.gameLanguage !== undefined) setGameLanguage(draftData.gameLanguage);
+    if (draftData.mouseModel !== undefined) setMouseModel(draftData.mouseModel);
+    if (draftData.keyboardModel !== undefined) setKeyboardModel(draftData.keyboardModel);
+    if (draftData.notes !== undefined) setNotes(draftData.notes);
+
+    // キーバインド
+    if (draftData.forward !== undefined) setForward(draftData.forward);
+    if (draftData.back !== undefined) setBack(draftData.back);
+    if (draftData.left !== undefined) setLeft(draftData.left);
+    if (draftData.right !== undefined) setRight(draftData.right);
+    if (draftData.jump !== undefined) setJump(draftData.jump);
+    if (draftData.sneak !== undefined) setSneak(draftData.sneak);
+    if (draftData.sprint !== undefined) setSprint(draftData.sprint);
+    if (draftData.attack !== undefined) setAttack(draftData.attack);
+    if (draftData.use !== undefined) setUse(draftData.use);
+    if (draftData.pickBlock !== undefined) setPickBlock(draftData.pickBlock);
+    if (draftData.drop !== undefined) setDrop(draftData.drop);
+    if (draftData.inventory !== undefined) setInventory(draftData.inventory);
+    if (draftData.swapHands !== undefined) setSwapHands(draftData.swapHands);
+    if (draftData.hotbar1 !== undefined) setHotbar1(draftData.hotbar1);
+    if (draftData.hotbar2 !== undefined) setHotbar2(draftData.hotbar2);
+    if (draftData.hotbar3 !== undefined) setHotbar3(draftData.hotbar3);
+    if (draftData.hotbar4 !== undefined) setHotbar4(draftData.hotbar4);
+    if (draftData.hotbar5 !== undefined) setHotbar5(draftData.hotbar5);
+    if (draftData.hotbar6 !== undefined) setHotbar6(draftData.hotbar6);
+    if (draftData.hotbar7 !== undefined) setHotbar7(draftData.hotbar7);
+    if (draftData.hotbar8 !== undefined) setHotbar8(draftData.hotbar8);
+    if (draftData.hotbar9 !== undefined) setHotbar9(draftData.hotbar9);
+    if (draftData.togglePerspective !== undefined) setTogglePerspective(draftData.togglePerspective);
+    if (draftData.fullscreen !== undefined) setFullscreen(draftData.fullscreen);
+    if (draftData.chat !== undefined) setChat(draftData.chat);
+    if (draftData.command !== undefined) setCommand(draftData.command);
+    if (draftData.toggleHud !== undefined) setToggleHud(draftData.toggleHud);
+    if (draftData.reset !== undefined) setReset(draftData.reset);
+    if (draftData.playerList !== undefined) setPlayerList(draftData.playerList);
+
+    // オブジェクト型のstate
+    if (draftData.remappings !== undefined) setRemappings(draftData.remappings);
+    if (draftData.externalTools !== undefined) setExternalTools(draftData.externalTools);
+    if (draftData.fingerAssignments !== undefined) setFingerAssignments(draftData.fingerAssignments);
+    if (draftData.customKeys !== undefined) setCustomKeys(draftData.customKeys);
+
+    setTimeout(() => {
+      setIsRestoringDraft(false);
+    }, 100);
+  };
+
+  // 初回マウント時に下書きをチェック
+  useEffect(() => {
+    const draft = loadDraft();
+    if (draft && draft.data) {
+      setDraftTimestamp(draft.timestamp);
+      setShowDraftDialog(true);
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // formDataの変更を監視して履歴に追加
+  useEffect(() => {
+    if (!isRestoringDraft && !isApplyingHistoryRef.current) {
+      setHistoryState(formData);
+      setHasUnsavedChanges(true);
+    }
+  }, [formData]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Undo/Redoでstateを復元する処理
+  const applyHistoryState = useCallback((state: typeof formData) => {
+    isApplyingHistoryRef.current = true;
+    setIsRestoringDraft(true);
+    restoreDraft(state);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Undoハンドラー
+  const handleUndo = useCallback(() => {
+    if (canUndo) {
+      isApplyingHistoryRef.current = true;
+      undo();
+    }
+  }, [canUndo, undo]);
+
+  // Redoハンドラー
+  const handleRedo = useCallback(() => {
+    if (canRedo) {
+      isApplyingHistoryRef.current = true;
+      redo();
+    }
+  }, [canRedo, redo]);
+
+  // historyStateの変更を監視してフォームに適用
+  useEffect(() => {
+    if (isApplyingHistoryRef.current) {
+      applyHistoryState(historyState);
+      // 次のティックでフラグをリセット
+      setTimeout(() => {
+        isApplyingHistoryRef.current = false;
+      }, 100);
+    }
+  }, [historyState, applyHistoryState]);
+
+  // キーボードショートカット（Ctrl+Z / Ctrl+Y）
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // 入力欄にフォーカスがある場合はスキップ
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
+        return;
+      }
+
+      if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key === 'z') {
+        e.preventDefault();
+        handleUndo();
+      } else if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.shiftKey && e.key === 'z'))) {
+        e.preventDefault();
+        handleRedo();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleUndo, handleRedo]);
 
   // %入力とOptions.txt入力を連動させるハンドラー
   const handleSensitivityPercentChange = (value: string) => {
@@ -493,6 +720,18 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
         }
       }
 
+      // サーチクラフト設定も保存
+      if (searchCraftEditorRef.current) {
+        const searchCraftSaved = await searchCraftEditorRef.current.save();
+        if (!searchCraftSaved) {
+          throw new Error('Failed to save search crafts');
+        }
+      }
+
+      // 保存成功したらローカルストレージをクリアし、未保存フラグをfalseに
+      clearDraft();
+      setHasUnsavedChanges(false);
+
       // 現在のMCIDでリダイレクト
       router.push(`/player/${currentMcid}`);
       router.refresh();
@@ -517,7 +756,9 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
         throw new Error('Failed to delete settings');
       }
 
-      // 削除成功後、プレイヤーページにリダイレクト
+      // 削除成功後、ローカルストレージをクリアしてプレイヤーページにリダイレクト
+      clearDraft();
+      setHasUnsavedChanges(false);
       router.push(`/player/${currentMcid}`);
       router.refresh();
     } catch (error) {
@@ -526,6 +767,36 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
     } finally {
       setDeleting(false);
       setShowDeleteConfirm(false);
+    }
+  };
+
+  // キャンセルボタンのハンドラー
+  const handleCancel = () => {
+    if (hasUnsavedChanges) {
+      setPendingNavigation(() => () => {
+        clearDraft();
+        setHasUnsavedChanges(false);
+        router.back();
+      });
+      setShowUnsavedDialog(true);
+    } else {
+      clearDraft();
+      router.back();
+    }
+  };
+
+  // ページ遷移時のハンドラー
+  const handleNavigate = (url: string) => {
+    if (hasUnsavedChanges) {
+      setPendingNavigation(() => () => {
+        clearDraft();
+        setHasUnsavedChanges(false);
+        router.push(url);
+      });
+      setShowUnsavedDialog(true);
+    } else {
+      clearDraft();
+      router.push(url);
     }
   };
 
@@ -948,24 +1219,63 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
         <ItemLayoutEditor uuid={uuid} ref={itemLayoutEditorRef} hideSaveButton />
       </section>
 
+      {/* サーチクラフト設定 */}
+      <section className="bg-[rgb(var(--card))] p-6 rounded-lg border border-[rgb(var(--border))]">
+        <SearchCraftEditor uuid={uuid} ref={searchCraftEditorRef} hideSaveButton />
+      </section>
+
       {/* リマップと外部ツールは仮想キーボードのモーダルから設定可能 */}
 
       {/* 固定ボタンエリア */}
       <div className="fixed bottom-0 left-0 right-0 bg-[rgb(var(--background))]/95 backdrop-blur-sm border-t border-[rgb(var(--border))] z-40">
         <div className="container mx-auto px-4 py-4 flex gap-4 justify-between items-center">
-          <Button
-            onClick={() => setShowDeleteConfirm(true)}
-            disabled={deleting}
-            variant="danger-outline"
-            size="lg"
-            className="p-3"
-            title="設定を削除"
-          >
-            <TrashIcon className="h-5 w-5" />
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              onClick={() => setShowDeleteConfirm(true)}
+              disabled={deleting}
+              variant="danger-outline"
+              size="lg"
+              className="p-3"
+              title="設定を削除"
+            >
+              <TrashIcon className="h-5 w-5" />
+            </Button>
+            <Button
+              onClick={() => setShowAutoHotKeyDialog(true)}
+              variant="outline"
+              size="lg"
+              className="p-3"
+              title="AutoHotKeyスクリプトを出力"
+              disabled={Object.keys(remappings).length === 0}
+            >
+              <ArrowDownTrayIcon className="h-5 w-5" />
+            </Button>
+            <div className="flex gap-2 ml-4">
+              <Button
+                onClick={handleUndo}
+                disabled={!canUndo || isRestoringDraft}
+                variant="outline"
+                size="lg"
+                className="p-3"
+                title="元に戻す (Ctrl+Z)"
+              >
+                <ArrowUturnLeftIcon className="h-5 w-5" />
+              </Button>
+              <Button
+                onClick={handleRedo}
+                disabled={!canRedo || isRestoringDraft}
+                variant="outline"
+                size="lg"
+                className="p-3"
+                title="やり直す (Ctrl+Y)"
+              >
+                <ArrowUturnRightIcon className="h-5 w-5" />
+              </Button>
+            </div>
+          </div>
           <div className="flex gap-4">
             <Button
-              onClick={() => router.back()}
+              onClick={handleCancel}
               variant="outline"
               size="lg"
             >
@@ -1022,7 +1332,7 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
                   <Button
                     onClick={() => setShowDeleteConfirm(false)}
                     disabled={deleting}
-                    variant="secondary"
+                    variant="outline"
                     size="lg"
                   >
                     キャンセル
@@ -1043,6 +1353,46 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
           </div>
         </Dialog>
       </Transition>
+
+      {/* 下書き復元ダイアログ */}
+      <DraftRestoreDialog
+        isOpen={showDraftDialog}
+        onClose={() => setShowDraftDialog(false)}
+        onRestore={() => {
+          const draft = loadDraft();
+          if (draft && draft.data) {
+            restoreDraft(draft.data);
+          }
+        }}
+        onDiscard={() => {
+          clearDraft();
+        }}
+        timestamp={draftTimestamp}
+      />
+
+      {/* 未保存変更の警告ダイアログ */}
+      <UnsavedChangesDialog
+        isOpen={showUnsavedDialog}
+        onClose={() => {
+          setShowUnsavedDialog(false);
+          setPendingNavigation(null);
+        }}
+        onDiscard={() => {
+          if (pendingNavigation) {
+            pendingNavigation();
+          }
+          setShowUnsavedDialog(false);
+          setPendingNavigation(null);
+        }}
+        showSaveButton={false}
+      />
+
+      {/* AutoHotKey出力ダイアログ */}
+      <AutoHotKeyExportDialog
+        isOpen={showAutoHotKeyDialog}
+        onClose={() => setShowAutoHotKeyDialog(false)}
+        remappings={remappings}
+      />
     </div>
   );
 }

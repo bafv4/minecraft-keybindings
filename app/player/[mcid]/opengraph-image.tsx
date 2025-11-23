@@ -60,7 +60,10 @@ export default async function Image({ params }: Props) {
     const { user, settings } = playerData;
     const displayName = user.displayName && user.displayName.trim() !== '' ? user.displayName : user.mcid;
 
-    const baseUrl = process.env.NEXTAUTH_URL || 'https://mchotkeys-stg.vercel.app';
+    // 絶対URLを構築（Vercel環境では VERCEL_URL を使用）
+    const baseUrl = process.env.VERCEL_URL
+      ? `https://${process.env.VERCEL_URL}`
+      : (process.env.NEXTAUTH_URL || 'http://localhost:3000');
     const avatarUrl = `${baseUrl}/api/avatar?uuid=${user.uuid}&size=128`;
 
     // フォントを読み込み
@@ -94,37 +97,38 @@ export default async function Image({ params }: Props) {
     }
 
     // 主要なキーバインド
+    const settingsAny = settings as any;
     const hotbarKeys = [
-      settings?.hotbar1 || 'key.keyboard.1',
-      settings?.hotbar2 || 'key.keyboard.2',
-      settings?.hotbar3 || 'key.keyboard.3',
-      settings?.hotbar4 || 'key.keyboard.4',
-      settings?.hotbar5 || 'key.keyboard.5',
-      settings?.hotbar6 || 'key.keyboard.6',
-      settings?.hotbar7 || 'key.keyboard.7',
-      settings?.hotbar8 || 'key.keyboard.8',
-      settings?.hotbar9 || 'key.keyboard.9',
+      settingsAny?.hotbar1 || 'key.keyboard.1',
+      settingsAny?.hotbar2 || 'key.keyboard.2',
+      settingsAny?.hotbar3 || 'key.keyboard.3',
+      settingsAny?.hotbar4 || 'key.keyboard.4',
+      settingsAny?.hotbar5 || 'key.keyboard.5',
+      settingsAny?.hotbar6 || 'key.keyboard.6',
+      settingsAny?.hotbar7 || 'key.keyboard.7',
+      settingsAny?.hotbar8 || 'key.keyboard.8',
+      settingsAny?.hotbar9 || 'key.keyboard.9',
     ].map((key) => formatKeyName(key));
 
     const movementKeys = {
-      forward: formatKeyName(settings?.forward || 'key.keyboard.w'),
-      left: formatKeyName(settings?.left || 'key.keyboard.a'),
-      back: formatKeyName(settings?.back || 'key.keyboard.s'),
-      right: formatKeyName(settings?.right || 'key.keyboard.d'),
+      forward: formatKeyName(settingsAny?.forward || 'key.keyboard.w'),
+      left: formatKeyName(settingsAny?.left || 'key.keyboard.a'),
+      back: formatKeyName(settingsAny?.back || 'key.keyboard.s'),
+      right: formatKeyName(settingsAny?.right || 'key.keyboard.d'),
     };
 
     const actionKeys = {
-      jump: formatKeyName(settings?.jump || 'key.keyboard.space'),
-      sneak: formatKeyName(settings?.sneak || 'key.keyboard.left.shift'),
-      sprint: formatKeyName(settings?.sprint || 'key.keyboard.left.control'),
-      swapHands: formatKeyName(settings?.swapHands || 'key.keyboard.f'),
+      jump: formatKeyName(settingsAny?.jump || 'key.keyboard.space'),
+      sneak: formatKeyName(settingsAny?.sneak || 'key.keyboard.left.shift'),
+      sprint: formatKeyName(settingsAny?.sprint || 'key.keyboard.left.control'),
+      swapHands: formatKeyName(settingsAny?.swapHands || 'key.keyboard.f'),
     };
 
     // 設定
     const toggleSettings = {
-      sprint: settings?.toggleSprint ? 'Toggle' : 'Hold',
-      sneak: settings?.toggleSneak ? 'Toggle' : 'Hold',
-      autoJump: settings?.autoJump ? 'ON' : 'OFF',
+      sprint: settingsAny?.toggleSprint ? 'Toggle' : 'Hold',
+      sneak: settingsAny?.toggleSneak ? 'Toggle' : 'Hold',
+      autoJump: settingsAny?.autoJump ? 'ON' : 'OFF',
     };
 
     // アバター画像を Base64 に変換
