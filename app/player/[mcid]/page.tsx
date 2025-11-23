@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import { prisma } from '@/lib/db';
 import { MinecraftAvatar } from '@/components/MinecraftAvatar';
 import { ItemLayoutsDisplay } from '@/components/ItemLayoutsDisplay';
+import { SearchCraftDisplay } from '@/components/SearchCraftDisplay';
 import { getPlayerData } from '@/lib/playerData';
 import { getLanguageName } from '@/lib/languages';
 import dynamic from 'next/dynamic';
@@ -34,19 +35,17 @@ export async function generateMetadata({ params }: PlayerPageProps): Promise<Met
 
   const displayName = user.displayName && user.displayName.trim() !== '' ? user.displayName : user.mcid;
   const avatarUrl = `/api/avatar?uuid=${user.uuid}&size=128`;
-  const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
-  const fullAvatarUrl = `${baseUrl}${avatarUrl}`;
-  const ogImageUrl = `${baseUrl}/player/${mcid}/opengraph-image`;
+  const ogImageUrl = `/player/${mcid}/opengraph-image`;
 
   return {
     title: `${displayName} | MCSRer Hotkeys`,
     description: `${displayName} (${user.mcid}) のキーボード・マウス設定`,
     icons: {
       icon: [
-        { url: fullAvatarUrl, type: 'image/png' },
+        { url: avatarUrl, type: 'image/png' },
       ],
       apple: [
-        { url: fullAvatarUrl, type: 'image/png' },
+        { url: avatarUrl, type: 'image/png' },
       ],
     },
     openGraph: {
@@ -79,7 +78,7 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
     notFound();
   }
 
-  const { user, settings, rawKeybindings, rawCustomKeys, rawKeyRemaps, rawExternalTools, itemLayouts } = playerData;
+  const { user, settings, rawKeybindings, rawCustomKeys, rawKeyRemaps, rawExternalTools, itemLayouts, searchCrafts } = playerData;
 
   const showDisplayName = user.displayName && user.displayName.trim() !== '';
 
@@ -183,6 +182,13 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
               swapHands: settings.swapHands,
             }}
             customKeys={rawCustomKeys}
+          />
+
+          {/* サーチクラフト表示 */}
+          <SearchCraftDisplay
+            searchCrafts={searchCrafts}
+            keyRemaps={rawKeyRemaps}
+            fingerAssignments={settings.fingerAssignments || {}}
           />
         </>
       ) : (

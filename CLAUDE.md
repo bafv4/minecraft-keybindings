@@ -101,21 +101,44 @@ This format is used throughout the schema defaults and should be preserved when 
 
 ### API Routes
 
-**POST /api/keybindings** ([app/api/keybindings/route.ts](app/api/keybindings/route.ts))
-- Saves/updates player settings and display name
-- Requires authenticated session with UUID
-- Uses Prisma `upsert` pattern to handle both create and update cases
+アプリケーションは17個のRESTful APIエンドポイントを提供しています。以下は主要なエンドポイントの概要です：
 
-**POST /api/sync-mcid** ([app/api/sync-mcid/route.ts](app/api/sync-mcid/route.ts))
-- Syncs all users' MCIDs from Mojang API (batch operation)
-- Protected by `CRON_SECRET` authorization header
-- Called daily by Vercel Cron job (configured in [vercel.json](vercel.json))
-- Updates MCIDs when users change their Minecraft usernames
+**プレイヤー情報取得（公開API）**
+- `GET /api/player/[mcid]` - 個別プレイヤーの完全な情報を取得
+- `GET /api/players` - 設定を持つ全プレイヤーのリストを取得
 
-**GET /api/sync-mcid?uuid={uuid}** ([app/api/sync-mcid/route.ts](app/api/sync-mcid/route.ts))
-- Manually syncs a specific user's MCID from Mojang API
-- Fetches latest MCID using UUID via `https://sessionserver.mojang.com/session/minecraft/profile/{uuid}`
-- Used by the "同期" button on the edit page
+**認証・登録**
+- `POST /api/auth/register` - 新規ユーザー登録（Mojang API連携）
+- `POST /api/auth/login-or-register` - ログインまたは自動登録
+- `GET /api/auth/check-mcid` - MCID存在チェック
+
+**設定管理（要認証）**
+- `GET /api/keybindings` - 認証済みユーザーの設定を取得
+- `POST /api/keybindings` - プレイヤー設定を更新（管理者はゲストユーザーも編集可能）
+- `DELETE /api/keybindings` - 全設定を削除
+
+**アイテム配置**
+- `GET /api/item-layouts` - アイテム配置を取得
+- `POST /api/item-layouts` - アイテム配置を作成・更新
+- `DELETE /api/item-layouts` - アイテム配置を削除
+
+**ゲスト管理（管理者のみ）**
+- `GET /api/guests` - ゲストユーザー一覧
+- `POST /api/guests` - ゲストユーザー作成
+- `DELETE /api/guests` - ゲストユーザー削除
+
+**MCID同期**
+- `GET /api/sync-mcid?uuid={uuid}` - 個別ユーザーのMCIDを同期
+- `POST /api/sync-mcid` - 全ユーザーのMCIDを同期（Cron用）
+
+**アバター**
+- `GET /api/avatar?uuid={uuid}&size={size}` - Mojang APIからアバター画像を生成
+
+### API Documentation
+
+完全なAPI仕様書（17エンドポイント、リクエスト/レスポンス例、エラーハンドリング、使用例を含む）：
+- **マークダウン形式**: [docs/API_SPECIFICATION.md](docs/API_SPECIFICATION.md)
+- **OpenAPI形式**: [docs/openapi.yaml](docs/openapi.yaml)
 
 ### Session Management
 

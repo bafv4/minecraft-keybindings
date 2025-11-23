@@ -60,7 +60,10 @@ export default async function Image({ params }: Props) {
     const { user, settings } = playerData;
     const displayName = user.displayName && user.displayName.trim() !== '' ? user.displayName : user.mcid;
 
-    const baseUrl = process.env.NEXTAUTH_URL || 'https://mchotkeys-stg.vercel.app';
+    // 絶対URLを構築（Vercel環境では VERCEL_URL を使用）
+    const baseUrl = process.env.VERCEL_URL
+      ? `https://${process.env.VERCEL_URL}`
+      : (process.env.NEXTAUTH_URL || 'http://localhost:3000');
     const avatarUrl = `${baseUrl}/api/avatar?uuid=${user.uuid}&size=128`;
 
     // フォントを読み込み

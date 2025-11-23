@@ -86,12 +86,12 @@ const REMAP_KEYS = [
   { value: '', label: 'リマップなし' },
   { value: 'key.keyboard.disabled', label: '無効化' },
   // 修飾キー
-  { value: 'key.keyboard.left.shift', label: '左Shift' },
-  { value: 'key.keyboard.right.shift', label: '右Shift' },
-  { value: 'key.keyboard.left.control', label: '左Ctrl' },
-  { value: 'key.keyboard.right.control', label: '右Ctrl' },
-  { value: 'key.keyboard.left.alt', label: '左Alt' },
-  { value: 'key.keyboard.right.alt', label: '右Alt' },
+  { value: 'key.keyboard.left.shift', label: 'LShift' },
+  { value: 'key.keyboard.right.shift', label: 'RShift' },
+  { value: 'key.keyboard.left.control', label: 'LCtrl' },
+  { value: 'key.keyboard.right.control', label: 'RCtrl' },
+  { value: 'key.keyboard.left.alt', label: 'LAlt' },
+  { value: 'key.keyboard.right.alt', label: 'RAlt' },
   { value: 'key.keyboard.caps.lock', label: 'Caps Lock' },
   // 特殊キー
   { value: 'key.keyboard.space', label: 'Space' },
@@ -138,21 +138,30 @@ const REMAP_KEYS = [
   { value: 'key.keyboard.period', label: '.' },
   { value: 'key.keyboard.slash', label: '/' },
   // マウスボタン
-  { value: 'key.mouse.left', label: 'マウス左' },
-  { value: 'key.mouse.right', label: 'マウス右' },
-  { value: 'key.mouse.middle', label: 'マウス中央' },
-  { value: 'key.mouse.4', label: 'マウス4' },
-  { value: 'key.mouse.5', label: 'マウス5' },
+  { value: 'key.mouse.left', label: 'LClick' },
+  { value: 'key.mouse.right', label: 'RClick' },
+  { value: 'key.mouse.middle', label: 'MButton' },
+  { value: 'key.mouse.4', label: 'MB4' },
+  { value: 'key.mouse.5', label: 'MB5' },
 ];
 
 // 外部ツールプリセット
 const EXTERNAL_TOOLS = [
-  'リセット',
-  'Ninb: リセット',
-  'SeedQueue: Reset All',
-  'マウス感度切替',
+  'ThinBT',
   'Zoom',
   'Wide',
+  'Ninb: リセット',
+  'Ninb: +0.01',
+  'Ninb: -0.01',
+  'Ninb: Undo',
+  'Ninb: Redo',
+  'Ninb: Blue boat',
+  'Ninb: Lock calculator',
+  'SeedQueue: Reset All',
+  'SeedQueue: Lock Instance',
+  'SeedQueue: Play Instance',
+  'マウス感度切替',
+  'スペクテイターモード',
 ];
 
 export function KeybindingModal({
@@ -328,9 +337,18 @@ export function KeybindingModal({
                 <TabPanels className="p-6 max-h-[60vh] overflow-y-auto">
                   {/* 操作割り当てタブ */}
                   <TabPanel className="space-y-6">
-                    <p className="text-sm text-muted-foreground">
-                      このキーに割り当てる操作を選択してください（複数選択可）
-                    </p>
+                    <div className="flex items-center justify-between gap-4">
+                      <p className="text-sm text-muted-foreground">
+                        このキーに割り当てる操作を選択してください（複数選択可）
+                      </p>
+                      <button
+                        onClick={() => setSelectedActions([])}
+                        disabled={selectedActions.length === 0}
+                        className="px-3 py-1.5 text-xs font-medium rounded-lg border border-border hover:bg-accent/50 transition disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                      >
+                        割り当てをクリア
+                      </button>
+                    </div>
                     {Object.entries(groupedActions).map(([category, actions]) => (
                       <div key={category}>
                         <h3 className="text-sm font-semibold mb-3 text-muted-foreground">{category}</h3>
@@ -361,9 +379,18 @@ export function KeybindingModal({
 
                   {/* 指の割り当てタブ */}
                   <TabPanel className="space-y-6">
-                    <p className="text-sm text-muted-foreground">
-                      このキーを押す指を選択してください（複数選択可）
-                    </p>
+                    <div className="flex items-center justify-between gap-4">
+                      <p className="text-sm text-muted-foreground">
+                        このキーを押す指を選択してください（複数選択可）
+                      </p>
+                      <button
+                        onClick={() => setSelectedFingers([])}
+                        disabled={selectedFingers.length === 0}
+                        className="px-3 py-1.5 text-xs font-medium rounded-lg border border-border hover:bg-accent/50 transition disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                      >
+                        割り当てをクリア
+                      </button>
+                    </div>
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 sm:gap-3">
                       {FINGER_OPTIONS.map(finger => {
                         const isSelected = selectedFingers.includes(finger.value);
@@ -387,9 +414,21 @@ export function KeybindingModal({
 
                   {/* リマップタブ */}
                   <TabPanel className="space-y-4">
-                    <p className="text-sm text-muted-foreground">
-                      物理的なキーを別のキーにリマップします（例: Caps Lock → Ctrl）
-                    </p>
+                    <div className="flex items-center justify-between gap-4">
+                      <p className="text-sm text-muted-foreground">
+                        物理的なキーを別のキーにリマップします（例: Caps Lock → Ctrl）
+                      </p>
+                      <button
+                        onClick={() => {
+                          setRemapValue('');
+                          setRemapQuery('');
+                        }}
+                        disabled={!remapValue}
+                        className="px-3 py-1.5 text-xs font-medium rounded-lg border border-border hover:bg-accent/50 transition disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                      >
+                        割り当てをクリア
+                      </button>
+                    </div>
                     <div>
                       <label className="block text-sm font-medium mb-2">リマップ先を選択</label>
                       <Combobox
@@ -441,9 +480,21 @@ export function KeybindingModal({
 
                   {/* 外部ツールタブ */}
                   <TabPanel className="space-y-4">
-                    <p className="text-sm text-muted-foreground">
-                      外部ツールやModの機能を割り当てます
-                    </p>
+                    <div className="flex items-center justify-between gap-4">
+                      <p className="text-sm text-muted-foreground">
+                        外部ツールやModの機能を割り当てます
+                      </p>
+                      <button
+                        onClick={() => {
+                          setExternalTool('');
+                          setExternalToolQuery('');
+                        }}
+                        disabled={!externalTool}
+                        className="px-3 py-1.5 text-xs font-medium rounded-lg border border-border hover:bg-accent/50 transition disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                      >
+                        割り当てをクリア
+                      </button>
+                    </div>
                     <div>
                       <label className="block text-sm font-medium mb-2">外部ツールを選択</label>
                       <Combobox

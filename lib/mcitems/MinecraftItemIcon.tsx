@@ -96,6 +96,8 @@ function getItemEmoji(itemId: string): string {
   if (itemName.includes('wood') || itemName.includes('log') || itemName.includes('planks')) return '🪵';
   if (itemName.includes('glass')) return '🔲';
   if (itemName.includes('dirt') || itemName.includes('grass')) return '🟫';
+  if (itemName.includes('wool')) return '🧶';
+  if (itemName.includes('iron_bars')) return '🔒';
 
   // Items
   if (itemName.includes('diamond')) return '💎';
@@ -111,6 +113,12 @@ function getItemEmoji(itemId: string): string {
   if (itemName.includes('door')) return '🚪';
   if (itemName.includes('torch')) return '🔦';
   if (itemName.includes('bucket')) return '🪣';
+
+  // Nether update items (1.16)
+  if (itemName.includes('respawn_anchor')) return '⚓';
+  if (itemName.includes('lodestone')) return '🧲';
+  if (itemName.includes('campfire')) return '🔥';
+  if (itemName.includes('lantern')) return '🏮';
 
   // Default
   return '📦';

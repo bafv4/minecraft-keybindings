@@ -90,6 +90,9 @@ export async function getPlayerData(mcid: string) {
       itemLayouts: {
         orderBy: { segment: 'asc' },
       },
+      searchCrafts: {
+        orderBy: { sequence: 'asc' },
+      },
     },
   });
 
@@ -151,6 +154,7 @@ export async function getPlayerData(mcid: string) {
     rawKeyRemaps: user.keyRemaps,
     rawExternalTools: user.externalTools,
     itemLayouts: user.itemLayouts,
+    searchCrafts: user.searchCrafts,
   };
 }
 

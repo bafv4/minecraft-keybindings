@@ -12,6 +12,7 @@ const zenKakuGothicNew = Zen_Kaku_Gothic_New({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXTAUTH_URL || 'https://mchotkeys-stg.vercel.app'),
   title: "MCSRer Hotkeys",
   description: "RTA勢の設定はこうなっている！",
   icons: {
@@ -28,11 +29,20 @@ export const metadata: Metadata = {
     siteName: 'MCSRer Hotkeys',
     title: 'MCSRer Hotkeys',
     description: 'RTA勢の設定はこうなっている！',
+    images: [
+      {
+        url: '/opengraph-image',
+        width: 1200,
+        height: 630,
+        alt: 'MCSRer Hotkeys',
+      },
+    ],
   },
   twitter: {
-    card: 'summary',
+    card: 'summary_large_image',
     title: 'MCSRer Hotkeys',
     description: 'RTA勢の設定はこうなっている！',
+    images: ['/opengraph-image'],
   },
 };
 

@@ -5,6 +5,7 @@ export const MINECRAFT_ITEMS: Record<Exclude<ItemCategory, 'all'>, string[]> = {
   // 建築ブロック (Building Blocks)
   building_blocks: [
     'minecraft:dirt',
+    'minecraft:coarse_dirt',
     'minecraft:cobblestone',
     'minecraft:stone',
     'minecraft:granite',
@@ -124,6 +125,29 @@ export const MINECRAFT_ITEMS: Record<Exclude<ItemCategory, 'all'>, string[]> = {
     'minecraft:oak_fence_gate',
     'minecraft:tnt',
     'minecraft:bookshelf',
+    'minecraft:respawn_anchor',
+    'minecraft:lodestone',
+    'minecraft:campfire',
+    'minecraft:soul_campfire',
+    'minecraft:lantern',
+    'minecraft:soul_lantern',
+    'minecraft:iron_bars',
+    'minecraft:white_wool',
+    'minecraft:orange_wool',
+    'minecraft:magenta_wool',
+    'minecraft:light_blue_wool',
+    'minecraft:yellow_wool',
+    'minecraft:lime_wool',
+    'minecraft:pink_wool',
+    'minecraft:gray_wool',
+    'minecraft:light_gray_wool',
+    'minecraft:cyan_wool',
+    'minecraft:purple_wool',
+    'minecraft:blue_wool',
+    'minecraft:brown_wool',
+    'minecraft:green_wool',
+    'minecraft:red_wool',
+    'minecraft:black_wool',
   ],
 
   // レッドストーン (Redstone)
@@ -368,7 +392,8 @@ export const MINECRAFT_ITEMS: Record<Exclude<ItemCategory, 'all'>, string[]> = {
 
 // Helper function to get all items
 export function getAllItems(): string[] {
-  return Object.values(MINECRAFT_ITEMS).flat();
+  // Use Set to remove duplicates (e.g., spider_eye appears in multiple categories)
+  return Array.from(new Set(Object.values(MINECRAFT_ITEMS).flat()));
 }
 
 // Helper function to get items by category
@@ -392,3 +417,109 @@ export const ITEM_CATEGORIES: { id: ItemCategory; name: string }[] = [
   { id: 'combat', name: '戦闘' },
   { id: 'brewing', name: '醸造' },
 ];
+
+// Items that cannot be crafted (for SearchCraft feature)
+// Excludes: potions, naturally generated items, mob drops, smelted items
+const NON_CRAFTABLE_ITEMS = new Set([
+  // Potions (cannot be crafted, only brewed)
+  'minecraft:potion',
+  'minecraft:splash_potion',
+  'minecraft:lingering_potion',
+  'minecraft:tipped_arrow',
+
+  // Natural blocks/resources (not craftable)
+  'minecraft:dirt',
+  'minecraft:grass_block',
+  'minecraft:stone',
+  'minecraft:cobblestone',
+  'minecraft:granite',
+  'minecraft:diorite',
+  'minecraft:andesite',
+  'minecraft:sand',
+  'minecraft:red_sand',
+  'minecraft:gravel',
+  'minecraft:netherrack',
+  'minecraft:soul_sand',
+  'minecraft:soul_soil',
+  'minecraft:basalt',
+  'minecraft:blackstone',
+  'minecraft:gilded_blackstone',
+  'minecraft:magma_block',
+  'minecraft:obsidian',
+  'minecraft:crying_obsidian',
+  'minecraft:end_stone',
+  'minecraft:glowstone',
+
+  // Ores and resources (mined/smelted, not crafted)
+  'minecraft:coal',
+  'minecraft:charcoal',
+  'minecraft:diamond',
+  'minecraft:emerald',
+  'minecraft:lapis_lazuli',
+  'minecraft:netherite_scrap',
+  // Note: ingots (iron, gold, netherite) and nuggets are craftable from blocks/other ingots
+
+  // Mob drops
+  'minecraft:string',
+  'minecraft:feather',
+  'minecraft:gunpowder',
+  'minecraft:leather',
+  'minecraft:bone',
+  'minecraft:slime_ball',
+  'minecraft:ender_pearl',
+  'minecraft:blaze_rod',
+  'minecraft:ghast_tear',
+  'minecraft:spider_eye',
+  'minecraft:dragon_breath',
+  'minecraft:phantom_membrane',
+
+  // Food/crops (grown, not crafted)
+  'minecraft:wheat',
+  'minecraft:wheat_seeds',
+  'minecraft:carrot',
+  'minecraft:potato',
+  'minecraft:poisonous_potato',
+  'minecraft:beetroot',
+  'minecraft:sweet_berries',
+  'minecraft:glow_berries',
+  'minecraft:melon_slice',
+  'minecraft:apple',
+  'minecraft:egg',
+  'minecraft:beef',
+  'minecraft:porkchop',
+  'minecraft:mutton',
+  'minecraft:chicken',
+  'minecraft:rabbit',
+  'minecraft:cod',
+  'minecraft:salmon',
+  'minecraft:tropical_fish',
+  'minecraft:pufferfish',
+  'minecraft:rotten_flesh',
+
+  // Miscellaneous non-craftable
+  'minecraft:saddle',
+  'minecraft:name_tag',
+  'minecraft:clay_ball',
+  'minecraft:brick', // Note: brick (item) is smelted from clay_ball
+  'minecraft:nether_brick', // Note: smelted
+  'minecraft:nether_wart',
+  'minecraft:sugar_cane',
+  'minecraft:milk_bucket',
+  'minecraft:turtle_helmet', // Crafted, but requires scutes (mob drop)
+
+  // Items added after 1.16 or not in 1.16
+  'minecraft:spectral_arrow', // Crafted but rarely used in speedrun
+]);
+
+// Get craftable items only (for SearchCraft feature)
+export function getCraftableItems(): string[] {
+  return getAllItems().filter(item => !NON_CRAFTABLE_ITEMS.has(item));
+}
+
+// Get craftable items by category
+export function getCraftableItemsByCategory(category: ItemCategory): string[] {
+  if (category === 'all') {
+    return getCraftableItems();
+  }
+  return (MINECRAFT_ITEMS[category] || []).filter(item => !NON_CRAFTABLE_ITEMS.has(item));
+}

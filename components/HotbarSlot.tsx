@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { SpeedrunItemIcon, getSpeedrunItemName } from './SpeedrunItemIcon';
+import { MinecraftItemIcon, formatItemName } from '@/lib/mcitems';
 import { PlusIcon } from '@heroicons/react/24/outline';
 import { formatKeyName, CustomKeyInfo } from '@/lib/utils';
 
@@ -53,13 +53,13 @@ export function HotbarSlot({ items, size = 64, onClick, editable = false, keybin
         } ${editable ? 'hover:border-primary/50 cursor-pointer' : ''}`}
         style={{ width: size, height: size }}
         onClick={onClick}
-        title={!editable && hasItems ? items.map(id => getSpeedrunItemName(id)).join(', ') : undefined}
+        title={!editable && hasItems ? items.map(id => formatItemName(id)).join(', ') : undefined}
       >
         {hasItems ? (
           editable ? (
             // 編集モード: ローテーション表示
             <div className="relative flex items-center justify-center w-full h-full">
-              <SpeedrunItemIcon itemId={items[currentIndex] ?? items[0]} size={size - 12} />
+              <MinecraftItemIcon itemId={items[currentIndex] ?? items[0]} size={size - 12} />
               {items.length > 1 && (
                 <div className="absolute bottom-0.5 right-0.5 text-[9px] text-muted-foreground bg-background/70 px-1 rounded">
                   {Math.min(currentIndex + 1, items.length)}/{items.length}
@@ -70,11 +70,11 @@ export function HotbarSlot({ items, size = 64, onClick, editable = false, keybin
             // 表示モード: グリッド表示
             <div className="flex items-center justify-center">
               {items.length === 1 ? (
-                <SpeedrunItemIcon itemId={items[0]} size={size - 12} />
+                <MinecraftItemIcon itemId={items[0]} size={size - 12} />
               ) : (
                 <div className="grid grid-cols-2 gap-0.5">
                   {items.slice(0, 4).map((itemId, i) => (
-                    <SpeedrunItemIcon key={i} itemId={itemId} size={(size - 16) / 2} />
+                    <MinecraftItemIcon key={i} itemId={itemId} size={(size - 16) / 2} />
                   ))}
                 </div>
               )}

@@ -1,7 +1,7 @@
 'use client';
 
 import { DraggableModal } from '@/components/ui/DraggableModal';
-import { SpeedrunItemIcon } from './SpeedrunItemIcon';
+import { MinecraftItemIcon, formatItemName } from '@/lib/mcitems';
 import { CheckIcon } from '@heroicons/react/24/solid';
 
 interface ItemSelectorModalProps {
@@ -131,11 +131,11 @@ export function ItemSelectorModal({
                     <CheckIcon className="w-3 h-3 text-white" />
                   </div>
                 )}
-                <SpeedrunItemIcon itemId={item.id} size={48} />
+                <MinecraftItemIcon itemId={item.id} size={48} />
                 <span className={`text-xs text-center leading-tight ${
                   isSelected ? 'text-white' : 'text-[rgb(var(--muted-foreground))] group-hover:text-[rgb(var(--foreground))]'
                 }`}>
-                  {item.name}
+                  {formatItemName(item.id)}
                 </span>
               </button>
             );
