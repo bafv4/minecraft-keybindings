@@ -159,7 +159,7 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
       {settings ? (
         <>
           <KeybindingDisplay
-            settings={settings}
+            settings={settings as any}
             keybindings={rawKeybindings}
             customKeys={rawCustomKeys}
             keyRemaps={rawKeyRemaps}
@@ -170,16 +170,16 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
           <ItemLayoutsDisplay
             itemLayouts={itemLayouts}
             keybinds={{
-              hotbar1: settings.hotbar1,
-              hotbar2: settings.hotbar2,
-              hotbar3: settings.hotbar3,
-              hotbar4: settings.hotbar4,
-              hotbar5: settings.hotbar5,
-              hotbar6: settings.hotbar6,
-              hotbar7: settings.hotbar7,
-              hotbar8: settings.hotbar8,
-              hotbar9: settings.hotbar9,
-              swapHands: settings.swapHands,
+              hotbar1: (settings as any).hotbar1,
+              hotbar2: (settings as any).hotbar2,
+              hotbar3: (settings as any).hotbar3,
+              hotbar4: (settings as any).hotbar4,
+              hotbar5: (settings as any).hotbar5,
+              hotbar6: (settings as any).hotbar6,
+              hotbar7: (settings as any).hotbar7,
+              hotbar8: (settings as any).hotbar8,
+              hotbar9: (settings as any).hotbar9,
+              swapHands: (settings as any).swapHands,
             }}
             customKeys={rawCustomKeys}
           />
@@ -188,7 +188,7 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
           <SearchCraftDisplay
             searchCrafts={searchCrafts}
             keyRemaps={rawKeyRemaps}
-            fingerAssignments={settings.fingerAssignments || {}}
+            fingerAssignments={(settings.fingerAssignments as any) || {}}
           />
         </>
       ) : (

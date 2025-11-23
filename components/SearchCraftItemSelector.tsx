@@ -56,7 +56,7 @@ export function SearchCraftItemSelector({
       onClose={onClose}
       title="アイテムを選択"
       subtitle={`サーチクラフト ${slotNumber} - 選択中: ${currentItems.length}個（最大3個）`}
-      maxWidth="5xl"
+      maxWidth="4xl"
       panelClassName="w-full max-w-5xl bg-card rounded-2xl shadow-2xl border border-border overflow-hidden flex flex-col max-h-[85vh] select-none"
       headerClassName="bg-gradient-to-r from-primary/10 via-secondary/10 to-transparent px-6 py-4 border-b border-border flex-shrink-0"
       contentClassName="flex-1 overflow-y-auto"

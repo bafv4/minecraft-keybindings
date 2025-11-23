@@ -54,7 +54,9 @@
       "Bash(findstr:*)",
       "Bash(node:*)",
       "Bash(cd:*)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(if exist \"node_modules\\.prisma\\client\\.lock\" del /F \"node_modules\\.prisma\\client\\.lock\")",
+      "Bash(pnpm prisma validate:*)"
     ],
     "deny": [],
     "ask": []

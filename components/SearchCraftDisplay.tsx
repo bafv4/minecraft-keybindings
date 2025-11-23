@@ -21,7 +21,7 @@ interface SearchCraft {
 
 interface KeyRemapInfo {
   sourceKey: string;
-  targetKey: string;
+  targetKey: string | null;
 }
 
 interface SearchCraftDisplayProps {
@@ -183,7 +183,7 @@ export function SearchCraftDisplay({ searchCrafts, keyRemaps = [], fingerAssignm
                                 className="w-16 h-16 rounded border text-sm font-medium relative bg-gray-900/10 border-gray-900 dark:bg-gray-100/10 dark:border-gray-100"
                               >
                                 {/* リマップ表示 */}
-                                {hasRemap && remapInfo ? (
+                                {hasRemap && remapInfo && remapInfo.targetKey ? (
                                   <div className="absolute top-1 left-1.5 text-xs flex flex-col gap-0 items-start">
                                     <span className="text-[10px] opacity-40 leading-tight">
                                       {formatKeyLabel(keyCode)}
