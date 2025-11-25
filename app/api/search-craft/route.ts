@@ -44,6 +44,7 @@ export async function GET(request: NextRequest) {
  *     item2?: string,
  *     item3?: string,
  *     keys: string[] // 実際に押す物理キーの配列（逆リマップ適用済み、Web形式、最大4キー、例：["KeyQ", "KeyW", "KeyE", "KeyR"]）
+ *     searchStr?: string // サーチ文字列（リマップ後、例：" abc", "Ctrl+Q"）
  *     comment?: string // コメント（任意）
  *   }>
  * }
@@ -90,6 +91,7 @@ export async function POST(request: NextRequest) {
             key2: key2 || null,
             key3: key3 || null,
             key4: key4 || null,
+            searchStr: craft.searchStr || null,
             comment: craft.comment || null,
           },
         });

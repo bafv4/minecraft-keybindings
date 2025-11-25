@@ -4,6 +4,7 @@ import { Disclosure, Transition } from '@headlessui/react';
 import { ChevronDownIcon } from '@heroicons/react/24/outline';
 import { HotbarSlot } from '@/components/HotbarSlot';
 import { minecraftToWeb } from '@/lib/keyConversion';
+import { createRemapMap, resolveSearchStrToKeys } from '@/lib/remapUtils';
 import type { Finger, FingerAssignments } from '@/types/player';
 
 interface SearchCraft {
@@ -16,6 +17,7 @@ interface SearchCraft {
   key2: string | null;
   key3: string | null;
   key4: string | null;
+  searchStr: string | null; // サーチ文字列（リマップ後）
   comment: string | null;
 }
 
@@ -100,6 +102,17 @@ export function SearchCraftDisplay({ searchCrafts, keyRemaps = [], fingerAssignm
     return null;
   }
 
+  // リマップマップを作成（Web形式のキーコード）
+  const remappings: Record<string, string> = {};
+  keyRemaps.forEach(remap => {
+    if (remap.targetKey) {
+      const sourceWeb = minecraftToWeb(remap.sourceKey);
+      const targetWeb = minecraftToWeb(remap.targetKey);
+      remappings[sourceWeb] = targetWeb;
+    }
+  });
+  const remapMap = createRemapMap(remappings);
+
   // キーのリマップ情報を取得
   const getRemapInfo = (keyCode: string) => {
     if (!keyCode) return null;
@@ -153,7 +166,16 @@ export function SearchCraftDisplay({ searchCrafts, keyRemaps = [], fingerAssignm
               <div className="space-y-3">
                 {searchCrafts.map((craft) => {
                   const items = [craft.item1, craft.item2, craft.item3].filter(Boolean) as string[];
-                  const keys = [craft.key1, craft.key2, craft.key3, craft.key4].filter(Boolean) as string[];
+
+                  // searchStr がある場合はそれを使用、ない場合は key1-key4 をフォールバック
+                  let keys: string[];
+                  if (craft.searchStr) {
+                    // searchStr からリマップ前のキーを特定
+                    keys = resolveSearchStrToKeys(craft.searchStr, remapMap);
+                  } else {
+                    // 後方互換性: key1-key4 を使用
+                    keys = [craft.key1, craft.key2, craft.key3, craft.key4].filter(Boolean) as string[];
+                  }
 
                   return (
                     <div key={craft.id} className="bg-background/50 rounded-lg border border-border/50 p-3 space-y-3">

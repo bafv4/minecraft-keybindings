@@ -7,6 +7,7 @@ import { PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { MinecraftItemIcon, formatItemName } from '@/lib/mcitems';
 import { SearchCraftItemSelector } from './SearchCraftItemSelector';
 import { stringToKeyCodes, keyCodesToString } from '@/lib/searchCraft';
+import { createSearchStr } from '@/lib/remapUtils';
 
 interface SearchCraftEntry {
   sequence: number;
@@ -348,6 +349,14 @@ export const SearchCraftEditor = forwardRef<SearchCraftEditorRef, SearchCraftEdi
           return false;
         }
 
+        // リマップ設定を Record 形式に変換
+        const remappings: Record<string, string> = {};
+        keyRemaps.forEach(remap => {
+          if (remap.targetKey) {
+            remappings[remap.sourceKey] = remap.targetKey;
+          }
+        });
+
         const response = await fetch('/api/search-craft', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -358,7 +367,8 @@ export const SearchCraftEditor = forwardRef<SearchCraftEditorRef, SearchCraftEdi
               item1: c.item1,
               item2: c.item2,
               item3: c.item3,
-              keys: c.keys, // 実際に押す物理キーを保存（逆リマップ適用済み）
+              keys: c.keys, // 実際に押す物理キーを保存（逆リマップ適用済み、後方互換性）
+              searchStr: createSearchStr(c.originalKeys, remappings), // リマップ後のサーチ文字列
               comment: c.comment,
             })),
           }),
