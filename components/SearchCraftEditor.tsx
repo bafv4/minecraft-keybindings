@@ -368,7 +368,7 @@ export const SearchCraftEditor = forwardRef<SearchCraftEditorRef, SearchCraftEdi
               item2: c.item2,
               item3: c.item3,
               keys: c.keys, // 実際に押す物理キーを保存（逆リマップ適用済み、後方互換性）
-              searchStr: createSearchStr(c.originalKeys, remappings), // リマップ後のサーチ文字列
+              searchStr: createSearchStr(c.keys, remappings), // リマップ後のサーチ文字列（物理キーからリマップ適用）
               comment: c.comment,
             })),
           }),

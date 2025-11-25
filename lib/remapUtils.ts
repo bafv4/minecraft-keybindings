@@ -33,6 +33,11 @@ export function webCodeToChar(code: string): string {
     return code;
   }
 
+  // 特殊文字（Char_ö → ö）
+  if (code.startsWith('Char_')) {
+    return code.substring(5);
+  }
+
   // マウスボタン
   if (code === 'MouseLeft') return '左クリック';
   if (code === 'MouseRight') return '右クリック';
@@ -142,7 +147,21 @@ export function charToWebCode(char: string): string {
     '`': 'Backquote',
   };
 
-  return reverseSpecialKeys[char] || char;
+  if (reverseSpecialKeys[char]) {
+    return reverseSpecialKeys[char];
+  }
+
+  // 小文字のアルファベット（a → KeyA）
+  if (char.match(/^[a-z]$/)) {
+    return `Key${char.toUpperCase()}`;
+  }
+
+  // その他の1文字は Char_ プレフィックスを付ける（å, ö などの特殊文字）
+  if (char.length === 1) {
+    return `Char_${char}`;
+  }
+
+  return char;
 }
 
 /**
