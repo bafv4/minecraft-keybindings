@@ -94,6 +94,52 @@ const formatKeyLabel = (keyCode: string): string => {
     return keyCode.substring(5);
   }
 
+  // Web形式の特殊キー
+  const webSpecialKeys: { [key: string]: string } = {
+    'ControlLeft': 'LCtrl',
+    'ControlRight': 'RCtrl',
+    'ShiftLeft': 'LShift',
+    'ShiftRight': 'RShift',
+    'AltLeft': 'LAlt',
+    'AltRight': 'RAlt',
+    'MetaLeft': 'LWin',
+    'MetaRight': 'RWin',
+    'Space': 'Space',
+    'Enter': 'Enter',
+    'Tab': 'Tab',
+    'Backspace': 'Backspace',
+    'Escape': 'Esc',
+    'CapsLock': 'Caps',
+    'Insert': 'Ins',
+    'Delete': 'Del',
+    'Home': 'Home',
+    'End': 'End',
+    'PageUp': 'PgUp',
+    'PageDown': 'PgDn',
+    'ArrowUp': '↑',
+    'ArrowDown': '↓',
+    'ArrowLeft': '←',
+    'ArrowRight': '→',
+    'Minus': '-',
+    'Equal': '=',
+    'BracketLeft': '[',
+    'BracketRight': ']',
+    'Backslash': '\\',
+    'Semicolon': ';',
+    'Quote': "'",
+    'Comma': ',',
+    'Period': '.',
+    'Slash': '/',
+    'Backquote': '`',
+    'MouseLeft': '左',
+    'MouseRight': '右',
+    'MouseMiddle': 'ホイール',
+    'Mouse4': 'MB4',
+    'Mouse5': 'MB5',
+  };
+
+  if (webSpecialKeys[keyCode]) return webSpecialKeys[keyCode];
+
   return keyCode;
 };
 
@@ -126,7 +172,13 @@ export function SearchCraftDisplay({ searchCrafts, keyRemaps = [], fingerAssignm
       return remapSourceWeb === webKeyCode;
     });
 
-    return remap;
+    if (!remap) return null;
+
+    // targetKey を Web 形式に正規化
+    return {
+      sourceKey: remap.sourceKey,
+      targetKey: remap.targetKey ? minecraftToWeb(remap.targetKey) : null,
+    };
   };
 
   // 指の情報を取得
