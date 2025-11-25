@@ -192,7 +192,7 @@ export function SearchCraftDisplay({ searchCrafts, keyRemaps = [], fingerAssignm
   return (
     <Disclosure defaultOpen>
       {({ open }) => (
-        <section className="bg-gradient-to-r from-primary/5 via-secondary/5 to-transparent rounded-2xl border border-border shadow-sm">
+        <section className="bg-card rounded-2xl border border-border shadow-sm">
           <Disclosure.Button className="flex w-full items-center justify-between p-6 text-left hover:bg-[rgb(var(--muted))]/30 transition-colors">
             <div>
               <h2 className="text-xl font-bold">サーチクラフト設定</h2>
@@ -221,9 +221,19 @@ export function SearchCraftDisplay({ searchCrafts, keyRemaps = [], fingerAssignm
 
                   // searchStr がある場合はそれを使用、ない場合は key1-key4 をフォールバック
                   let keys: string[];
-                  if (craft.searchStr) {
+                  if (craft.searchStr && craft.searchStr.trim() !== '') {
                     // searchStr からリマップ前のキーを特定
-                    keys = resolveSearchStrToKeys(craft.searchStr, remapMap);
+                    try {
+                      keys = resolveSearchStrToKeys(craft.searchStr, remapMap);
+                      // 空の結果の場合はフォールバックを使用
+                      if (keys.length === 0) {
+                        keys = [craft.key1, craft.key2, craft.key3, craft.key4].filter(Boolean) as string[];
+                      }
+                    } catch (error) {
+                      console.error('Failed to resolve searchStr:', error);
+                      // エラーの場合は key1-key4 をフォールバック
+                      keys = [craft.key1, craft.key2, craft.key3, craft.key4].filter(Boolean) as string[];
+                    }
                   } else {
                     // 後方互換性: key1-key4 を使用
                     keys = [craft.key1, craft.key2, craft.key3, craft.key4].filter(Boolean) as string[];

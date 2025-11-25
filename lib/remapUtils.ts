@@ -202,7 +202,8 @@ export function resolveSearchStrToKeys(
   // 各文字をリマップ前のキーに変換
   const keys = chars.map(char => {
     // リマップマップに存在する場合はリマップ前のキーを返す
-    const originalChar = remapMap[char] || char;
+    // アルファベットは大文字で検索、特殊文字はそのまま検索
+    const originalChar = remapMap[char] || remapMap[char.toUpperCase()] || char;
     // 文字を Web キーコードに変換
     return charToWebCode(originalChar);
   });

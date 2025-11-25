@@ -7,6 +7,7 @@ import { PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { MinecraftItemIcon, formatItemName } from '@/lib/mcitems';
 import { SearchCraftItemSelector } from './SearchCraftItemSelector';
 import { stringToKeyCodes, keyCodesToString } from '@/lib/searchCraft';
+import { webCodeToChar } from '@/lib/remapUtils';
 
 interface SearchCraftEntry {
   sequence: number;
@@ -16,6 +17,7 @@ interface SearchCraftEntry {
   inputString: string;
   keys: string[]; // 実際に押すキー（逆リマップ適用済み）
   originalKeys: string[]; // ユーザーが入力したい文字（逆リマップ適用前）
+  searchStr?: string; // DBに保存されているsearchStr（優先・フォールバックの判定用）
   comment?: string; // コメント（任意）
   error?: string; // エラーメッセージ
 }
@@ -137,29 +139,6 @@ export const SearchCraftEditor = forwardRef<SearchCraftEditorRef, SearchCraftEdi
       fetchKeyRemaps();
     }, []);
 
-    // リマップが変更されたときに既存のcraftsを再計算
-    useEffect(() => {
-      if (crafts.length === 0 || keyRemaps.length === 0) return;
-
-      setCrafts((prevCrafts) =>
-        prevCrafts.map((craft) => {
-          if (craft.keys.length > 0) {
-            // keysからoriginalKeysとinputStringを再計算
-            const originalKeys = applyKeyRemaps(craft.keys);
-            const inputString = keyCodesToString(originalKeys);
-
-            return {
-              ...craft,
-              originalKeys,
-              inputString,
-            };
-          }
-          return craft;
-        })
-      );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [keyRemaps]);
-
     // データを読み込み
     useEffect(() => {
       const fetchCrafts = async () => {
@@ -175,26 +154,23 @@ export const SearchCraftEditor = forwardRef<SearchCraftEditorRef, SearchCraftEdi
                 // searchStr がある場合はそれを使用（優先）、ない場合は後方互換性のため keys から生成
                 let inputString: string;
                 let originalKeys: string[];
-                let physicalKeys: string[];
 
-                if (craft.searchStr) {
-                  // searchStr から直接 inputString を取得
+                if (craft.searchStr && craft.searchStr.trim() !== '') {
+                  // searchStr をそのまま inputString として使用（変換不要）
                   inputString = craft.searchStr;
-                  // inputString から originalKeys を生成
+                  // originalKeys は入力文字列から計算（キー表示用）
                   try {
                     originalKeys = stringToKeyCodes(inputString);
-                    // originalKeys から逆リマップを適用して実際に押すキーを計算
-                    physicalKeys = applyReverseRemaps(originalKeys);
                   } catch (error) {
                     console.error('Failed to parse searchStr:', error);
                     originalKeys = [];
-                    physicalKeys = keys; // フォールバック
                   }
                 } else {
-                  // 後方互換性: keys からリマップ適用して inputString を生成
-                  physicalKeys = keys;
-                  originalKeys = applyKeyRemaps(keys);
-                  inputString = keyCodesToString(originalKeys);
+                  // 後方互換性: keys にリマップを適用してリマップ後の文字列を生成
+                  // keys は物理キー（例：KeyQ）、remapでKeyE になる場合、"e" を表示
+                  originalKeys = applyKeyRemaps(keys); // リマップ後のキーコード
+                  const chars = originalKeys.map(key => webCodeToChar(key)); // キーコードを文字に変換
+                  inputString = chars.join(''); // 文字を連結
                 }
 
                 return {
@@ -202,9 +178,10 @@ export const SearchCraftEditor = forwardRef<SearchCraftEditorRef, SearchCraftEdi
                   item1: craft.item1,
                   item2: craft.item2,
                   item3: craft.item3,
-                  inputString,
-                  keys: physicalKeys, // 実際に押すキー
-                  originalKeys, // ユーザーが入力したい文字
+                  inputString, // searchStr そのまま or keys からリマップ後の文字列
+                  keys, // DB から読み込んだ物理キー（そのまま使用）
+                  originalKeys, // リマップ後のキーコード（内部処理用）
+                  searchStr: craft.searchStr || undefined, // searchStr を保存（優先・フォールバックの判定用）
                   comment: craft.comment,
                 };
               });

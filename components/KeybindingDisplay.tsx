@@ -142,7 +142,7 @@ export function KeybindingDisplay({
   return (
     <div className="space-y-6">
       {/* Overview */}
-      <section className="bg-gradient-to-r from-primary/5 via-secondary/5 to-transparent rounded-2xl border border-border shadow-sm p-6">
+      <section className="bg-card rounded-2xl border border-border shadow-sm p-6">
         <h2 className="text-2xl font-bold mb-4">Overview</h2>
         <div className="space-y-4">
           {/* 移動 */}
@@ -345,7 +345,7 @@ export function KeybindingDisplay({
       </section>
 
       {/* 仮想キーボード */}
-      <section className="bg-gradient-to-r from-primary/5 via-secondary/5 to-transparent rounded-2xl border border-border shadow-sm p-6">
+      <section className="bg-card rounded-2xl border border-border shadow-sm p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-2xl font-bold">キー配置</h2>
           <div className="flex items-center gap-2">
@@ -391,7 +391,7 @@ export function KeybindingDisplay({
       {Object.keys(remappingsData).length > 0 && (
         <Disclosure>
           {({ open }) => (
-            <section className="bg-gradient-to-r from-primary/5 via-secondary/5 to-transparent rounded-xl border border-[rgb(var(--border))] shadow-sm overflow-hidden">
+            <section className="bg-card rounded-xl border border-[rgb(var(--border))] shadow-sm overflow-hidden">
               <Disclosure.Button className="flex w-full items-center justify-between p-6 text-left hover:bg-[rgb(var(--muted))]/30 transition-colors">
                 <div>
                   <h2 className="text-xl font-bold">リマップ設定</h2>
@@ -446,7 +446,7 @@ export function KeybindingDisplay({
       {Object.keys(flattenedExternalTools).length > 0 && (
         <Disclosure>
           {({ open }) => (
-            <section className="bg-gradient-to-r from-primary/5 via-secondary/5 to-transparent rounded-xl border border-[rgb(var(--border))] shadow-sm overflow-hidden">
+            <section className="bg-card rounded-xl border border-[rgb(var(--border))] shadow-sm overflow-hidden">
               <Disclosure.Button className="flex w-full items-center justify-between p-6 text-left hover:bg-[rgb(var(--muted))]/30 transition-colors">
                 <div>
                   <h2 className="text-xl font-bold">外部ツール・Modキー設定</h2>

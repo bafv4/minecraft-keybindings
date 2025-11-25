@@ -87,7 +87,7 @@ export function ItemLayoutsDisplay({ itemLayouts, keybinds, customKeys }: ItemLa
   return (
     <Disclosure defaultOpen>
       {({ open }) => (
-        <section className="bg-gradient-to-r from-primary/5 via-secondary/5 to-transparent rounded-2xl border border-border shadow-sm">
+        <section className="bg-card rounded-2xl border border-border shadow-sm">
           <Disclosure.Button className="flex w-full items-center justify-between p-6 text-left hover:bg-[rgb(var(--muted))]/30 transition-colors">
             <div>
               <h2 className="text-xl font-bold">アイテム配置</h2>
