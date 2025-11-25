@@ -83,7 +83,6 @@ const FINGER_OPTIONS: { value: Finger; label: string; color: string }[] = [
 
 // リマップ可能なキー（拡張版）
 const REMAP_KEYS = [
-  { value: '', label: 'リマップなし' },
   { value: 'key.keyboard.disabled', label: '無効化' },
   // 修飾キー
   { value: 'key.keyboard.left.shift', label: 'LShift' },
@@ -440,6 +439,7 @@ export function KeybindingModal({
                           <ComboboxInput
                             className="w-full px-4 py-2 pr-10 rounded-lg border border-border bg-background focus:border-primary focus:ring-1 focus:ring-primary outline-none transition"
                             displayValue={(value: string) => {
+                              if (!value) return '';
                               const key = REMAP_KEYS.find(k => k.value === value);
                               return key ? key.label : value;
                             }}
