@@ -171,17 +171,40 @@ export const SearchCraftEditor = forwardRef<SearchCraftEditorRef, SearchCraftEdi
               const entries: SearchCraftEntry[] = data.map((craft: any) => {
                 // DBには実際に押す物理キーが保存されている
                 const keys = [craft.key1, craft.key2, craft.key3, craft.key4].filter(Boolean) as string[];
-                // 順方向のリマップを適用してユーザーが入力したい文字を計算
-                const originalKeys = applyKeyRemaps(keys);
-                const inputString = keyCodesToString(originalKeys);
+
+                // searchStr がある場合はそれを使用（優先）、ない場合は後方互換性のため keys から生成
+                let inputString: string;
+                let originalKeys: string[];
+                let physicalKeys: string[];
+
+                if (craft.searchStr) {
+                  // searchStr から直接 inputString を取得
+                  inputString = craft.searchStr;
+                  // inputString から originalKeys を生成
+                  try {
+                    originalKeys = stringToKeyCodes(inputString);
+                    // originalKeys から逆リマップを適用して実際に押すキーを計算
+                    physicalKeys = applyReverseRemaps(originalKeys);
+                  } catch (error) {
+                    console.error('Failed to parse searchStr:', error);
+                    originalKeys = [];
+                    physicalKeys = keys; // フォールバック
+                  }
+                } else {
+                  // 後方互換性: keys からリマップ適用して inputString を生成
+                  physicalKeys = keys;
+                  originalKeys = applyKeyRemaps(keys);
+                  inputString = keyCodesToString(originalKeys);
+                }
+
                 return {
                   sequence: craft.sequence,
                   item1: craft.item1,
                   item2: craft.item2,
                   item3: craft.item3,
                   inputString,
-                  keys, // 実際に押すキー（DB保存値）
-                  originalKeys, // ユーザーが入力したい文字（順リマップ適用後）
+                  keys: physicalKeys, // 実際に押すキー
+                  originalKeys, // ユーザーが入力したい文字
                   comment: craft.comment,
                 };
               });
