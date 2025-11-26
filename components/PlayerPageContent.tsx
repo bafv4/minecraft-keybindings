@@ -76,8 +76,8 @@ export function PlayerPageContent({
     <div className="pb-6">
       {/* コンパクトヘッダー（スクロール時のみ表示） */}
       <div
-        className={`fixed top-[3.5rem] md:top-20 left-0 right-0 z-50 transition-transform duration-300 ${
-          showCompactHeader ? 'translate-y-0' : '-translate-y-full'
+        className={`fixed top-[3.5rem] md:top-20 left-0 right-0 z-40 transition-all duration-300 ${
+          showCompactHeader ? 'translate-y-0 opacity-100' : '-translate-y-[calc(100%+1rem)] opacity-0'
         }`}
       >
         <div className="container mx-auto px-4">
