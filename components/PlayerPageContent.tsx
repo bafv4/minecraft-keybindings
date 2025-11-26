@@ -98,8 +98,8 @@ export function PlayerPageContent({
           showCompactHeader ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'
         }`}
       >
-        <div className="bg-gradient-to-r from-primary/20 via-secondary/20 to-primary/10 backdrop-blur-lg border-b-2 border-x-2 border-border rounded-b-lg shadow-lg">
-          <div className="container mx-auto px-4">
+        <div className="bg-gradient-to-r from-primary/10 via-secondary/10 to-transparent backdrop-blur-xl border-b border-border/50 rounded-b-lg shadow-sm">
+          <div className="container mx-auto px-3 sm:px-4 lg:px-6">
             {/* コンパクトプレイヤー情報 */}
             <div className="flex items-center gap-3 py-3 border-b border-border">
               <MinecraftAvatar
