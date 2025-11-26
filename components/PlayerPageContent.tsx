@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { MinecraftAvatar } from './MinecraftAvatar';
 import { ShareButton } from './ShareButton';
 import { KeybindingDisplay } from './KeybindingDisplay';
@@ -36,7 +36,6 @@ export function PlayerPageContent({
   itemLayouts,
   searchCrafts,
 }: PlayerPageContentProps) {
-  const [showCompactHeader, setShowCompactHeader] = useState(false);
   const [activeTab, setActiveTab] = useState<TabName>('overview');
   const showDisplayName = user.displayName && user.displayName.trim() !== '';
 
@@ -47,15 +46,6 @@ export function PlayerPageContent({
     settings.keyboardModel ||
     settings.notes
   );
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setShowCompactHeader(window.scrollY > 400);
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
 
   // リマップ設定と外部ツールの存在チェック
   const hasRemappings = rawKeyRemaps && rawKeyRemaps.length > 0;
@@ -92,62 +82,6 @@ export function PlayerPageContent({
 
   return (
     <div className="pb-6">
-      {/* コンパクトヘッダー（スクロール時のみ表示） */}
-      <div
-        className={`fixed top-[3.5rem] md:top-20 left-0 right-0 z-40 transition-all duration-300 ${
-          showCompactHeader ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'
-        }`}
-      >
-        <div className="bg-gradient-to-r from-primary/10 via-secondary/10 to-transparent backdrop-blur-xl border-b border-border/50 rounded-b-lg shadow-sm">
-          <div className="container mx-auto px-3 sm:px-4 lg:px-6">
-            {/* コンパクトプレイヤー情報 */}
-            <div className="flex items-center py-3 border-b border-border">
-              {/* モバイル時は中央、デスクトップ時は左寄せ */}
-              <div className="flex items-center gap-3 flex-1 justify-center md:justify-start">
-                <MinecraftAvatar
-                  uuid={user.uuid}
-                  mcid={user.mcid}
-                  size={32}
-                />
-                <div className="min-w-0">
-                  <h2 className="text-base font-bold truncate">
-                    {showDisplayName ? user.displayName : user.mcid}
-                  </h2>
-                  {showDisplayName && user.displayName !== user.mcid && (
-                    <p className="text-xs text-muted-foreground truncate">{user.mcid}</p>
-                  )}
-                </div>
-              </div>
-              {/* ShareButtonは常に右 */}
-              <div className="flex-shrink-0">
-                <ShareButton mcid={user.mcid} />
-              </div>
-            </div>
-
-            {/* コンパクトタブ */}
-            {settings && (
-              <div className="overflow-x-auto">
-                <div className="flex gap-1 p-1">
-                  {tabs.map((tab) => (
-                    <button
-                      key={tab.name}
-                      onClick={() => setActiveTab(tab.name)}
-                      className={`px-4 py-2 rounded text-sm font-medium transition-all whitespace-nowrap flex-shrink-0 ${
-                        activeTab === tab.name
-                          ? 'bg-gradient-to-r from-primary to-secondary text-primary-foreground'
-                          : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
-                      }`}
-                    >
-                      {tab.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-
       {/* メインカード */}
       <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
         {/* プレイヤー情報ヘッダー */}
