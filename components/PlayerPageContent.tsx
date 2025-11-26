@@ -101,21 +101,27 @@ export function PlayerPageContent({
         <div className="bg-gradient-to-r from-primary/10 via-secondary/10 to-transparent backdrop-blur-xl border-b border-border/50 rounded-b-lg shadow-sm">
           <div className="container mx-auto px-3 sm:px-4 lg:px-6">
             {/* コンパクトプレイヤー情報 */}
-            <div className="flex items-center gap-3 py-3 border-b border-border">
-              <MinecraftAvatar
-                uuid={user.uuid}
-                mcid={user.mcid}
-                size={40}
-              />
-              <div className="flex-1 min-w-0">
-                <h2 className="text-lg font-bold truncate">
-                  {showDisplayName ? user.displayName : user.mcid}
-                </h2>
-                {showDisplayName && user.displayName !== user.mcid && (
-                  <p className="text-xs text-muted-foreground truncate">{user.mcid}</p>
-                )}
+            <div className="flex items-center py-3 border-b border-border">
+              {/* モバイル時は中央、デスクトップ時は左寄せ */}
+              <div className="flex items-center gap-3 flex-1 justify-center md:justify-start">
+                <MinecraftAvatar
+                  uuid={user.uuid}
+                  mcid={user.mcid}
+                  size={40}
+                />
+                <div className="min-w-0">
+                  <h2 className="text-lg font-bold truncate">
+                    {showDisplayName ? user.displayName : user.mcid}
+                  </h2>
+                  {showDisplayName && user.displayName !== user.mcid && (
+                    <p className="text-xs text-muted-foreground truncate">{user.mcid}</p>
+                  )}
+                </div>
               </div>
-              <ShareButton mcid={user.mcid} />
+              {/* ShareButtonは常に右 */}
+              <div className="flex-shrink-0">
+                <ShareButton mcid={user.mcid} />
+              </div>
             </div>
 
             {/* コンパクトタブ */}
