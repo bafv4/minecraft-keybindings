@@ -81,8 +81,8 @@ export function PlayerPageContent({
   ];
 
   return (
-    <div className="pb-6">
-      {/* メインカード */}
+    <div className="pb-6 space-y-4">
+      {/* プレイヤー情報＆タブカード */}
       <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
         {/* プレイヤー情報ヘッダー */}
         <div className="bg-gradient-to-r from-primary/5 via-secondary/5 to-transparent border-b border-border py-6 px-6">
@@ -161,7 +161,7 @@ export function PlayerPageContent({
 
         {/* タブナビゲーション */}
         {settings && (
-          <div className="bg-gradient-to-r from-primary/5 via-secondary/5 to-transparent border-b border-border">
+          <div className="bg-gradient-to-r from-primary/5 via-secondary/5 to-transparent">
             <div className="overflow-x-auto">
               <div className="flex gap-1 p-1">
                 {tabs.map((tab) => (
@@ -181,9 +181,10 @@ export function PlayerPageContent({
             </div>
           </div>
         )}
+      </div>
 
-        {/* タブコンテンツ */}
-        <div className="p-6">
+      {/* メインコンテンツカード */}
+      <div className="bg-card rounded-2xl border border-border shadow-sm p-6">
           {settings ? (
             <>
               {activeTab === 'overview' && (
@@ -275,7 +276,6 @@ export function PlayerPageContent({
               </p>
             </div>
           )}
-        </div>
       </div>
     </div>
   );
