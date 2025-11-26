@@ -50,7 +50,7 @@ export function PlayerPageContent({
 
   useEffect(() => {
     const handleScroll = () => {
-      setShowCompactHeader(window.scrollY > 200);
+      setShowCompactHeader(window.scrollY > 400);
     };
 
     window.addEventListener('scroll', handleScroll);
@@ -60,6 +60,8 @@ export function PlayerPageContent({
   // リマップ設定と外部ツールの存在チェック
   const hasRemappings = rawKeyRemaps && rawKeyRemaps.length > 0;
   const hasExternalTools = rawExternalTools && rawExternalTools.length > 0;
+  const hasItemLayouts = itemLayouts && itemLayouts.length > 0;
+  const hasSearchCrafts = searchCrafts && searchCrafts.length > 0;
 
   const tabs = [
     {
@@ -78,14 +80,14 @@ export function PlayerPageContent({
       name: 'externaltools' as TabName,
       label: '外部ツール',
     }] : []),
-    {
+    ...(hasItemLayouts ? [{
       name: 'items' as TabName,
       label: 'アイテム配置',
-    },
-    {
+    }] : []),
+    ...(hasSearchCrafts ? [{
       name: 'searchcraft' as TabName,
       label: 'サーチクラフト',
-    },
+    }] : []),
   ];
 
   return (
@@ -97,7 +99,7 @@ export function PlayerPageContent({
         }`}
       >
         <div className="container mx-auto px-4 pt-3">
-          <div className="bg-gradient-to-r from-primary/30 via-secondary/30 to-primary/20 backdrop-blur-lg border-2 border-border rounded-lg shadow-lg">
+          <div className="bg-gradient-to-r from-primary/20 via-secondary/20 to-primary/10 backdrop-blur-lg border-2 border-border rounded-lg shadow-lg">
             {/* コンパクトプレイヤー情報 */}
             <div className="flex items-center gap-3 px-4 py-3 border-b border-border">
               <MinecraftAvatar
@@ -126,7 +128,7 @@ export function PlayerPageContent({
                       onClick={() => setActiveTab(tab.name)}
                       className={`px-4 py-2 rounded text-sm font-medium transition-all whitespace-nowrap flex-shrink-0 ${
                         activeTab === tab.name
-                          ? 'bg-primary text-primary-foreground'
+                          ? 'bg-gradient-to-r from-primary to-secondary text-primary-foreground'
                           : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
                       }`}
                     >
@@ -228,7 +230,7 @@ export function PlayerPageContent({
                     onClick={() => setActiveTab(tab.name)}
                     className={`px-4 py-2.5 rounded-lg text-sm font-medium transition-all whitespace-nowrap flex-shrink-0 ${
                       activeTab === tab.name
-                        ? 'bg-primary text-primary-foreground shadow-sm'
+                        ? 'bg-gradient-to-r from-primary to-secondary text-primary-foreground shadow-sm'
                         : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
                     }`}
                   >
