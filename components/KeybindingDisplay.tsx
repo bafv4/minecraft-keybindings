@@ -12,6 +12,7 @@ interface KeybindingDisplayProps {
   customKeys?: Array<{ keyCode: string; keyName: string; category: string }>;
   keyRemaps?: Array<{ sourceKey: string; targetKey: string | null }>;
   externalTools?: Array<{ triggerKey: string; toolName: string; actionName: string; description?: string | null }>;
+  section?: 'all' | 'overview' | 'keyboard' | 'remappings' | 'externaltools';
 }
 
 // キー表示用のヘルパー関数（Web標準形式とMinecraft形式の両方に対応）
@@ -28,7 +29,8 @@ export function KeybindingDisplay({
   keybindings = [],
   customKeys = [],
   keyRemaps = [],
-  externalTools = []
+  externalTools = [],
+  section = 'all'
 }: KeybindingDisplayProps) {
   // keybindings配列をオブジェクトに変換してsettingsにマージ
   const keybindingsMap = keybindings.reduce((acc, kb) => {
@@ -140,6 +142,7 @@ export function KeybindingDisplay({
   return (
     <div className="space-y-6">
       {/* Overview */}
+      {(section === 'all' || section === 'overview') && (
       <div>
         <h2 className="text-2xl font-bold mb-4">Overview</h2>
         <div className="space-y-4">
@@ -341,8 +344,10 @@ export function KeybindingDisplay({
           </div>
         </div>
       </div>
+      )}
 
       {/* 仮想キーボード */}
+      {(section === 'all' || section === 'keyboard') && (
       <div>
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-2xl font-bold">キー配置</h2>
@@ -384,9 +389,10 @@ export function KeybindingDisplay({
           customKeys={customKeysData}
         />
       </div>
+      )}
 
       {/* リマップ設定 */}
-      {Object.keys(remappingsData).length > 0 && (
+      {(section === 'all' || section === 'remappings') && Object.keys(remappingsData).length > 0 && (
         <div>
           <div className="mb-4">
             <h2 className="text-xl font-bold">リマップ設定</h2>
@@ -421,7 +427,7 @@ export function KeybindingDisplay({
       )}
 
       {/* 外部ツール */}
-      {Object.keys(flattenedExternalTools).length > 0 && (
+      {(section === 'all' || section === 'externaltools') && Object.keys(flattenedExternalTools).length > 0 && (
         <div>
           <div className="mb-4">
             <h2 className="text-xl font-bold">外部ツール・Modキー設定</h2>

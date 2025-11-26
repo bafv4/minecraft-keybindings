@@ -24,7 +24,7 @@ interface PlayerPageContentProps {
   searchCrafts: any[];
 }
 
-type TabName = 'keybindings' | 'items' | 'searchcraft';
+type TabName = 'overview' | 'keyboard' | 'remappings' | 'externaltools' | 'items' | 'searchcraft';
 
 export function PlayerPageContent({
   user,
@@ -37,7 +37,7 @@ export function PlayerPageContent({
   searchCrafts,
 }: PlayerPageContentProps) {
   const [showCompactHeader, setShowCompactHeader] = useState(false);
-  const [activeTab, setActiveTab] = useState<TabName>('keybindings');
+  const [activeTab, setActiveTab] = useState<TabName>('overview');
   const showDisplayName = user.displayName && user.displayName.trim() !== '';
 
   // 環境設定の存在チェック
@@ -57,18 +57,34 @@ export function PlayerPageContent({
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // リマップ設定と外部ツールの存在チェック
+  const hasRemappings = rawKeyRemaps && rawKeyRemaps.length > 0;
+  const hasExternalTools = rawExternalTools && rawExternalTools.length > 0;
+
   const tabs = [
     {
-      name: 'keybindings' as TabName,
-      label: 'キーボード・マウス設定',
+      name: 'overview' as TabName,
+      label: 'Overview',
     },
+    {
+      name: 'keyboard' as TabName,
+      label: 'キー配置',
+    },
+    ...(hasRemappings ? [{
+      name: 'remappings' as TabName,
+      label: 'リマップ設定',
+    }] : []),
+    ...(hasExternalTools ? [{
+      name: 'externaltools' as TabName,
+      label: '外部ツール',
+    }] : []),
     {
       name: 'items' as TabName,
       label: 'アイテム配置',
     },
     {
       name: 'searchcraft' as TabName,
-      label: 'サーチクラフト設定',
+      label: 'サーチクラフト',
     },
   ];
 
@@ -81,7 +97,7 @@ export function PlayerPageContent({
         }`}
       >
         <div className="container mx-auto px-4 pt-3">
-          <div className="bg-gradient-to-r from-primary/20 via-secondary/20 to-primary/10 backdrop-blur-lg border border-border rounded-lg shadow-lg">
+          <div className="bg-gradient-to-r from-primary/30 via-secondary/30 to-primary/20 backdrop-blur-lg border-2 border-border rounded-lg shadow-lg">
             {/* コンパクトプレイヤー情報 */}
             <div className="flex items-center gap-3 px-4 py-3 border-b border-border">
               <MinecraftAvatar
@@ -102,20 +118,22 @@ export function PlayerPageContent({
 
             {/* コンパクトタブ */}
             {settings && (
-              <div className="flex gap-1 p-1">
-                {tabs.map((tab) => (
-                  <button
-                    key={tab.name}
-                    onClick={() => setActiveTab(tab.name)}
-                    className={`flex-1 px-3 py-2 rounded text-sm font-medium transition-all ${
-                      activeTab === tab.name
-                        ? 'bg-primary text-primary-foreground'
-                        : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
-                    }`}
-                  >
-                    {tab.label}
-                  </button>
-                ))}
+              <div className="overflow-x-auto">
+                <div className="flex gap-1 p-1">
+                  {tabs.map((tab) => (
+                    <button
+                      key={tab.name}
+                      onClick={() => setActiveTab(tab.name)}
+                      className={`px-4 py-2 rounded text-sm font-medium transition-all whitespace-nowrap flex-shrink-0 ${
+                        activeTab === tab.name
+                          ? 'bg-primary text-primary-foreground'
+                          : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                      }`}
+                    >
+                      {tab.label}
+                    </button>
+                  ))}
+                </div>
               </div>
             )}
           </div>
@@ -202,20 +220,22 @@ export function PlayerPageContent({
         {/* タブナビゲーション */}
         {settings && (
           <div className="bg-gradient-to-r from-primary/5 via-secondary/5 to-transparent border-b border-border">
-            <div className="flex gap-1 p-1">
-              {tabs.map((tab) => (
-                <button
-                  key={tab.name}
-                  onClick={() => setActiveTab(tab.name)}
-                  className={`flex-1 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                    activeTab === tab.name
-                      ? 'bg-primary text-primary-foreground shadow-sm'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              ))}
+            <div className="overflow-x-auto">
+              <div className="flex gap-1 p-1">
+                {tabs.map((tab) => (
+                  <button
+                    key={tab.name}
+                    onClick={() => setActiveTab(tab.name)}
+                    className={`px-4 py-2.5 rounded-lg text-sm font-medium transition-all whitespace-nowrap flex-shrink-0 ${
+                      activeTab === tab.name
+                        ? 'bg-primary text-primary-foreground shadow-sm'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         )}
@@ -224,13 +244,44 @@ export function PlayerPageContent({
         <div className="p-6">
           {settings ? (
             <>
-              {activeTab === 'keybindings' && (
+              {activeTab === 'overview' && (
                 <KeybindingDisplay
                   settings={settings as any}
                   keybindings={rawKeybindings}
                   customKeys={rawCustomKeys}
                   keyRemaps={rawKeyRemaps}
                   externalTools={rawExternalTools}
+                  section="overview"
+                />
+              )}
+              {activeTab === 'keyboard' && (
+                <KeybindingDisplay
+                  settings={settings as any}
+                  keybindings={rawKeybindings}
+                  customKeys={rawCustomKeys}
+                  keyRemaps={rawKeyRemaps}
+                  externalTools={rawExternalTools}
+                  section="keyboard"
+                />
+              )}
+              {activeTab === 'remappings' && (
+                <KeybindingDisplay
+                  settings={settings as any}
+                  keybindings={rawKeybindings}
+                  customKeys={rawCustomKeys}
+                  keyRemaps={rawKeyRemaps}
+                  externalTools={rawExternalTools}
+                  section="remappings"
+                />
+              )}
+              {activeTab === 'externaltools' && (
+                <KeybindingDisplay
+                  settings={settings as any}
+                  keybindings={rawKeybindings}
+                  customKeys={rawCustomKeys}
+                  keyRemaps={rawKeyRemaps}
+                  externalTools={rawExternalTools}
+                  section="externaltools"
                 />
               )}
               {activeTab === 'items' && (
