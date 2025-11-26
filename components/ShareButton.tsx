@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Share2, Link2, Download, Check } from 'lucide-react';
+import { DraggableModal } from './ui/DraggableModal';
 
 interface ShareButtonProps {
   mcid: string;
@@ -43,52 +44,49 @@ export function ShareButton({ mcid }: ShareButtonProps) {
   };
 
   return (
-    <div className="relative">
+    <>
       <button
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => setIsOpen(true)}
         className="p-2 rounded-lg hover:bg-muted transition-colors"
         aria-label="共有"
       >
         <Share2 className="w-5 h-5" />
       </button>
 
-      {isOpen && (
-        <>
-          {/* Overlay to close menu when clicking outside */}
-          <div
-            className="fixed inset-0 z-10"
-            onClick={() => setIsOpen(false)}
-          />
+      <DraggableModal
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+        title="共有"
+        subtitle="このページを共有する"
+        maxWidth="md"
+      >
+        <div className="px-6 py-4 space-y-3">
+          <button
+            onClick={handleCopyLink}
+            className="w-full px-4 py-3 flex items-center gap-3 hover:bg-muted transition-colors rounded-lg text-left border border-border"
+          >
+            {copied ? (
+              <>
+                <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
+                <span className="text-sm text-green-500">コピーしました！</span>
+              </>
+            ) : (
+              <>
+                <Link2 className="w-5 h-5 flex-shrink-0" />
+                <span className="text-sm">リンクをコピー</span>
+              </>
+            )}
+          </button>
 
-          {/* Dropdown menu */}
-          <div className="absolute right-0 top-full mt-2 w-56 bg-card border border-border rounded-lg shadow-lg z-20 overflow-hidden">
-            <button
-              onClick={handleCopyLink}
-              className="w-full px-4 py-3 flex items-center gap-3 hover:bg-muted transition-colors text-left"
-            >
-              {copied ? (
-                <>
-                  <Check className="w-4 h-4 text-green-500" />
-                  <span className="text-sm text-green-500">コピーしました！</span>
-                </>
-              ) : (
-                <>
-                  <Link2 className="w-4 h-4" />
-                  <span className="text-sm">リンクをコピー</span>
-                </>
-              )}
-            </button>
-
-            <button
-              onClick={handleDownloadImage}
-              className="w-full px-4 py-3 flex items-center gap-3 hover:bg-muted transition-colors text-left border-t border-border"
-            >
-              <Download className="w-4 h-4" />
-              <span className="text-sm">画像をダウンロード</span>
-            </button>
-          </div>
-        </>
-      )}
-    </div>
+          <button
+            onClick={handleDownloadImage}
+            className="w-full px-4 py-3 flex items-center gap-3 hover:bg-muted transition-colors rounded-lg text-left border border-border"
+          >
+            <Download className="w-5 h-5 flex-shrink-0" />
+            <span className="text-sm">画像をダウンロード</span>
+          </button>
+        </div>
+      </DraggableModal>
+    </>
   );
 }
