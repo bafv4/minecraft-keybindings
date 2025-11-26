@@ -1,8 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { Disclosure, Transition } from '@headlessui/react';
-import { ChevronDownIcon } from '@heroicons/react/24/outline';
 import { formatKeyName, formatKeyNameShort, calculateCursorSpeed, CustomKeyInfo } from '@/lib/utils';
 import { getLanguageName } from '@/lib/languages';
 import type { PlayerSettings, FingerAssignments, CustomKey } from '@/types/player';
@@ -142,7 +140,7 @@ export function KeybindingDisplay({
   return (
     <div className="space-y-6">
       {/* Overview */}
-      <section className="bg-card rounded-2xl border border-border shadow-sm p-6">
+      <div>
         <h2 className="text-2xl font-bold mb-4">Overview</h2>
         <div className="space-y-4">
           {/* 移動 */}
@@ -342,10 +340,10 @@ export function KeybindingDisplay({
             </div>
           </div>
         </div>
-      </section>
+      </div>
 
       {/* 仮想キーボード */}
-      <section className="bg-card rounded-2xl border border-border shadow-sm p-6">
+      <div>
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-2xl font-bold">キー配置</h2>
           <div className="flex items-center gap-2">
@@ -385,35 +383,18 @@ export function KeybindingDisplay({
           keyboardLayout={(settings.keyboardLayout as 'JIS' | 'US') || 'JIS'}
           customKeys={customKeysData}
         />
-      </section>
+      </div>
 
       {/* リマップ設定 */}
       {Object.keys(remappingsData).length > 0 && (
-        <Disclosure>
-          {({ open }) => (
-            <section className="bg-card rounded-xl border border-[rgb(var(--border))] shadow-sm overflow-hidden">
-              <Disclosure.Button className="flex w-full items-center justify-between p-6 text-left hover:bg-[rgb(var(--muted))]/30 transition-colors">
-                <div>
-                  <h2 className="text-xl font-bold">リマップ設定</h2>
-                  <p className="text-sm text-[rgb(var(--muted-foreground))] mt-1">
-                    ハードウェアレベルまたはドライバーレベルでのキー割り当て変更
-                  </p>
-                </div>
-                <ChevronDownIcon
-                  className={`${
-                    open ? 'rotate-180 transform' : ''
-                  } h-6 w-6 text-muted-foreground transition-transform duration-200`}
-                />
-              </Disclosure.Button>
-              <Transition
-                enter="transition duration-100 ease-out"
-                enterFrom="transform scale-95 opacity-0"
-                enterTo="transform scale-100 opacity-100"
-                leave="transition duration-75 ease-out"
-                leaveFrom="transform scale-100 opacity-100"
-                leaveTo="transform scale-95 opacity-0"
-              >
-                <Disclosure.Panel className="px-6 pb-6">
+        <div>
+          <div className="mb-4">
+            <h2 className="text-xl font-bold">リマップ設定</h2>
+            <p className="text-sm text-[rgb(var(--muted-foreground))] mt-1">
+              ハードウェアレベルまたはドライバーレベルでのキー割り当て変更
+            </p>
+          </div>
+          <div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {Object.entries(remappingsData).map(([from, to]) => (
                       <div key={from} className="flex items-center gap-3 p-3 bg-[rgb(var(--muted))]/50 rounded-lg border border-[rgb(var(--border))]">
@@ -435,40 +416,20 @@ export function KeybindingDisplay({
                       </div>
                     ))}
                   </div>
-                </Disclosure.Panel>
-              </Transition>
-            </section>
-          )}
-        </Disclosure>
+          </div>
+        </div>
       )}
 
       {/* 外部ツール */}
       {Object.keys(flattenedExternalTools).length > 0 && (
-        <Disclosure>
-          {({ open }) => (
-            <section className="bg-card rounded-xl border border-[rgb(var(--border))] shadow-sm overflow-hidden">
-              <Disclosure.Button className="flex w-full items-center justify-between p-6 text-left hover:bg-[rgb(var(--muted))]/30 transition-colors">
-                <div>
-                  <h2 className="text-xl font-bold">外部ツール・Modキー設定</h2>
-                  <p className="text-sm text-[rgb(var(--muted-foreground))] mt-1">
-                    JingleやAutoHotKeyなどの外部ツールによるアクション設定。SeedQueueの設定。
-                  </p>
-                </div>
-                <ChevronDownIcon
-                  className={`${
-                    open ? 'rotate-180 transform' : ''
-                  } h-6 w-6 text-muted-foreground transition-transform duration-200`}
-                />
-              </Disclosure.Button>
-              <Transition
-                enter="transition duration-100 ease-out"
-                enterFrom="transform scale-95 opacity-0"
-                enterTo="transform scale-100 opacity-100"
-                leave="transition duration-75 ease-out"
-                leaveFrom="transform scale-100 opacity-100"
-                leaveTo="transform scale-95 opacity-0"
-              >
-                <Disclosure.Panel className="px-6 pb-6">
+        <div>
+          <div className="mb-4">
+            <h2 className="text-xl font-bold">外部ツール・Modキー設定</h2>
+            <p className="text-sm text-[rgb(var(--muted-foreground))] mt-1">
+              JingleやAutoHotKeyなどの外部ツールによるアクション設定。SeedQueueの設定。
+            </p>
+          </div>
+          <div>
                   <div className="space-y-3">
                     {Object.entries(flattenedExternalTools).map(([keyCode, action]) => (
                       <div key={keyCode} className="bg-[rgb(var(--background))] p-3 rounded-lg border border-[rgb(var(--border))]">
@@ -492,11 +453,8 @@ export function KeybindingDisplay({
                       </div>
                     ))}
                   </div>
-                </Disclosure.Panel>
-              </Transition>
-            </section>
-          )}
-        </Disclosure>
+          </div>
+        </div>
       )}
     </div>
   );

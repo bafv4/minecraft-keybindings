@@ -81,7 +81,7 @@ export function PlayerPageContent({
         }`}
       >
         <div className="container mx-auto px-4 pt-3">
-          <div className="bg-gradient-to-r from-primary/5 via-secondary/5 to-transparent backdrop-blur-sm border border-border rounded-lg shadow-lg">
+          <div className="bg-gradient-to-r from-primary/20 via-secondary/20 to-primary/10 backdrop-blur-lg border border-border rounded-lg shadow-lg">
             {/* コンパクトプレイヤー情報 */}
             <div className="flex items-center gap-3 px-4 py-3 border-b border-border">
               <MinecraftAvatar
