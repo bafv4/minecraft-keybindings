@@ -1,7 +1,5 @@
 'use client';
 
-import { Disclosure, Transition } from '@headlessui/react';
-import { ChevronDownIcon } from '@heroicons/react/24/outline';
 import { HotbarSlot } from '@/components/HotbarSlot';
 import { minecraftToWeb } from '@/lib/keyConversion';
 import { createRemapMap, resolveSearchStrToKeys } from '@/lib/remapUtils';
@@ -35,16 +33,16 @@ interface SearchCraftDisplayProps {
 // 指ごとの色定義
 const getFingerColor = (finger: Finger): string => {
   const colorMap: Record<Finger, string> = {
-    'left-pinky': 'bg-pink-400 border-pink-600 dark:bg-pink-300/40 dark:border-pink-400',
-    'left-ring': 'bg-purple-400 border-purple-600 dark:bg-purple-300/40 dark:border-purple-400',
-    'left-middle': 'bg-blue-400 border-blue-600 dark:bg-blue-300/40 dark:border-blue-400',
-    'left-index': 'bg-green-400 border-green-600 dark:bg-green-300/40 dark:border-green-400',
-    'left-thumb': 'bg-yellow-400 border-yellow-600 dark:bg-yellow-300/40 dark:border-yellow-400',
-    'right-thumb': 'bg-orange-400 border-orange-600 dark:bg-orange-300/40 dark:border-orange-400',
-    'right-index': 'bg-red-400 border-red-600 dark:bg-red-300/40 dark:border-red-400',
-    'right-middle': 'bg-rose-400 border-rose-600 dark:bg-rose-300/40 dark:border-rose-400',
-    'right-ring': 'bg-indigo-400 border-indigo-600 dark:bg-indigo-300/40 dark:border-indigo-400',
-    'right-pinky': 'bg-cyan-400 border-cyan-600 dark:bg-cyan-300/40 dark:border-cyan-400',
+    'left-pinky': 'bg-pink-400 border-pink-600 dark:bg-pink-400 dark:border-pink-500',
+    'left-ring': 'bg-purple-400 border-purple-600 dark:bg-purple-400 dark:border-purple-500',
+    'left-middle': 'bg-blue-400 border-blue-600 dark:bg-blue-400 dark:border-blue-500',
+    'left-index': 'bg-green-400 border-green-600 dark:bg-green-400 dark:border-green-500',
+    'left-thumb': 'bg-yellow-400 border-yellow-600 dark:bg-yellow-400 dark:border-yellow-500',
+    'right-thumb': 'bg-orange-400 border-orange-600 dark:bg-orange-400 dark:border-orange-500',
+    'right-index': 'bg-red-400 border-red-600 dark:bg-red-400 dark:border-red-500',
+    'right-middle': 'bg-rose-400 border-rose-600 dark:bg-rose-400 dark:border-rose-500',
+    'right-ring': 'bg-indigo-400 border-indigo-600 dark:bg-indigo-400 dark:border-indigo-500',
+    'right-pinky': 'bg-cyan-400 border-cyan-600 dark:bg-cyan-400 dark:border-cyan-500',
   };
   return colorMap[finger];
 };
@@ -190,144 +188,139 @@ export function SearchCraftDisplay({ searchCrafts, keyRemaps = [], fingerAssignm
   };
 
   return (
-    <Disclosure defaultOpen>
-      {({ open }) => (
-        <section className="bg-card rounded-2xl border border-border shadow-sm">
-          <Disclosure.Button className="flex w-full items-center justify-between p-6 text-left hover:bg-[rgb(var(--muted))]/30 transition-colors">
-            <div>
-              <h2 className="text-xl font-bold">サーチクラフト設定</h2>
-              <p className="text-sm text-muted-foreground mt-1">
-                クラフトアイテムと入力キー設定
-              </p>
-            </div>
-            <ChevronDownIcon
-              className={`${
-                open ? 'rotate-180 transform' : ''
-              } h-6 w-6 text-muted-foreground transition-transform duration-200`}
-            />
-          </Disclosure.Button>
-          <Transition
-            enter="transition duration-100 ease-out"
-            enterFrom="transform scale-95 opacity-0"
-            enterTo="transform scale-100 opacity-100"
-            leave="transition duration-75 ease-out"
-            leaveFrom="transform scale-100 opacity-100"
-            leaveTo="transform scale-95 opacity-0"
-          >
-            <Disclosure.Panel className="px-6 pb-6">
-              <div className="space-y-3">
-                {searchCrafts.map((craft) => {
-                  const items = [craft.item1, craft.item2, craft.item3].filter(Boolean) as string[];
+    <div>
+      <h2 className="text-xl font-bold mb-4">サーチクラフト設定</h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        {searchCrafts.map((craft) => {
+          const items = [craft.item1, craft.item2, craft.item3].filter(Boolean) as string[];
 
-                  // searchStr がある場合はそれを使用、ない場合は key1-key4 をフォールバック
-                  let keys: string[];
-                  if (craft.searchStr && craft.searchStr.trim() !== '') {
-                    // searchStr からリマップ前のキーを特定
-                    try {
-                      keys = resolveSearchStrToKeys(craft.searchStr, remapMap);
-                      // 空の結果の場合はフォールバックを使用
-                      if (keys.length === 0) {
-                        keys = [craft.key1, craft.key2, craft.key3, craft.key4].filter(Boolean) as string[];
-                      }
-                    } catch (error) {
-                      console.error('Failed to resolve searchStr:', error);
-                      // エラーの場合は key1-key4 をフォールバック
-                      keys = [craft.key1, craft.key2, craft.key3, craft.key4].filter(Boolean) as string[];
-                    }
-                  } else {
-                    // 後方互換性: key1-key4 を使用
-                    keys = [craft.key1, craft.key2, craft.key3, craft.key4].filter(Boolean) as string[];
-                  }
+          // searchStr がある場合はそれを使用、ない場合は key1-key4 をフォールバック
+          let keys: string[];
+          if (craft.searchStr && craft.searchStr.trim() !== '') {
+            // searchStr からリマップ前のキーを特定
+            try {
+              keys = resolveSearchStrToKeys(craft.searchStr, remapMap);
+              // 空の結果の場合はフォールバックを使用
+              if (keys.length === 0) {
+                keys = [craft.key1, craft.key2, craft.key3, craft.key4].filter(Boolean) as string[];
+              }
+            } catch (error) {
+              console.error('Failed to resolve searchStr:', error);
+              // エラーの場合は key1-key4 をフォールバック
+              keys = [craft.key1, craft.key2, craft.key3, craft.key4].filter(Boolean) as string[];
+            }
+          } else {
+            // 後方互換性: key1-key4 を使用
+            keys = [craft.key1, craft.key2, craft.key3, craft.key4].filter(Boolean) as string[];
+          }
 
-                  return (
-                    <div key={craft.id} className="bg-background/50 rounded-lg border border-border/50 p-3 space-y-3">
-                      <div className="grid items-center gap-4" style={{ gridTemplateColumns: '208px 1fr' }}>
-                        {/* アイテム画像 */}
-                        <div className="flex gap-2">
-                          {items.map((itemId, idx) => (
-                            <HotbarSlot
-                              key={idx}
-                              items={[itemId]}
-                              size={64}
-                              editable={false}
-                            />
-                          ))}
-                        </div>
+          return (
+            <div
+              key={craft.id}
+              className="bg-stone-200/80 dark:bg-muted/50 rounded-xl border border-border p-4"
+            >
+              {/* クラフトテーブル風レイアウト */}
+              <div className="flex items-stretch gap-3">
+                {/* キーシーケンス（サーチ入力） */}
+                <div className="flex-shrink-0 flex flex-col">
+                  <div className="text-[10px] text-muted-foreground font-medium mb-1">サーチ</div>
+                  <div className="flex gap-1 flex-1 items-center">
+                    {keys.map((keyCode, idx) => {
+                      const remapInfo = getRemapInfo(keyCode);
+                      const fingers = getFingerInfo(keyCode);
+                      const hasRemap = !!remapInfo;
 
-                        {/* 押すキー */}
-                        <div className="flex gap-2 flex-wrap border-l border-border pl-4">
-                          {keys.map((keyCode, idx) => {
-                            const remapInfo = getRemapInfo(keyCode);
-                            const fingers = getFingerInfo(keyCode);
-                            const hasRemap = !!remapInfo;
-
-                            return (
-                              <div
-                                key={idx}
-                                className="w-16 h-16 rounded border text-sm font-medium relative bg-gray-900/10 border-gray-900 dark:bg-gray-100/10 dark:border-gray-100"
-                              >
-                                {/* リマップ表示 */}
-                                {hasRemap && remapInfo && remapInfo.targetKey ? (
-                                  <div className="absolute top-1 left-1.5 text-xs flex flex-col gap-0 items-start">
-                                    <span className="text-[10px] opacity-40 leading-tight">
-                                      {formatKeyLabel(keyCode)}
-                                    </span>
-                                    <span className="text-lg font-bold leading-tight">
-                                      {formatKeyLabel(remapInfo.targetKey)}
-                                    </span>
-                                  </div>
-                                ) : (
-                                  <div className="absolute top-1.5 left-2 text-lg">
-                                    {formatKeyLabel(keyCode)}
-                                  </div>
-                                )}
-
-                                {/* 指のチップ表示 */}
-                                {fingers.length > 0 && (
-                                  <div className="absolute top-1.5 right-1.5 flex gap-0.5">
-                                    {fingers.map((finger, fingerIdx) => (
-                                      <div
-                                        key={fingerIdx}
-                                        className={`w-2.5 h-2.5 rounded-full border ${getFingerColor(finger)}`}
-                                        title={(() => {
-                                          const fingerLabels: Record<string, string> = {
-                                            'left-pinky': '左手小指',
-                                            'left-ring': '左手薬指',
-                                            'left-middle': '左手中指',
-                                            'left-index': '左手人差し指',
-                                            'left-thumb': '左手親指',
-                                            'right-thumb': '右手親指',
-                                            'right-index': '右手人差し指',
-                                            'right-middle': '右手中指',
-                                            'right-ring': '右手薬指',
-                                            'right-pinky': '右手小指',
-                                          };
-                                          return fingerLabels[finger] || finger;
-                                        })()}
-                                      />
-                                    ))}
-                                  </div>
-                                )}
+                      return (
+                        <div
+                          key={idx}
+                          className="w-12 h-12 rounded border text-sm font-medium relative bg-gray-900/10 border-gray-900 dark:bg-gray-100/10 dark:border-gray-100 flex items-center justify-center"
+                        >
+                            {/* リマップ表示 */}
+                            {hasRemap && remapInfo && remapInfo.targetKey ? (
+                              <div className="flex flex-col items-center gap-0">
+                                <span className="text-[9px] opacity-40 leading-tight">
+                                  {formatKeyLabel(keyCode)}
+                                </span>
+                                <span className="text-base font-bold leading-tight">
+                                  {formatKeyLabel(remapInfo.targetKey)}
+                                </span>
                               </div>
-                            );
-                          })}
-                        </div>
-                      </div>
+                            ) : (
+                              <span className="text-base font-semibold">
+                                {formatKeyLabel(keyCode)}
+                              </span>
+                            )}
 
-                      {/* コメント（ある場合のみ表示） */}
-                      {craft.comment && (
-                        <p className="text-sm">
-                          {craft.comment}
-                        </p>
-                      )}
+                            {/* 指のチップ表示 */}
+                            {fingers.length > 0 && (
+                              <div className="absolute -top-1 -right-1 flex gap-0.5">
+                                {fingers.map((finger, fingerIdx) => (
+                                  <div
+                                    key={fingerIdx}
+                                    className={`w-2.5 h-2.5 rounded-full border ${getFingerColor(finger)}`}
+                                    title={(() => {
+                                      const fingerLabels: Record<string, string> = {
+                                        'left-pinky': '左手小指',
+                                        'left-ring': '左手薬指',
+                                        'left-middle': '左手中指',
+                                        'left-index': '左手人差し指',
+                                        'left-thumb': '左手親指',
+                                        'right-thumb': '右手親指',
+                                        'right-index': '右手人差し指',
+                                        'right-middle': '右手中指',
+                                        'right-ring': '右手薬指',
+                                        'right-pinky': '右手小指',
+                                      };
+                                      return fingerLabels[finger] || finger;
+                                    })()}
+                                  />
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
-                  );
-                })}
+                </div>
+
+                {/* 矢印 */}
+                <div className="flex-shrink-0 text-stone-500 dark:text-stone-400 flex flex-col justify-center pt-4">
+                  <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                  </svg>
+                </div>
+
+                {/* アイテムスロット（結果） */}
+                <div className="flex-1 min-w-0 flex flex-col">
+                  <div className="text-[10px] text-muted-foreground font-medium mb-1">アイテム</div>
+                  <div className="flex gap-1 flex-1 items-center">
+                    {items.map((itemId, idx) => (
+                      <div
+                        key={idx}
+                        className="w-12 h-12 rounded border bg-gray-900/10 border-gray-900 dark:bg-gray-100/10 dark:border-gray-100 flex items-center justify-center"
+                      >
+                        <HotbarSlot
+                          items={[itemId]}
+                          size={44}
+                          editable={false}
+                          hideBackground
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
-            </Disclosure.Panel>
-          </Transition>
-        </section>
-      )}
-    </Disclosure>
+
+              {/* コメント（ある場合のみ表示） */}
+              {craft.comment && (
+                <p className="text-sm text-muted-foreground mt-3 pl-1">
+                  {craft.comment}
+                </p>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
 }

@@ -6,7 +6,6 @@ import { ShareButton } from './ShareButton';
 import { KeybindingDisplay } from './KeybindingDisplay';
 import { ItemLayoutsDisplay } from './ItemLayoutsDisplay';
 import { SearchCraftDisplay } from './SearchCraftDisplay';
-import { getLanguageName } from '@/lib/languages';
 
 interface PlayerPageContentProps {
   user: {
@@ -24,7 +23,7 @@ interface PlayerPageContentProps {
   searchCrafts: any[];
 }
 
-type TabName = 'overview' | 'keyboard' | 'remappings' | 'externaltools' | 'items' | 'searchcraft';
+type TabName = 'overview' | 'environment' | 'keyboard' | 'remappings' | 'externaltools' | 'items' | 'searchcraft';
 
 export function PlayerPageContent({
   user,
@@ -39,13 +38,8 @@ export function PlayerPageContent({
   const [activeTab, setActiveTab] = useState<TabName>('overview');
   const showDisplayName = user.displayName && user.displayName.trim() !== '';
 
-  // 環境設定の存在チェック
-  const hasPlayerConfig = settings && (
-    settings.gameLanguage ||
-    settings.mouseModel ||
-    settings.keyboardModel ||
-    settings.notes
-  );
+  // コメントの存在チェック
+  const hasNotes = settings?.notes && settings.notes.trim() !== '';
 
   // リマップ設定と外部ツールの存在チェック
   const hasRemappings = rawKeyRemaps && rawKeyRemaps.length > 0;
@@ -57,6 +51,10 @@ export function PlayerPageContent({
     {
       name: 'overview' as TabName,
       label: 'Overview',
+    },
+    {
+      name: 'environment' as TabName,
+      label: '環境・設定',
     },
     {
       name: 'keyboard' as TabName,
@@ -81,96 +79,73 @@ export function PlayerPageContent({
   ];
 
   return (
-    <div className="pb-6 space-y-4">
-      {/* プレイヤー情報＆タブカード */}
-      <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
-        {/* プレイヤー情報ヘッダー */}
-        <div className="bg-gradient-to-r from-primary/5 via-secondary/5 to-transparent border-b border-border py-6 px-6">
-          <div className="relative">
-            {/* 共有ボタン */}
-            <div className="absolute top-0 right-0">
-              <ShareButton mcid={user.mcid} />
-            </div>
+    <div className="flex flex-col flex-1 min-h-0 gap-4 pb-4">
+      {/* プレイヤー情報カード */}
+      <div className="bg-gradient-to-r from-primary/5 via-secondary/5 to-transparent rounded-2xl border border-border shadow-sm p-4 md:p-6 flex-shrink-0">
+        <div className="flex items-start gap-4 md:gap-6">
+          {/* アバター */}
+          <div className="relative flex-shrink-0">
+            <div className="absolute inset-0 bg-gradient-to-br from-primary to-secondary rounded-2xl blur-xl opacity-30"></div>
+            <MinecraftAvatar
+              uuid={user.uuid}
+              mcid={user.mcid}
+              size={64}
+              className="md:w-20 md:h-20"
+              priority
+            />
+          </div>
 
-            {/* プレイヤー情報 */}
-            <div className="flex items-center gap-6">
-              <div className="relative flex-shrink-0">
-                <div className="absolute inset-0 bg-gradient-to-br from-primary to-secondary rounded-2xl blur-xl opacity-30"></div>
-                <MinecraftAvatar
-                  uuid={user.uuid}
-                  mcid={user.mcid}
-                  size={96}
-                  priority
-                />
-              </div>
-              <div className="flex-1 min-w-0 pr-12">
-                <div className="flex items-center gap-3 flex-wrap">
-                  <h1 className="text-4xl font-bold text-foreground truncate">
-                    {showDisplayName ? user.displayName : user.mcid}
-                  </h1>
-                  {user.isGuest && (
-                    <span className="text-xs px-2.5 py-1 rounded bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/50 font-bold">
-                      GUEST
-                    </span>
-                  )}
-                </div>
-                {showDisplayName && user.displayName !== user.mcid && (
-                  <p className="text-lg text-muted-foreground mt-1">
-                    {user.mcid}
-                  </p>
-                )}
-              </div>
+          {/* 名前・MCID */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 md:gap-3 flex-wrap">
+              <h1 className="text-2xl md:text-3xl font-bold text-foreground truncate">
+                {showDisplayName ? user.displayName : user.mcid}
+              </h1>
+              {user.isGuest && (
+                <span className="text-xs px-2 py-0.5 rounded bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/50 font-bold">
+                  GUEST
+                </span>
+              )}
             </div>
-
-            {/* 環境設定 */}
-            {hasPlayerConfig && (
-              <div className="border-t border-border/50 pt-6 mt-6 space-y-3">
-                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-                  環境
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {settings.gameLanguage && (
-                    <div className="flex items-center gap-2 text-sm">
-                      <span className="text-muted-foreground">言語:</span>
-                      <span className="font-medium">{getLanguageName(settings.gameLanguage)}</span>
-                    </div>
-                  )}
-                  {settings.mouseModel && (
-                    <div className="flex items-center gap-2 text-sm">
-                      <span className="text-muted-foreground">マウス:</span>
-                      <span className="font-medium">{settings.mouseModel}</span>
-                    </div>
-                  )}
-                  {settings.keyboardModel && (
-                    <div className="flex items-center gap-2 text-sm">
-                      <span className="text-muted-foreground">キーボード:</span>
-                      <span className="font-medium">{settings.keyboardModel}</span>
-                    </div>
-                  )}
-                </div>
-                {settings.notes && (
-                  <div className="bg-background/50 p-5 rounded-lg border border-border">
-                    <p className="text-sm font-semibold text-muted-foreground mb-2">コメント</p>
-                    <p className="text-sm whitespace-pre-wrap">{settings.notes}</p>
-                  </div>
-                )}
-              </div>
+            {showDisplayName && user.displayName !== user.mcid && (
+              <p className="text-sm md:text-base text-muted-foreground mt-0.5">
+                {user.mcid}
+              </p>
             )}
+          </div>
+
+          {/* 共有ボタン */}
+          <div className="flex-shrink-0">
+            <ShareButton mcid={user.mcid} />
           </div>
         </div>
 
+        {/* コメント（吹き出し風） - アバターの下まで表示 */}
+        {hasNotes && (
+          <div className="mt-4 relative">
+            {/* 三角形：アバター方向を指す */}
+            <div className="absolute -top-2 left-6 md:left-8 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-b-[8px] border-b-stone-200/80 dark:border-b-muted/50"></div>
+            <div className="bg-stone-200/80 dark:bg-muted/50 rounded-lg px-3 py-2 text-sm whitespace-pre-wrap">
+              {settings.notes}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* メインカード（タブ＋コンテンツ） */}
+      <div className="bg-gradient-to-r from-primary/5 via-secondary/5 to-transparent rounded-2xl border border-border shadow-sm flex-1 min-h-0 flex flex-col overflow-hidden">
         {/* タブナビゲーション */}
         {settings && (
-          <div className="bg-gradient-to-r from-primary/5 via-secondary/5 to-transparent">
+          <div className="border-b border-border flex-shrink-0">
             <div className="overflow-x-auto">
-              <div className="flex gap-1 p-1">
+              <div className="flex gap-1 p-2">
                 {tabs.map((tab) => (
                   <button
                     key={tab.name}
                     onClick={() => setActiveTab(tab.name)}
                     className={`px-4 py-2.5 rounded-lg text-sm font-medium transition-all whitespace-nowrap flex-shrink-0 ${
                       activeTab === tab.name
-                        ? 'bg-gradient-to-r from-primary to-secondary text-primary-foreground shadow-sm'
+                        ? 'bg-gradient-to-r from-blue-500 to-sky-400 text-white shadow-sm'
                         : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
                     }`}
                   >
@@ -181,10 +156,9 @@ export function PlayerPageContent({
             </div>
           </div>
         )}
-      </div>
 
-      {/* メインコンテンツカード */}
-      <div className="bg-card rounded-2xl border border-border shadow-sm p-6">
+        {/* コンテンツエリア（スクロール可能） */}
+        <div className="flex-1 overflow-auto p-4 md:p-6">
           {settings ? (
             <>
               {activeTab === 'overview' && (
@@ -195,6 +169,16 @@ export function PlayerPageContent({
                   keyRemaps={rawKeyRemaps}
                   externalTools={rawExternalTools}
                   section="overview"
+                />
+              )}
+              {activeTab === 'environment' && (
+                <KeybindingDisplay
+                  settings={settings as any}
+                  keybindings={rawKeybindings}
+                  customKeys={rawCustomKeys}
+                  keyRemaps={rawKeyRemaps}
+                  externalTools={rawExternalTools}
+                  section="environment"
                 />
               )}
               {activeTab === 'keyboard' && (
@@ -276,6 +260,7 @@ export function PlayerPageContent({
               </p>
             </div>
           )}
+        </div>
       </div>
     </div>
   );

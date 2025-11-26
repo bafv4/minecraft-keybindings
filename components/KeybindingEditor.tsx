@@ -9,7 +9,6 @@ import type { PlayerSettings, Finger, FingerAssignments, CustomKey } from '@/typ
 import { VirtualKeyboard } from './VirtualKeyboard';
 import { ItemLayoutEditor } from './ItemLayoutEditor';
 import { SearchCraftEditor, type SearchCraftEditorRef } from './SearchCraftEditor';
-import { TabContainer } from './TabContainer';
 import { Input, Textarea, Button } from '@/components/ui';
 import { Combobox } from '@/components/ui/Combobox';
 import { RadioGroup } from '@/components/ui/RadioGroup';
@@ -801,206 +800,236 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
     }
   };
 
+  // タブの定義
+  const tabs = [
+    { name: 'player-env', label: 'プレイヤー環境' },
+    { name: 'keyboard', label: 'キーボード設定' },
+    { name: 'mouse-game', label: 'マウス・ゲーム設定' },
+    { name: 'items', label: 'アイテム配置' },
+    { name: 'searchcraft', label: 'サーチクラフト' },
+  ];
+
+  const [activeTab, setActiveTab] = useState('player-env');
+
   return (
-    <div className="pb-32">
-      <TabContainer
-        tabs={[
-          {
-            name: 'player-info',
-            label: 'プレイヤー情報',
-            content: (
-              <section className="bg-[rgb(var(--card))] p-6 rounded-lg border border-[rgb(var(--border))]">
-                <h2 className="text-xl font-bold mb-4">プレイヤー情報</h2>
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <Input
-                      label="表示名"
-                      type="text"
-                      value={displayName}
-                      onChange={(e) => setDisplayName(e.target.value)}
-                      placeholder="表示名を入力"
-                    />
-                    <div className="flex flex-col gap-1">
-                      <label className="font-semibold">MCID</label>
-                      <div className="flex gap-2">
-                        <input
-                          type="text"
-                          value={currentMcid}
-                          readOnly
-                          className="flex-1 min-w-0 px-3 py-2 border rounded bg-[rgb(var(--muted))] text-[rgb(var(--muted-foreground))] cursor-not-allowed"
-                        />
-                        <Button
-                          onClick={handleSyncMcid}
-                          disabled={syncingMcid}
-                          size="sm"
-                          className="whitespace-nowrap flex-shrink-0"
-                          title="Mojang APIから最新のMCIDを取得"
-                        >
-                          {syncingMcid ? '同期中...' : '同期'}
-                        </Button>
-                      </div>
-                      <p className="text-xs text-[rgb(var(--muted-foreground))] mt-1">
-                        MinecraftでIDを変更した場合は同期ボタンで更新できます
-                      </p>
-                    </div>
-                  </div>
+    <div className="flex flex-col flex-1 min-h-0 pb-32">
+      {/* プレイヤー情報カード（シンプル版） */}
+      <div className="bg-gradient-to-r from-primary/5 via-secondary/5 to-transparent rounded-2xl border border-border shadow-sm p-4 md:p-6 flex-shrink-0 mb-4">
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Input
+              label="表示名"
+              type="text"
+              value={displayName}
+              onChange={(e) => setDisplayName(e.target.value)}
+              placeholder="表示名を入力"
+            />
+            <div className="flex flex-col gap-1">
+              <label className="font-semibold">MCID</label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={currentMcid}
+                  readOnly
+                  className="flex-1 min-w-0 px-3 py-2 border rounded bg-[rgb(var(--muted))] text-[rgb(var(--muted-foreground))] cursor-not-allowed"
+                />
+                <Button
+                  onClick={handleSyncMcid}
+                  disabled={syncingMcid}
+                  size="sm"
+                  className="whitespace-nowrap flex-shrink-0"
+                  title="Mojang APIから最新のMCIDを取得"
+                >
+                  {syncingMcid ? '同期中...' : '同期'}
+                </Button>
+              </div>
+              <p className="text-xs text-[rgb(var(--muted-foreground))] mt-1">
+                MinecraftでIDを変更した場合は同期ボタンで更新できます
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
 
-                  {/* ゲーム内の言語 */}
-                  <Combobox
-                    label="ゲーム内の言語"
-                    value={gameLanguage}
-                    onChange={setGameLanguage}
-                    options={MINECRAFT_LANGUAGES}
-                    placeholder="言語を選択または入力"
-                    allowCustomValue={true}
-                    helpText={gameLanguage ? `現在の選択: ${MINECRAFT_LANGUAGES.find(l => l.value === gameLanguage)?.label || gameLanguage}` : undefined}
-                  />
+      {/* メインカード（タブ＋コンテンツ） */}
+      <div className="bg-gradient-to-r from-primary/5 via-secondary/5 to-transparent rounded-2xl border border-border shadow-sm flex-1 min-h-0 flex flex-col overflow-hidden">
+        {/* タブナビゲーション */}
+        <div className="border-b border-border flex-shrink-0">
+          <div className="overflow-x-auto">
+            <div className="flex gap-1 p-2">
+              {tabs.map((tab) => (
+                <button
+                  key={tab.name}
+                  onClick={() => setActiveTab(tab.name)}
+                  className={`px-4 py-2.5 rounded-lg text-sm font-medium transition-all whitespace-nowrap flex-shrink-0 ${
+                    activeTab === tab.name
+                      ? 'bg-gradient-to-r from-blue-500 to-sky-400 text-white shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
 
-                  {/* デバイス情報 */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label htmlFor="mouseModel" className="font-semibold text-base mb-2 block">マウス</label>
-                      <input
-                        id="mouseModel"
-                        type="text"
-                        value={mouseModel}
-                        onChange={(e) => setMouseModel(e.target.value)}
-                        placeholder="例: Logicool G Pro X Superlight"
-                        className="w-full px-3 py-2 text-base border border-[rgb(var(--border))] rounded bg-[rgb(var(--background))]"
-                      />
-                    </div>
+        {/* コンテンツエリア（スクロール可能） */}
+        <div className="flex-1 overflow-auto p-4 md:p-6">
+          {/* プレイヤー環境タブ */}
+          {activeTab === 'player-env' && (
+            <div className="space-y-6">
+              {/* ゲーム内の言語 */}
+              <Combobox
+                label="ゲーム内の言語"
+                value={gameLanguage}
+                onChange={setGameLanguage}
+                options={MINECRAFT_LANGUAGES}
+                placeholder="言語を選択または入力"
+                allowCustomValue={true}
+                helpText={gameLanguage ? `現在の選択: ${MINECRAFT_LANGUAGES.find(l => l.value === gameLanguage)?.label || gameLanguage}` : undefined}
+              />
 
-                    <div>
-                      <label htmlFor="keyboardModel" className="font-semibold text-base mb-2 block">キーボード</label>
-                      <input
-                        id="keyboardModel"
-                        type="text"
-                        value={keyboardModel}
-                        onChange={(e) => setKeyboardModel(e.target.value)}
-                        placeholder="例: Keychron K8 Pro"
-                        className="w-full px-3 py-2 text-base border border-[rgb(var(--border))] rounded bg-[rgb(var(--background))]"
-                      />
-                    </div>
-                  </div>
-
-                  {/* 自由使用欄 */}
-                  <Textarea
-                    id="notes"
-                    label="コメント"
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
-                    placeholder="その他のメモや補足情報など"
-                    rows={4}
-                    className="resize-y"
+              {/* デバイス情報 */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="mouseModel" className="font-semibold text-base mb-2 block">マウス</label>
+                  <input
+                    id="mouseModel"
+                    type="text"
+                    value={mouseModel}
+                    onChange={(e) => setMouseModel(e.target.value)}
+                    placeholder="例: Logicool G Pro X Superlight"
+                    className="w-full px-3 py-2 text-base border border-[rgb(var(--border))] rounded bg-[rgb(var(--background))]"
                   />
                 </div>
-              </section>
-            ),
-          },
-          {
-            name: 'keyboard',
-            label: 'キーボード設定',
-            content: (
-              <section className="bg-[rgb(var(--card))] p-6 rounded-lg border border-[rgb(var(--border))]">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-xl font-bold">キー配置設定</h2>
-                  <div className="flex items-center gap-2">
-                    <label className="text-sm font-medium">指の色分け表示</label>
-                    <Switch
-                      checked={showFingerColors}
-                      onChange={setShowFingerColors}
-                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
-                        showFingerColors ? 'bg-primary' : 'bg-[rgb(var(--border))]'
+
+                <div>
+                  <label htmlFor="keyboardModel" className="font-semibold text-base mb-2 block">キーボード</label>
+                  <input
+                    id="keyboardModel"
+                    type="text"
+                    value={keyboardModel}
+                    onChange={(e) => setKeyboardModel(e.target.value)}
+                    placeholder="例: Keychron K8 Pro"
+                    className="w-full px-3 py-2 text-base border border-[rgb(var(--border))] rounded bg-[rgb(var(--background))]"
+                  />
+                </div>
+              </div>
+
+              {/* 自由使用欄 */}
+              <Textarea
+                id="notes"
+                label="コメント"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="その他のメモや補足情報など"
+                rows={4}
+                className="resize-y"
+              />
+            </div>
+          )}
+
+          {/* キーボード設定タブ */}
+          {activeTab === 'keyboard' && (
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold">キー配置設定</h2>
+                <div className="flex items-center gap-2">
+                  <label className="text-sm font-medium">指の色分け表示</label>
+                  <Switch
+                    checked={showFingerColors}
+                    onChange={setShowFingerColors}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
+                      showFingerColors ? 'bg-primary' : 'bg-[rgb(var(--border))]'
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                        showFingerColors ? 'translate-x-6' : 'translate-x-1'
                       }`}
-                    >
-                      <span
-                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                          showFingerColors ? 'translate-x-6' : 'translate-x-1'
-                        }`}
-                      />
-                    </Switch>
-                  </div>
+                    />
+                  </Switch>
                 </div>
+              </div>
 
-                <RadioGroup
-                  label="キーボードレイアウト"
-                  value={keyboardLayout}
-                  onChange={(value) => setKeyboardLayout(value as 'JIS' | 'JIS-TKL' | 'US' | 'US-TKL')}
-                  options={KEYBOARD_LAYOUT_OPTIONS}
-                  orientation="horizontal"
-                  className="mb-4"
-                />
-                <p className="text-sm text-[rgb(var(--muted-foreground))] mb-4">
-                  キーをクリックして、操作の割り当て・指の割り当て・リマップ・外部ツールの設定を行えます
-                </p>
+              <RadioGroup
+                label="キーボードレイアウト"
+                value={keyboardLayout}
+                onChange={(value) => setKeyboardLayout(value as 'JIS' | 'JIS-TKL' | 'US' | 'US-TKL')}
+                options={KEYBOARD_LAYOUT_OPTIONS}
+                orientation="horizontal"
+                className="mb-4"
+              />
+              <p className="text-sm text-[rgb(var(--muted-foreground))] mb-4">
+                キーをクリックして、操作の割り当て・指の割り当て・リマップ・外部ツールの設定を行えます
+              </p>
 
-                <VirtualKeyboard
-                  bindings={bindings}
-                  mode="edit"
-                  remappings={remappings}
-                  externalTools={externalTools}
-                  fingerAssignments={fingerAssignments}
-                  showFingerColors={showFingerColors}
-                  onUpdateConfig={handleUpdateConfig}
-                  keyboardLayout={keyboardLayout}
-                  customKeys={customKeys}
-                  onAddCustomKey={(section, label) => {
-                    const newKey: CustomKey = {
-                      id: `custom-${section}-${Date.now()}`,
-                      label: label,
-                      keyCode: `key.custom.${section}.${customKeys.filter(k => k.keyCode.includes(`custom.${section}`)).length + 1}`
-                    };
-                    setCustomKeys([...customKeys, newKey]);
-                  }}
-                  onUpdateCustomKey={(keyCode, label) => {
-                    setCustomKeys(customKeys.map(key =>
-                      key.keyCode === keyCode ? { ...key, label } : key
-                    ));
-                  }}
-                  onDeleteCustomKey={(keyCode) => {
-                    setCustomKeys(customKeys.filter(key => key.keyCode !== keyCode));
-                  }}
-                />
-              </section>
-            ),
-          },
-          {
-            name: 'mouse-game',
-            label: 'マウス・ゲーム設定',
-            content: (
-              <>
-                {/* マウス設定 */}
-                <section className="bg-[rgb(var(--card))] p-6 rounded-lg border border-[rgb(var(--border))] mb-6">
-                  <h2 className="text-xl font-bold mb-4">マウス設定</h2>
-                  <div className="space-y-6">
-                    {/* DPI */}
-                    <div>
-                      <div className="flex justify-between items-center mb-2">
-                        <label className="font-semibold text-base">DPI</label>
-                        <input
-                          type="number"
-                          value={mouseDpi}
-                          onChange={(e) => setMouseDpi(e.target.value)}
-                          className="w-32 px-3 py-2 text-base border border-[rgb(var(--border))] rounded bg-[rgb(var(--background))] text-right [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                          placeholder="800"
-                        />
-                      </div>
+              <VirtualKeyboard
+                bindings={bindings}
+                mode="edit"
+                remappings={remappings}
+                externalTools={externalTools}
+                fingerAssignments={fingerAssignments}
+                showFingerColors={showFingerColors}
+                onUpdateConfig={handleUpdateConfig}
+                keyboardLayout={keyboardLayout}
+                customKeys={customKeys}
+                onAddCustomKey={(section, label) => {
+                  const newKey: CustomKey = {
+                    id: `custom-${section}-${Date.now()}`,
+                    label: label,
+                    keyCode: `key.custom.${section}.${customKeys.filter(k => k.keyCode.includes(`custom.${section}`)).length + 1}`
+                  };
+                  setCustomKeys([...customKeys, newKey]);
+                }}
+                onUpdateCustomKey={(keyCode, label) => {
+                  setCustomKeys(customKeys.map(key =>
+                    key.keyCode === keyCode ? { ...key, label } : key
+                  ));
+                }}
+                onDeleteCustomKey={(keyCode) => {
+                  setCustomKeys(customKeys.filter(key => key.keyCode !== keyCode));
+                }}
+              />
+            </div>
+          )}
+
+          {/* マウス・ゲーム設定タブ */}
+          {activeTab === 'mouse-game' && (
+            <>
+              {/* マウス設定 */}
+              <section className="mb-6">
+                <h2 className="text-xl font-bold mb-4">マウス設定</h2>
+                <div className="space-y-6">
+                  {/* DPI */}
+                  <div>
+                    <div className="flex justify-between items-center mb-2">
+                      <label className="font-semibold text-base">DPI</label>
                       <input
-                        type="range"
-                        min="100"
-                        max="16000"
-                        step="50"
-                        value={mouseDpi || 800}
+                        type="number"
+                        value={mouseDpi}
                         onChange={(e) => setMouseDpi(e.target.value)}
-                        className="w-full h-2 bg-[rgb(var(--muted))] rounded-lg appearance-none cursor-pointer"
+                        className="w-32 px-3 py-2 text-base border border-[rgb(var(--border))] rounded bg-[rgb(var(--background))] text-right [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        placeholder="800"
                       />
-                      <div className="flex justify-between text-xs text-[rgb(var(--muted-foreground))] mt-1">
-                        <span>100</span>
-                        <span>16000</span>
-                      </div>
                     </div>
+                    <input
+                      type="range"
+                      min="100"
+                      max="16000"
+                      step="50"
+                      value={mouseDpi || 800}
+                      onChange={(e) => setMouseDpi(e.target.value)}
+                      className="w-full h-2 bg-[rgb(var(--muted))] rounded-lg appearance-none cursor-pointer"
+                    />
+                    <div className="flex justify-between text-xs text-[rgb(var(--muted-foreground))] mt-1">
+                      <span>100</span>
+                      <span>16000</span>
+                    </div>
+                  </div>
 
-                    {/* ゲーム内感度 */}
+                  {/* ゲーム内感度 */}
                     <div>
                       <label className="font-semibold mb-2 block">感度（ゲーム内）</label>
 
@@ -1182,7 +1211,7 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
                 </section>
 
                 {/* 移動設定 */}
-                <section className="bg-[rgb(var(--card))] p-6 rounded-lg border border-[rgb(var(--border))]">
+                <section className="mt-6">
                   <h2 className="text-xl font-bold mb-4">移動設定</h2>
                   <div className="space-y-4">
                     {/* Sprint */}
@@ -1229,32 +1258,24 @@ export function KeybindingEditor({ initialSettings, uuid, mcid, displayName: ini
                   </div>
                 </section>
               </>
-            ),
-          },
-          {
-            name: 'item-layout',
-            label: 'アイテム配置',
-            content: (
-              <section className="bg-[rgb(var(--card))] p-6 rounded-lg border border-[rgb(var(--border))]">
+            )}
+
+            {/* アイテム配置タブ */}
+            {activeTab === 'items' && (
+              <div>
                 <h2 className="text-xl font-bold mb-4">アイテム配置設定</h2>
                 <ItemLayoutEditor uuid={uuid} ref={itemLayoutEditorRef} hideSaveButton />
-              </section>
-            ),
-          },
-          {
-            name: 'search-craft',
-            label: 'サーチクラフト設定',
-            content: (
-              <section className="bg-[rgb(var(--card))] p-6 rounded-lg border border-[rgb(var(--border))]">
-                <SearchCraftEditor uuid={uuid} ref={searchCraftEditorRef} hideSaveButton />
-              </section>
-            ),
-          },
-        ]}
-        defaultTab="keyboard"
-      />
+              </div>
+            )}
 
-      {/* リマップと外部ツールは仮想キーボードのモーダルから設定可能 */}
+            {/* サーチクラフトタブ */}
+            {activeTab === 'searchcraft' && (
+              <div>
+                <SearchCraftEditor uuid={uuid} ref={searchCraftEditorRef} hideSaveButton />
+              </div>
+            )}
+          </div>
+        </div>
 
       {/* 固定ボタンエリア */}
       <div className="fixed bottom-0 left-0 right-0 bg-[rgb(var(--background))]/95 backdrop-blur-sm border-t border-[rgb(var(--border))] z-40">

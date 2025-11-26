@@ -913,9 +913,9 @@ const VirtualKeyboardComponent = ({
   return (
     <div className="space-y-4">
       {/* キーボード本体 */}
-      <div className="bg-[rgb(var(--card))] p-6 rounded-lg border border-[rgb(var(--border))]">
+      <div className="bg-stone-200/80 dark:bg-muted/50 p-4 rounded-xl border border-border">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-sm font-semibold">キーボード ({keyboardLayout})</h3>
+          <h3 className="text-lg font-semibold text-foreground">キーボード ({keyboardLayout})</h3>
           {mode === 'edit' && (
             <div className="relative" data-menu>
               <button
@@ -1005,9 +1005,9 @@ const VirtualKeyboardComponent = ({
       {/* 編集キー・テンキー・マウス（3段組み） */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* 編集キー */}
-        <div className="bg-[rgb(var(--card))] p-6 rounded-lg border border-[rgb(var(--border))]">
+        <div className="bg-stone-200/80 dark:bg-muted/50 p-4 rounded-xl border border-border">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-semibold">編集キー</h3>
+            <h3 className="text-lg font-semibold text-foreground">編集キー</h3>
             {mode === 'edit' && (
               <div className="relative" data-menu>
                 <button
@@ -1094,9 +1094,9 @@ const VirtualKeyboardComponent = ({
 
         {/* テンキー（TKLでない場合のみ表示） */}
         {!isTenkeyless && (
-          <div className="bg-[rgb(var(--card))] p-6 rounded-lg border border-[rgb(var(--border))]">
+          <div className="bg-stone-200/80 dark:bg-muted/50 p-4 rounded-xl border border-border">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-semibold">テンキー</h3>
+              <h3 className="text-lg font-semibold text-foreground">テンキー</h3>
               {mode === 'edit' && (
                 <div className="relative" data-menu>
                   <button
@@ -1210,9 +1210,9 @@ const VirtualKeyboardComponent = ({
         )}
 
         {/* マウス */}
-        <div className="bg-[rgb(var(--card))] p-6 rounded-lg border border-[rgb(var(--border))]">
+        <div className="bg-stone-200/80 dark:bg-muted/50 p-4 rounded-xl border border-border">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-semibold">マウス</h3>
+            <h3 className="text-lg font-semibold text-foreground">マウス</h3>
             {mode === 'edit' && (
               <div className="relative" data-menu>
                 <button
