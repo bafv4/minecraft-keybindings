@@ -62,7 +62,7 @@ export function PlayerPageContent({
     },
     ...(hasRemappings ? [{
       name: 'remappings' as TabName,
-      label: 'リマップ設定',
+      label: 'リマップ',
     }] : []),
     ...(hasExternalTools ? [{
       name: 'externaltools' as TabName,
@@ -234,6 +234,7 @@ export function PlayerPageContent({
                   searchCrafts={searchCrafts}
                   keyRemaps={rawKeyRemaps}
                   fingerAssignments={(settings.fingerAssignments as any) || {}}
+                  gameLanguage={(settings as any).gameLanguage}
                 />
               )}
             </>
@@ -254,9 +255,9 @@ export function PlayerPageContent({
                   />
                 </svg>
               </div>
-              <p className="text-lg font-medium text-foreground mb-1">設定が登録されていません</p>
+              <p className="text-lg font-medium text-foreground mb-1">{`( > <;)`}</p>
               <p className="text-sm text-muted-foreground">
-                このプレイヤーはまだキーボード・マウス設定を登録していません
+                このプレイヤーはまだ設定を登録していません。
               </p>
             </div>
           )}

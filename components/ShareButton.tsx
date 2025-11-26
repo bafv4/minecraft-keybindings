@@ -11,6 +11,7 @@ interface ShareButtonProps {
 export function ShareButton({ mcid }: ShareButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
 
   const pageUrl = typeof window !== 'undefined' ? window.location.href : '';
   const ogImageUrl = `/player/${mcid}/opengraph-image`;
@@ -46,7 +47,10 @@ export function ShareButton({ mcid }: ShareButtonProps) {
   return (
     <>
       <button
-        onClick={() => setIsOpen(true)}
+        onClick={() => {
+          setImageLoaded(false);
+          setIsOpen(true);
+        }}
         className="p-2 rounded-lg hover:bg-muted transition-colors"
         aria-label="共有"
       >
@@ -60,7 +64,21 @@ export function ShareButton({ mcid }: ShareButtonProps) {
         subtitle="このページを共有する"
         maxWidth="md"
       >
-        <div className="px-6 py-4 space-y-3">
+        <div className="px-6 py-4 space-y-4">
+          {/* OG画像プレビュー */}
+          <div className="rounded-lg overflow-hidden border border-border bg-muted/50 relative">
+            {/* スケルトン */}
+            {!imageLoaded && (
+              <div className="aspect-[1200/630] w-full bg-muted animate-pulse" />
+            )}
+            <img
+              src={ogImageUrl}
+              alt={`${mcid}のキーバインド設定`}
+              className={`w-full h-auto ${imageLoaded ? '' : 'absolute inset-0 opacity-0'}`}
+              onLoad={() => setImageLoaded(true)}
+            />
+          </div>
+
           <button
             onClick={handleCopyLink}
             className="w-full px-4 py-3 flex items-center gap-3 hover:bg-muted transition-colors rounded-lg text-left border border-border"

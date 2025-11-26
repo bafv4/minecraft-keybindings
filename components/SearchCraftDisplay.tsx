@@ -2,6 +2,7 @@
 
 import { HotbarSlot } from '@/components/HotbarSlot';
 import { minecraftToWeb } from '@/lib/keyConversion';
+import { getLanguageName } from '@/lib/languages';
 import { createRemapMap, resolveSearchStrToKeys } from '@/lib/remapUtils';
 import type { Finger, FingerAssignments } from '@/types/player';
 
@@ -28,6 +29,7 @@ interface SearchCraftDisplayProps {
   searchCrafts: SearchCraft[];
   keyRemaps?: KeyRemapInfo[];
   fingerAssignments?: FingerAssignments;
+  gameLanguage?: string | null;
 }
 
 // 指ごとの色定義
@@ -141,10 +143,38 @@ const formatKeyLabel = (keyCode: string): string => {
   return keyCode;
 };
 
-export function SearchCraftDisplay({ searchCrafts, keyRemaps = [], fingerAssignments = {} }: SearchCraftDisplayProps) {
+// 指のラベル定義
+const fingerLabels: Record<Finger, string> = {
+  'left-pinky': '左小指',
+  'left-ring': '左薬指',
+  'left-middle': '左中指',
+  'left-index': '左人差指',
+  'left-thumb': '左親指',
+  'right-thumb': '右親指',
+  'right-index': '右人差指',
+  'right-middle': '右中指',
+  'right-ring': '右薬指',
+  'right-pinky': '右小指',
+};
+
+export function SearchCraftDisplay({ searchCrafts, keyRemaps = [], fingerAssignments = {}, gameLanguage }: SearchCraftDisplayProps) {
   if (!searchCrafts || searchCrafts.length === 0) {
     return null;
   }
+
+  // 使用されている指を収集
+  const usedFingers = new Set<Finger>();
+  searchCrafts.forEach(craft => {
+    const keys = craft.searchStr && craft.searchStr.trim() !== ''
+      ? [craft.key1, craft.key2, craft.key3, craft.key4].filter(Boolean) as string[]
+      : [craft.key1, craft.key2, craft.key3, craft.key4].filter(Boolean) as string[];
+    keys.forEach(keyCode => {
+      const webKeyCode = minecraftToWeb(keyCode);
+      const fingers = fingerAssignments[webKeyCode] || [];
+      fingers.forEach(finger => usedFingers.add(finger));
+    });
+  });
+  const hasFingerAssignments = usedFingers.size > 0;
 
   // リマップマップを作成（Web形式のキーコード）
   const remappings: Record<string, string> = {};
@@ -189,7 +219,30 @@ export function SearchCraftDisplay({ searchCrafts, keyRemaps = [], fingerAssignm
 
   return (
     <div>
-      <h2 className="text-xl font-bold mb-4">サーチクラフト設定</h2>
+      <div className="mb-4">
+        <h2 className="text-xl font-bold">サーチクラフト</h2>
+        {gameLanguage && (
+          <p className="text-sm text-muted-foreground mt-1">
+            ゲーム内言語: {getLanguageName(gameLanguage)}
+          </p>
+        )}
+      </div>
+
+      {/* 指の色の凡例 */}
+      {hasFingerAssignments && (
+        <div className="mb-4 flex items-center gap-3 text-xs text-muted-foreground">
+          <span className="font-medium">指の色分け:</span>
+          <div className="flex flex-wrap gap-x-4 gap-y-1">
+            {Array.from(usedFingers).sort().map(finger => (
+              <div key={finger} className="flex items-center gap-1">
+                <div className={`w-2.5 h-2.5 rounded-full border ${getFingerColor(finger)}`} />
+                <span>{fingerLabels[finger]}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
         {searchCrafts.map((craft) => {
           const items = [craft.item1, craft.item2, craft.item3].filter(Boolean) as string[];

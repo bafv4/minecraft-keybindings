@@ -397,7 +397,7 @@ export function KeybindingDisplay({
                 Object.keys(normalizedFingerAssignments).length === 0
                   ? 'bg-[rgb(var(--muted))] cursor-not-allowed opacity-50'
                   : showFingerColors
-                  ? 'bg-blue-600'
+                  ? 'bg-primary'
                   : 'bg-[rgb(var(--border))]'
               }`}
               title={Object.keys(normalizedFingerAssignments).length === 0 ? '指の割り当てがありません' : ''}
@@ -427,10 +427,7 @@ export function KeybindingDisplay({
       {(section === 'all' || section === 'remappings') && Object.keys(remappingsData).length > 0 && (
         <div>
           <div className="mb-4">
-            <h2 className="text-xl font-bold">リマップ設定</h2>
-            <p className="text-sm text-muted-foreground mt-1">
-              ハードウェアレベルまたはドライバーレベルでのキー割り当て変更
-            </p>
+            <h2 className="text-xl font-bold">リマップ</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {Object.entries(remappingsData).map(([from, to]) => (
@@ -461,9 +458,6 @@ export function KeybindingDisplay({
         <div>
           <div className="mb-4">
             <h2 className="text-xl font-bold">外部ツール・Modキー設定</h2>
-            <p className="text-sm text-muted-foreground mt-1">
-              JingleやAutoHotKeyなどの外部ツールによるアクション設定。SeedQueueの設定。
-            </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {Object.entries(flattenedExternalTools).map(([keyCode, action]) => (
