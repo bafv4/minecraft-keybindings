@@ -95,13 +95,13 @@ export function PlayerPageContent({
       {/* コンパクトヘッダー（スクロール時のみ表示） */}
       <div
         className={`fixed top-[3.5rem] md:top-20 left-0 right-0 z-40 transition-all duration-300 ${
-          showCompactHeader ? 'translate-y-0 opacity-100' : '-translate-y-[calc(100%+1rem)] opacity-0'
+          showCompactHeader ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'
         }`}
       >
-        <div className="container mx-auto px-4 pt-3">
-          <div className="bg-gradient-to-r from-primary/20 via-secondary/20 to-primary/10 backdrop-blur-lg border-2 border-border rounded-lg shadow-lg">
+        <div className="bg-gradient-to-r from-primary/20 via-secondary/20 to-primary/10 backdrop-blur-lg border-b-2 border-x-2 border-border rounded-b-lg shadow-lg">
+          <div className="container mx-auto px-4">
             {/* コンパクトプレイヤー情報 */}
-            <div className="flex items-center gap-3 px-4 py-3 border-b border-border">
+            <div className="flex items-center gap-3 py-3 border-b border-border">
               <MinecraftAvatar
                 uuid={user.uuid}
                 mcid={user.mcid}
