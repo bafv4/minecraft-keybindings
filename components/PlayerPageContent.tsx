@@ -80,8 +80,8 @@ export function PlayerPageContent({
           showCompactHeader ? 'translate-y-0 opacity-100' : '-translate-y-[calc(100%+1rem)] opacity-0'
         }`}
       >
-        <div className="container mx-auto px-4">
-          <div className="bg-card/95 backdrop-blur-sm border border-border rounded-lg shadow-lg">
+        <div className="container mx-auto px-4 pt-3">
+          <div className="bg-gradient-to-r from-primary/5 via-secondary/5 to-transparent backdrop-blur-sm border border-border rounded-lg shadow-lg">
             {/* コンパクトプレイヤー情報 */}
             <div className="flex items-center gap-3 px-4 py-3 border-b border-border">
               <MinecraftAvatar
@@ -201,7 +201,7 @@ export function PlayerPageContent({
 
         {/* タブナビゲーション */}
         {settings && (
-          <div className="bg-background/95 border-b border-border">
+          <div className="bg-gradient-to-r from-primary/5 via-secondary/5 to-transparent border-b border-border">
             <div className="flex gap-1 p-1">
               {tabs.map((tab) => (
                 <button
