@@ -107,10 +107,10 @@ export function PlayerPageContent({
                 <MinecraftAvatar
                   uuid={user.uuid}
                   mcid={user.mcid}
-                  size={40}
+                  size={32}
                 />
                 <div className="min-w-0">
-                  <h2 className="text-lg font-bold truncate">
+                  <h2 className="text-base font-bold truncate">
                     {showDisplayName ? user.displayName : user.mcid}
                   </h2>
                   {showDisplayName && user.displayName !== user.mcid && (
