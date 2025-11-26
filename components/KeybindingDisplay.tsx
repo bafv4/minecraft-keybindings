@@ -1,8 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { Disclosure, Transition } from '@headlessui/react';
-import { ChevronDownIcon } from '@heroicons/react/24/outline';
 import { formatKeyName, formatKeyNameShort, calculateCursorSpeed, CustomKeyInfo } from '@/lib/utils';
 import { getLanguageName } from '@/lib/languages';
 import type { PlayerSettings, FingerAssignments, CustomKey } from '@/types/player';
@@ -14,6 +12,7 @@ interface KeybindingDisplayProps {
   customKeys?: Array<{ keyCode: string; keyName: string; category: string }>;
   keyRemaps?: Array<{ sourceKey: string; targetKey: string | null }>;
   externalTools?: Array<{ triggerKey: string; toolName: string; actionName: string; description?: string | null }>;
+  section?: 'all' | 'overview' | 'environment' | 'keyboard' | 'remappings' | 'externaltools';
 }
 
 // キー表示用のヘルパー関数（Web標準形式とMinecraft形式の両方に対応）
@@ -30,7 +29,8 @@ export function KeybindingDisplay({
   keybindings = [],
   customKeys = [],
   keyRemaps = [],
-  externalTools = []
+  externalTools = [],
+  section = 'all'
 }: KeybindingDisplayProps) {
   // keybindings配列をオブジェクトに変換してsettingsにマージ
   const keybindingsMap = keybindings.reduce((acc, kb) => {
@@ -142,12 +142,13 @@ export function KeybindingDisplay({
   return (
     <div className="space-y-6">
       {/* Overview */}
-      <section className="bg-gradient-to-r from-primary/5 via-secondary/5 to-transparent rounded-2xl border border-border shadow-sm p-6">
-        <h2 className="text-2xl font-bold mb-4">Overview</h2>
+      {(section === 'all' || section === 'overview') && (
+      <div>
+        <h2 className="text-xl font-bold mb-4">Overview</h2>
         <div className="space-y-4">
           {/* 移動 */}
-          <div className="bg-[rgb(var(--card))] p-5 rounded-lg border-2 border-[rgb(var(--border))] shadow-md">
-            <h3 className="text-lg font-semibold mb-3 text-primary">移動</h3>
+          <div className="bg-stone-200/80 dark:bg-muted/50 p-4 rounded-xl border border-border">
+            <h3 className="text-lg font-semibold mb-3 text-foreground">移動</h3>
             <div className="flex flex-wrap gap-3">
               <div className="flex flex-col gap-1 flex-1 min-w-[110px]">
                 <span className="text-xs text-muted-foreground font-medium">前進</span>
@@ -243,8 +244,8 @@ export function KeybindingDisplay({
           </div>
 
           {/* インベントリ */}
-          <div className="bg-[rgb(var(--card))] p-5 rounded-lg border-2 border-[rgb(var(--border))] shadow-md">
-            <h3 className="text-lg font-semibold mb-3 text-primary">インベントリ</h3>
+          <div className="bg-stone-200/80 dark:bg-muted/50 p-4 rounded-xl border border-border">
+            <h3 className="text-lg font-semibold mb-3 text-foreground">インベントリ</h3>
             <div className="space-y-3">
               {/* ホットバー */}
               <div>
@@ -284,48 +285,54 @@ export function KeybindingDisplay({
             </div>
           </div>
 
+        </div>
+      </div>
+      )}
+
+      {/* 環境・設定 */}
+      {(section === 'all' || section === 'environment') && (
+      <div>
+        <h2 className="text-xl font-bold mb-4">環境・設定</h2>
+        <div className="space-y-4">
+          {/* ゲーム言語 */}
+          <div className="bg-stone-200/80 dark:bg-muted/50 p-4 rounded-xl border border-border">
+            <h3 className="text-lg font-semibold mb-3 text-foreground">ゲーム言語</h3>
+            <div className="text-xl font-bold">{settings.gameLanguage ? getLanguageName(settings.gameLanguage) : '-'}</div>
+          </div>
+
+          {/* 使用デバイス */}
+          <div className="bg-stone-200/80 dark:bg-muted/50 p-4 rounded-xl border border-border">
+            <h3 className="text-lg font-semibold mb-3 text-foreground">使用デバイス</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <span className="text-xs text-muted-foreground font-semibold block">マウス</span>
+                <div className="text-xl font-bold">{settings.mouseModel || '-'}</div>
+              </div>
+              <div className="space-y-1">
+                <span className="text-xs text-muted-foreground font-semibold block">キーボード</span>
+                <div className="text-xl font-bold">{settings.keyboardModel || '-'}</div>
+              </div>
+            </div>
+          </div>
+
           {/* マウス設定 */}
-          <div className="bg-[rgb(var(--card))] p-5 rounded-lg border-2 border-[rgb(var(--border))] shadow-md">
-            <h3 className="text-lg font-semibold mb-3 text-primary">マウス設定</h3>
-            <div className="flex flex-wrap gap-3">
-              <div className="flex flex-col gap-2 flex-1 min-w-[130px]">
-                <span className="text-xs text-muted-foreground font-semibold">DPI</span>
+          <div className="bg-stone-200/80 dark:bg-muted/50 p-4 rounded-xl border border-border">
+            <h3 className="text-lg font-semibold mb-3 text-foreground">マウス設定</h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="space-y-1">
+                <span className="text-xs text-muted-foreground font-semibold block">DPI</span>
                 <div className="text-2xl font-bold">{settings.mouseDpi || '-'}</div>
               </div>
-              <div className="flex flex-col gap-2 flex-1 min-w-[130px]">
-                <span className="text-xs text-muted-foreground font-semibold">感度（ゲーム内）</span>
+              <div className="space-y-1">
+                <span className="text-xs text-muted-foreground font-semibold block">感度（ゲーム内）</span>
                 <div className="text-2xl font-bold">{settings.gameSensitivity ? `${Math.floor(Number(settings.gameSensitivity) * 200)}%` : '-'}</div>
               </div>
-              <div className="flex flex-col gap-2 flex-1 min-w-[130px]">
-                <span className="text-xs text-muted-foreground font-semibold">RawInput</span>
-                <div className={`text-2xl font-bold ${
-                  settings.rawInput
-                    ? 'text-green-600 dark:text-green-400'
-                    : 'text-red-600 dark:text-red-400'
-                }`}>
-                  {settings.rawInput ? 'ON' : 'OFF'}
-                </div>
-              </div>
-              <div className="flex flex-col gap-2 flex-1 min-w-[130px]">
-                <span className="text-xs text-muted-foreground font-semibold">振り向き</span>
+              <div className="space-y-1">
+                <span className="text-xs text-muted-foreground font-semibold block">振り向き</span>
                 <div className="text-2xl font-bold">{settings.cm360 ? `${settings.cm360}cm` : '-'}</div>
               </div>
-              <div className="flex flex-col gap-2 flex-1 min-w-[130px]">
-                <span className="text-xs text-muted-foreground font-semibold">Win速度</span>
-                <div className="text-2xl font-bold">{settings.windowsSpeed || '-'}</div>
-              </div>
-              <div className="flex flex-col gap-2 flex-1 min-w-[130px]">
-                <span className="text-xs text-muted-foreground font-semibold">マウス加速</span>
-                <div className={`text-2xl font-bold ${
-                  settings.mouseAcceleration
-                    ? 'text-red-600 dark:text-red-400'
-                    : 'text-green-600 dark:text-green-400'
-                }`}>
-                  {settings.mouseAcceleration ? 'ON' : 'OFF'}
-                </div>
-              </div>
-              <div className="flex flex-col gap-2 flex-1 min-w-[130px]">
-                <span className="text-xs text-muted-foreground font-semibold">カーソル速度</span>
+              <div className="space-y-1">
+                <span className="text-xs text-muted-foreground font-semibold block">カーソル速度</span>
                 <div className="text-2xl font-bold">
                   {(() => {
                     if (!settings.mouseDpi) return '-';
@@ -340,14 +347,42 @@ export function KeybindingDisplay({
                 </div>
               </div>
             </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4 pt-4 border-t border-border">
+              <div className="space-y-1">
+                <span className="text-xs text-muted-foreground font-semibold block">Windows速度</span>
+                <div className="text-lg font-bold">{settings.windowsSpeed ?? '-'}</div>
+              </div>
+              <div className="space-y-1">
+                <span className="text-xs text-muted-foreground font-semibold block">RawInput</span>
+                <div className={`text-lg font-bold ${
+                  settings.rawInput
+                    ? 'text-green-600 dark:text-green-400'
+                    : 'text-red-600 dark:text-red-400'
+                }`}>
+                  {settings.rawInput ? 'ON' : 'OFF'}
+                </div>
+              </div>
+              <div className="space-y-1">
+                <span className="text-xs text-muted-foreground font-semibold block">マウス加速</span>
+                <div className={`text-lg font-bold ${
+                  settings.mouseAcceleration
+                    ? 'text-red-600 dark:text-red-400'
+                    : 'text-green-600 dark:text-green-400'
+                }`}>
+                  {settings.mouseAcceleration ? 'ON' : 'OFF'}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-      </section>
+      </div>
+      )}
 
       {/* 仮想キーボード */}
-      <section className="bg-gradient-to-r from-primary/5 via-secondary/5 to-transparent rounded-2xl border border-border shadow-sm p-6">
+      {(section === 'all' || section === 'keyboard') && (
+      <div>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-2xl font-bold">キー配置</h2>
+          <h2 className="text-xl font-bold">キー配置</h2>
           <div className="flex items-center gap-2">
             <label className={`text-sm font-medium ${Object.keys(normalizedFingerAssignments).length === 0 ? 'text-[rgb(var(--muted-foreground))]' : ''}`}>
               指の色分け表示
@@ -362,7 +397,7 @@ export function KeybindingDisplay({
                 Object.keys(normalizedFingerAssignments).length === 0
                   ? 'bg-[rgb(var(--muted))] cursor-not-allowed opacity-50'
                   : showFingerColors
-                  ? 'bg-blue-600'
+                  ? 'bg-primary'
                   : 'bg-[rgb(var(--border))]'
               }`}
               title={Object.keys(normalizedFingerAssignments).length === 0 ? '指の割り当てがありません' : ''}
@@ -385,118 +420,67 @@ export function KeybindingDisplay({
           keyboardLayout={(settings.keyboardLayout as 'JIS' | 'US') || 'JIS'}
           customKeys={customKeysData}
         />
-      </section>
+      </div>
+      )}
 
       {/* リマップ設定 */}
-      {Object.keys(remappingsData).length > 0 && (
-        <Disclosure>
-          {({ open }) => (
-            <section className="bg-gradient-to-r from-primary/5 via-secondary/5 to-transparent rounded-xl border border-[rgb(var(--border))] shadow-sm overflow-hidden">
-              <Disclosure.Button className="flex w-full items-center justify-between p-6 text-left hover:bg-[rgb(var(--muted))]/30 transition-colors">
-                <div>
-                  <h2 className="text-xl font-bold">リマップ設定</h2>
-                  <p className="text-sm text-[rgb(var(--muted-foreground))] mt-1">
-                    ハードウェアレベルまたはドライバーレベルでのキー割り当て変更
-                  </p>
+      {(section === 'all' || section === 'remappings') && Object.keys(remappingsData).length > 0 && (
+        <div>
+          <div className="mb-4">
+            <h2 className="text-xl font-bold">リマップ</h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {Object.entries(remappingsData).map(([from, to]) => (
+              <div key={from} className="flex items-center gap-3 p-3 bg-stone-200/80 dark:bg-muted/50 rounded-xl border border-border">
+                <div className="flex-1 min-w-0">
+                  <div className="text-xs text-muted-foreground mb-1">物理キー</div>
+                  <code className="px-2 py-1 bg-background border border-border rounded font-mono text-sm break-all">
+                    {formatKeyNameShort(from, customKeys)}
+                  </code>
                 </div>
-                <ChevronDownIcon
-                  className={`${
-                    open ? 'rotate-180 transform' : ''
-                  } h-6 w-6 text-muted-foreground transition-transform duration-200`}
-                />
-              </Disclosure.Button>
-              <Transition
-                enter="transition duration-100 ease-out"
-                enterFrom="transform scale-95 opacity-0"
-                enterTo="transform scale-100 opacity-100"
-                leave="transition duration-75 ease-out"
-                leaveFrom="transform scale-100 opacity-100"
-                leaveTo="transform scale-95 opacity-0"
-              >
-                <Disclosure.Panel className="px-6 pb-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {Object.entries(remappingsData).map(([from, to]) => (
-                      <div key={from} className="flex items-center gap-3 p-3 bg-[rgb(var(--muted))]/50 rounded-lg border border-[rgb(var(--border))]">
-                        <div className="flex-1 min-w-0">
-                          <div className="text-xs text-[rgb(var(--muted-foreground))] mb-1">物理キー</div>
-                          <code className="px-2 py-1 bg-[rgb(var(--background))] border border-[rgb(var(--border))] rounded font-mono text-sm break-all">
-                            {formatKeyNameShort(from, customKeys)}
-                          </code>
-                        </div>
-                        <svg className="w-5 h-5 flex-shrink-0 text-[rgb(var(--muted-foreground))]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                        </svg>
-                        <div className="flex-1 min-w-0">
-                          <div className="text-xs text-[rgb(var(--muted-foreground))] mb-1">リマップ先</div>
-                          <code className="px-2 py-1 bg-blue-500/10 border border-blue-500 rounded font-mono text-sm font-semibold break-all">
-                            {formatKeyNameShort(to, customKeys)}
-                          </code>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </Disclosure.Panel>
-              </Transition>
-            </section>
-          )}
-        </Disclosure>
+                <svg className="w-5 h-5 flex-shrink-0 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+                <div className="flex-1 min-w-0">
+                  <div className="text-xs text-muted-foreground mb-1">リマップ先</div>
+                  <code className="px-2 py-1 bg-blue-500/10 border border-blue-500 rounded font-mono text-sm font-semibold break-all">
+                    {formatKeyNameShort(to, customKeys)}
+                  </code>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       )}
 
       {/* 外部ツール */}
-      {Object.keys(flattenedExternalTools).length > 0 && (
-        <Disclosure>
-          {({ open }) => (
-            <section className="bg-gradient-to-r from-primary/5 via-secondary/5 to-transparent rounded-xl border border-[rgb(var(--border))] shadow-sm overflow-hidden">
-              <Disclosure.Button className="flex w-full items-center justify-between p-6 text-left hover:bg-[rgb(var(--muted))]/30 transition-colors">
-                <div>
-                  <h2 className="text-xl font-bold">外部ツール・Modキー設定</h2>
-                  <p className="text-sm text-[rgb(var(--muted-foreground))] mt-1">
-                    JingleやAutoHotKeyなどの外部ツールによるアクション設定。SeedQueueの設定。
-                  </p>
+      {(section === 'all' || section === 'externaltools') && Object.keys(flattenedExternalTools).length > 0 && (
+        <div>
+          <div className="mb-4">
+            <h2 className="text-xl font-bold">外部ツール・Modキー設定</h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {Object.entries(flattenedExternalTools).map(([keyCode, action]) => (
+              <div key={keyCode} className="flex items-center gap-3 p-3 bg-stone-200/80 dark:bg-muted/50 rounded-xl border border-border">
+                <div className="flex-1 min-w-0">
+                  <div className="text-xs text-muted-foreground mb-1">トリガーキー</div>
+                  <code className="px-2 py-1 bg-background border border-border rounded font-mono text-sm break-all">
+                    {formatKeyName(keyCode, customKeys)}
+                  </code>
                 </div>
-                <ChevronDownIcon
-                  className={`${
-                    open ? 'rotate-180 transform' : ''
-                  } h-6 w-6 text-muted-foreground transition-transform duration-200`}
-                />
-              </Disclosure.Button>
-              <Transition
-                enter="transition duration-100 ease-out"
-                enterFrom="transform scale-95 opacity-0"
-                enterTo="transform scale-100 opacity-100"
-                leave="transition duration-75 ease-out"
-                leaveFrom="transform scale-100 opacity-100"
-                leaveTo="transform scale-95 opacity-0"
-              >
-                <Disclosure.Panel className="px-6 pb-6">
-                  <div className="space-y-3">
-                    {Object.entries(flattenedExternalTools).map(([keyCode, action]) => (
-                      <div key={keyCode} className="bg-[rgb(var(--background))] p-3 rounded-lg border border-[rgb(var(--border))]">
-                        <div className="flex items-start gap-3">
-                          <div className="flex-shrink-0">
-                            <div className="text-xs text-[rgb(var(--muted-foreground))] mb-1">トリガーキー</div>
-                            <code className="px-2 py-1 bg-[rgb(var(--muted))] border border-[rgb(var(--border))] rounded font-mono text-sm">
-                              {formatKeyName(keyCode, customKeys)}
-                            </code>
-                          </div>
-                          <svg className="w-4 h-4 text-[rgb(var(--muted-foreground))] mt-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                          </svg>
-                          <div className="flex-1 min-w-0">
-                            <div className="text-xs text-[rgb(var(--muted-foreground))] mb-1">実行アクション</div>
-                            <div className="px-2 py-1 bg-purple-500/10 border border-purple-500 rounded text-sm font-semibold text-purple-700 dark:text-purple-300">
-                              {action}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </Disclosure.Panel>
-              </Transition>
-            </section>
-          )}
-        </Disclosure>
+                <svg className="w-5 h-5 flex-shrink-0 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+                <div className="flex-1 min-w-0">
+                  <div className="text-xs text-muted-foreground mb-1">実行アクション</div>
+                  <code className="px-2 py-1 bg-purple-500/10 border border-purple-500 rounded font-mono text-sm font-semibold break-all">
+                    {action}
+                  </code>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       )}
     </div>
   );

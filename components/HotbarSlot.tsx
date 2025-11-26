@@ -12,12 +12,13 @@ interface HotbarSlotProps {
   editable?: boolean;
   keybind?: string | string[];
   customKeys?: CustomKeyInfo[];
+  hideBackground?: boolean;
 }
 
 /**
  * ホットバースロット共通コンポーネント
  */
-export function HotbarSlot({ items, size = 64, onClick, editable = false, keybind, customKeys }: HotbarSlotProps) {
+export function HotbarSlot({ items, size = 64, onClick, editable = false, keybind, customKeys, hideBackground = false }: HotbarSlotProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const hasItems = items.length > 0;
 
@@ -41,6 +42,27 @@ export function HotbarSlot({ items, size = 64, onClick, editable = false, keybin
       ? keybind.map(k => formatKeyName(k, customKeys)).join('/')
       : formatKeyName(keybind, customKeys)
     : null;
+
+  // 背景なしモードの場合はアイコンのみ表示
+  if (hideBackground && hasItems) {
+    return (
+      <div
+        className="flex items-center justify-center"
+        style={{ width: size, height: size }}
+        title={items.map(id => formatItemName(id)).join(', ')}
+      >
+        {items.length === 1 ? (
+          <MinecraftItemIcon itemId={items[0]} size={size - 4} />
+        ) : (
+          <div className="grid grid-cols-2 gap-0.5">
+            {items.slice(0, 4).map((itemId, i) => (
+              <MinecraftItemIcon key={i} itemId={itemId} size={(size - 8) / 2} />
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="relative flex flex-col items-center">

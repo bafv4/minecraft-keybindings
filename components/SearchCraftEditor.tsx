@@ -7,6 +7,7 @@ import { PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { MinecraftItemIcon, formatItemName } from '@/lib/mcitems';
 import { SearchCraftItemSelector } from './SearchCraftItemSelector';
 import { stringToKeyCodes, keyCodesToString } from '@/lib/searchCraft';
+import { webCodeToChar } from '@/lib/remapUtils';
 
 interface SearchCraftEntry {
   sequence: number;
@@ -16,6 +17,7 @@ interface SearchCraftEntry {
   inputString: string;
   keys: string[]; // 実際に押すキー（逆リマップ適用済み）
   originalKeys: string[]; // ユーザーが入力したい文字（逆リマップ適用前）
+  searchStr?: string; // DBに保存されているsearchStr（優先・フォールバックの判定用）
   comment?: string; // コメント（任意）
   error?: string; // エラーメッセージ
 }
@@ -137,29 +139,6 @@ export const SearchCraftEditor = forwardRef<SearchCraftEditorRef, SearchCraftEdi
       fetchKeyRemaps();
     }, []);
 
-    // リマップが変更されたときに既存のcraftsを再計算
-    useEffect(() => {
-      if (crafts.length === 0 || keyRemaps.length === 0) return;
-
-      setCrafts((prevCrafts) =>
-        prevCrafts.map((craft) => {
-          if (craft.keys.length > 0) {
-            // keysからoriginalKeysとinputStringを再計算
-            const originalKeys = applyKeyRemaps(craft.keys);
-            const inputString = keyCodesToString(originalKeys);
-
-            return {
-              ...craft,
-              originalKeys,
-              inputString,
-            };
-          }
-          return craft;
-        })
-      );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [keyRemaps]);
-
     // データを読み込み
     useEffect(() => {
       const fetchCrafts = async () => {
@@ -171,17 +150,38 @@ export const SearchCraftEditor = forwardRef<SearchCraftEditorRef, SearchCraftEdi
               const entries: SearchCraftEntry[] = data.map((craft: any) => {
                 // DBには実際に押す物理キーが保存されている
                 const keys = [craft.key1, craft.key2, craft.key3, craft.key4].filter(Boolean) as string[];
-                // 順方向のリマップを適用してユーザーが入力したい文字を計算
-                const originalKeys = applyKeyRemaps(keys);
-                const inputString = keyCodesToString(originalKeys);
+
+                // searchStr がある場合はそれを使用（優先）、ない場合は後方互換性のため keys から生成
+                let inputString: string;
+                let originalKeys: string[];
+
+                if (craft.searchStr && craft.searchStr.trim() !== '') {
+                  // searchStr をそのまま inputString として使用（変換不要）
+                  inputString = craft.searchStr;
+                  // originalKeys は入力文字列から計算（キー表示用）
+                  try {
+                    originalKeys = stringToKeyCodes(inputString);
+                  } catch (error) {
+                    console.error('Failed to parse searchStr:', error);
+                    originalKeys = [];
+                  }
+                } else {
+                  // 後方互換性: keys にリマップを適用してリマップ後の文字列を生成
+                  // keys は物理キー（例：KeyQ）、remapでKeyE になる場合、"e" を表示
+                  originalKeys = applyKeyRemaps(keys); // リマップ後のキーコード
+                  const chars = originalKeys.map(key => webCodeToChar(key)); // キーコードを文字に変換
+                  inputString = chars.join(''); // 文字を連結
+                }
+
                 return {
                   sequence: craft.sequence,
                   item1: craft.item1,
                   item2: craft.item2,
                   item3: craft.item3,
-                  inputString,
-                  keys, // 実際に押すキー（DB保存値）
-                  originalKeys, // ユーザーが入力したい文字（順リマップ適用後）
+                  inputString, // searchStr そのまま or keys からリマップ後の文字列
+                  keys, // DB から読み込んだ物理キー（そのまま使用）
+                  originalKeys, // リマップ後のキーコード（内部処理用）
+                  searchStr: craft.searchStr || undefined, // searchStr を保存（優先・フォールバックの判定用）
                   comment: craft.comment,
                 };
               });
@@ -358,7 +358,8 @@ export const SearchCraftEditor = forwardRef<SearchCraftEditorRef, SearchCraftEdi
               item1: c.item1,
               item2: c.item2,
               item3: c.item3,
-              keys: c.keys, // 実際に押す物理キーを保存（逆リマップ適用済み）
+              keys: c.keys, // 実際に押す物理キーを保存（逆リマップ適用済み、後方互換性）
+              searchStr: c.inputString, // ユーザーが入力した文字列をそのまま保存
               comment: c.comment,
             })),
           }),

@@ -3,47 +3,41 @@
  */
 export function KeybindingDisplaySkeleton() {
   return (
-    <div className="space-y-8 animate-pulse">
-      {/* マウス設定セクション */}
-      <div className="bg-card border border-border rounded-2xl shadow-sm p-6 space-y-6">
-        <div className="h-8 bg-muted rounded w-48" />
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="space-y-2">
-              <div className="h-4 bg-muted rounded w-32" />
-              <div className="h-10 bg-muted rounded" />
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* キーボード設定セクション */}
-      <div className="bg-card border border-border rounded-2xl shadow-sm p-6 space-y-6">
-        <div className="h-8 bg-muted rounded w-48" />
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div className="space-y-6 animate-pulse">
+      {/* 移動キーセクション */}
+      <div className="bg-stone-200/80 dark:bg-muted/50 p-4 rounded-xl border border-border">
+        <div className="h-6 bg-muted rounded w-32 mb-3" />
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="space-y-2">
-              <div className="h-4 bg-muted rounded w-32" />
-              <div className="h-10 bg-muted rounded" />
+            <div key={i} className="space-y-1.5">
+              <div className="h-3 bg-muted rounded w-16" />
+              <div className="h-8 bg-muted rounded" />
             </div>
           ))}
         </div>
       </div>
 
-      {/* バーチャルキーボード */}
-      <div className="bg-card border border-border rounded-2xl shadow-sm p-6 space-y-6">
-        <div className="h-8 bg-muted rounded w-64" />
-        <div className="h-64 bg-muted rounded" />
+      {/* アクションキーセクション */}
+      <div className="bg-stone-200/80 dark:bg-muted/50 p-4 rounded-xl border border-border">
+        <div className="h-6 bg-muted rounded w-40 mb-3" />
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="space-y-1.5">
+              <div className="h-3 bg-muted rounded w-16" />
+              <div className="h-8 bg-muted rounded" />
+            </div>
+          ))}
+        </div>
       </div>
 
-      {/* キーバインド一覧 */}
-      <div className="bg-card border border-border rounded-2xl shadow-sm p-6 space-y-6">
-        <div className="h-8 bg-muted rounded w-48" />
-        <div className="space-y-3">
-          {Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className="flex gap-4">
-              <div className="h-10 bg-muted rounded flex-1" />
-              <div className="h-10 bg-muted rounded w-32" />
+      {/* インベントリキーセクション */}
+      <div className="bg-stone-200/80 dark:bg-muted/50 p-4 rounded-xl border border-border">
+        <div className="h-6 bg-muted rounded w-48 mb-3" />
+        <div className="grid grid-cols-3 md:grid-cols-5 gap-3">
+          {Array.from({ length: 10 }).map((_, i) => (
+            <div key={i} className="space-y-1.5">
+              <div className="h-3 bg-muted rounded w-12" />
+              <div className="h-8 bg-muted rounded" />
             </div>
           ))}
         </div>

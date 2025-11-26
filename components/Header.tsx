@@ -44,7 +44,7 @@ export function Header({ session }: HeaderProps) {
         leaveTo="opacity-0"
       >
         <div
-          className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 md:hidden"
+          className="fixed inset-0 bg-black/10 dark:bg-black/20 backdrop-blur-sm z-40 md:hidden"
           onClick={() => setMobileMenuOpen(false)}
         />
       </Transition>
@@ -290,7 +290,7 @@ export function Header({ session }: HeaderProps) {
           leaveFrom="opacity-100 translate-y-0"
           leaveTo="opacity-0 -translate-y-2"
         >
-          <div className="md:hidden border-t border-border/50 py-4 space-y-2 relative z-50">
+          <div className="md:hidden border-t border-border/50 py-4 space-y-2 relative z-50 bg-gradient-to-b from-background/70 to-background/80 dark:from-background/80 dark:to-background/90 backdrop-blur-xl -mx-3 sm:-mx-4 px-3 sm:px-4 shadow-lg">
             {/* バージョン情報 */}
             <button
               onClick={() => {

@@ -11,3 +11,6 @@ export { Checkbox } from './Checkbox';
 export type { CheckboxProps } from './Checkbox';
 
 export { DraggableModal } from './DraggableModal';
+
+export { SectionCard } from './SectionCard';
+export type { SectionCardProps } from './SectionCard';

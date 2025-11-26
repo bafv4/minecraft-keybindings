@@ -204,11 +204,14 @@ model SearchCraft {
   item2 String?
   item3 String?
 
-  // 押すキー（Web形式、最大4キー）
+  // 押すキー（Web形式、最大4キー）- 後方互換性のため残す
   key1 String?
   key2 String?
   key3 String?
   key4 String?
+
+  // サーチ文字列（リマップ後のキーの組み合わせ、例: "abc", "Ctrl+Q"）
+  searchStr String?
 
   // コメント（任意）
   comment String? @db.Text
