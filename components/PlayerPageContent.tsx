@@ -76,119 +76,122 @@ export function PlayerPageContent({
     <div className="pb-6">
       {/* 単一カード */}
       <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
-        {/* プレイヤー情報ヘッダー（スティッキー） */}
-        <div
-          className={`sticky top-[4.5rem] md:top-24 z-20 bg-gradient-to-r from-primary/5 via-secondary/5 to-transparent border-b border-border transition-all duration-300 ${
-            isScrolled ? 'py-3 px-4' : 'py-6 px-6'
-          }`}
-        >
-          <div className="relative">
-            {/* 共有ボタン */}
-            <div className="absolute top-0 right-0">
-              <ShareButton mcid={user.mcid} />
-            </div>
-
-            {/* プレイヤー情報 */}
-            <div className={`flex items-center transition-all duration-300 ${isScrolled ? 'gap-3' : 'gap-6'}`}>
-              <div className="relative flex-shrink-0">
-                <div className={`absolute inset-0 bg-gradient-to-br from-primary to-secondary rounded-2xl blur-xl opacity-30 transition-all duration-300 ${
-                  isScrolled ? 'blur-lg' : 'blur-xl'
-                }`}></div>
-                <MinecraftAvatar
-                  uuid={user.uuid}
-                  mcid={user.mcid}
-                  size={isScrolled ? 48 : 96}
-                  priority
-                />
+        {/* プレイヤー情報ヘッダー + タブ（スティッキー） */}
+        <div className="sticky top-[3.5rem] md:top-20 z-50 bg-card">
+          {/* プレイヤー情報 */}
+          <div
+            className={`bg-gradient-to-r from-primary/5 via-secondary/5 to-transparent border-b border-border transition-all duration-300 ${
+              isScrolled ? 'py-3 px-4' : 'py-6 px-6'
+            }`}
+          >
+            <div className="relative">
+              {/* 共有ボタン */}
+              <div className="absolute top-0 right-0">
+                <ShareButton mcid={user.mcid} />
               </div>
-              <div className="flex-1 min-w-0 pr-12">
-                <div className="flex items-center gap-3 flex-wrap">
-                  <h1
-                    className={`font-bold text-foreground transition-all duration-300 truncate ${
-                      isScrolled ? 'text-2xl' : 'text-4xl'
-                    }`}
-                  >
-                    {showDisplayName ? user.displayName : user.mcid}
-                  </h1>
-                  {user.isGuest && (
-                    <span
-                      className={`text-xs px-2.5 py-1 rounded bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/50 font-bold transition-all duration-300 ${
-                        isScrolled ? 'text-[10px] px-2 py-0.5' : ''
+
+              {/* プレイヤー情報 */}
+              <div className={`flex items-center transition-all duration-300 ${isScrolled ? 'gap-3' : 'gap-6'}`}>
+                <div className="relative flex-shrink-0">
+                  <div className={`absolute inset-0 bg-gradient-to-br from-primary to-secondary rounded-2xl blur-xl opacity-30 transition-all duration-300 ${
+                    isScrolled ? 'blur-lg' : 'blur-xl'
+                  }`}></div>
+                  <MinecraftAvatar
+                    uuid={user.uuid}
+                    mcid={user.mcid}
+                    size={isScrolled ? 48 : 96}
+                    priority
+                  />
+                </div>
+                <div className="flex-1 min-w-0 pr-12">
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <h1
+                      className={`font-bold text-foreground transition-all duration-300 truncate ${
+                        isScrolled ? 'text-2xl' : 'text-4xl'
                       }`}
                     >
-                      GUEST
-                    </span>
+                      {showDisplayName ? user.displayName : user.mcid}
+                    </h1>
+                    {user.isGuest && (
+                      <span
+                        className={`text-xs px-2.5 py-1 rounded bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/50 font-bold transition-all duration-300 ${
+                          isScrolled ? 'text-[10px] px-2 py-0.5' : ''
+                        }`}
+                      >
+                        GUEST
+                      </span>
+                    )}
+                  </div>
+                  {showDisplayName && user.displayName !== user.mcid && (
+                    <p
+                      className={`text-muted-foreground transition-all duration-300 ${
+                        isScrolled ? 'text-sm mt-0' : 'text-lg mt-1'
+                      }`}
+                    >
+                      {user.mcid}
+                    </p>
                   )}
                 </div>
-                {showDisplayName && user.displayName !== user.mcid && (
-                  <p
-                    className={`text-muted-foreground transition-all duration-300 ${
-                      isScrolled ? 'text-sm mt-0' : 'text-lg mt-1'
+              </div>
+
+              {/* 環境設定（スクロール時は非表示） */}
+              {!isScrolled && hasPlayerConfig && (
+                <div className="border-t border-border/50 pt-6 mt-6 space-y-3">
+                  <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                    環境
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {settings.gameLanguage && (
+                      <div className="flex items-center gap-2 text-sm">
+                        <span className="text-muted-foreground">言語:</span>
+                        <span className="font-medium">{getLanguageName(settings.gameLanguage)}</span>
+                      </div>
+                    )}
+                    {settings.mouseModel && (
+                      <div className="flex items-center gap-2 text-sm">
+                        <span className="text-muted-foreground">マウス:</span>
+                        <span className="font-medium">{settings.mouseModel}</span>
+                      </div>
+                    )}
+                    {settings.keyboardModel && (
+                      <div className="flex items-center gap-2 text-sm">
+                        <span className="text-muted-foreground">キーボード:</span>
+                        <span className="font-medium">{settings.keyboardModel}</span>
+                      </div>
+                    )}
+                  </div>
+                  {settings.notes && (
+                    <div className="bg-background/50 p-5 rounded-lg border border-border">
+                      <p className="text-sm font-semibold text-muted-foreground mb-2">コメント</p>
+                      <p className="text-sm whitespace-pre-wrap">{settings.notes}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* タブナビゲーション */}
+          {settings && (
+            <div className="bg-background/95 backdrop-blur-sm border-b border-border">
+              <div className="flex gap-1 p-1">
+                {tabs.map((tab) => (
+                  <button
+                    key={tab.name}
+                    onClick={() => setActiveTab(tab.name)}
+                    className={`flex-1 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                      activeTab === tab.name
+                        ? 'bg-primary text-primary-foreground shadow-sm'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
                     }`}
                   >
-                    {user.mcid}
-                  </p>
-                )}
+                    {tab.label}
+                  </button>
+                ))}
               </div>
             </div>
-
-            {/* 環境設定（スクロール時は非表示） */}
-            {!isScrolled && hasPlayerConfig && (
-              <div className="border-t border-border/50 pt-6 mt-6 space-y-3">
-                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-                  環境
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {settings.gameLanguage && (
-                    <div className="flex items-center gap-2 text-sm">
-                      <span className="text-muted-foreground">言語:</span>
-                      <span className="font-medium">{getLanguageName(settings.gameLanguage)}</span>
-                    </div>
-                  )}
-                  {settings.mouseModel && (
-                    <div className="flex items-center gap-2 text-sm">
-                      <span className="text-muted-foreground">マウス:</span>
-                      <span className="font-medium">{settings.mouseModel}</span>
-                    </div>
-                  )}
-                  {settings.keyboardModel && (
-                    <div className="flex items-center gap-2 text-sm">
-                      <span className="text-muted-foreground">キーボード:</span>
-                      <span className="font-medium">{settings.keyboardModel}</span>
-                    </div>
-                  )}
-                </div>
-                {settings.notes && (
-                  <div className="bg-background/50 p-5 rounded-lg border border-border">
-                    <p className="text-sm font-semibold text-muted-foreground mb-2">コメント</p>
-                    <p className="text-sm whitespace-pre-wrap">{settings.notes}</p>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
+          )}
         </div>
-
-        {/* タブナビゲーション（スティッキー） */}
-        {settings && (
-          <div className="sticky top-[calc(4.5rem+4rem)] md:top-[calc(6rem+4rem)] z-10 bg-background/95 backdrop-blur-sm border-b border-border">
-            <div className="flex gap-1 p-1">
-              {tabs.map((tab) => (
-                <button
-                  key={tab.name}
-                  onClick={() => setActiveTab(tab.name)}
-                  className={`flex-1 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                    activeTab === tab.name
-                      ? 'bg-primary text-primary-foreground shadow-sm'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
 
         {/* タブコンテンツ */}
         <div className="p-6">
