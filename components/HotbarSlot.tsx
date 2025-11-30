@@ -1,9 +1,51 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { MinecraftItemIcon, formatItemName } from '@/lib/mcitems';
-import { PlusIcon } from '@heroicons/react/24/outline';
+import { MinecraftItemIcon, formatItemName as mcFormatItemName } from '@bafv4/mcitems/1.16/react';
+import { PlusIcon, QuestionMarkCircleIcon } from '@heroicons/react/24/outline';
 import { formatKeyName, CustomKeyInfo } from '@/lib/utils';
+
+/**
+ * "any" アイテム用の？ブロックアイコン
+ */
+function AnyItemIcon({ size }: { size: number }) {
+  return (
+    <div
+      className="flex items-center justify-center rounded"
+      style={{
+        width: size,
+        height: size,
+        backgroundColor: 'rgb(var(--primary) / 0.3)',
+        border: '2px solid rgb(var(--primary) / 0.5)',
+      }}
+    >
+      <QuestionMarkCircleIcon
+        className="text-primary"
+        style={{ width: size * 0.7, height: size * 0.7 }}
+      />
+    </div>
+  );
+}
+
+/**
+ * アイテムアイコンを表示（"any"の場合は？ブロック）
+ */
+function ItemIcon({ itemId, size }: { itemId: string; size: number }) {
+  if (itemId === 'any') {
+    return <AnyItemIcon size={size} />;
+  }
+  return <MinecraftItemIcon itemId={itemId} size={size} />;
+}
+
+/**
+ * アイテム名をフォーマット（"any"の場合は「なんでも」）
+ */
+function formatItemName(itemId: string): string {
+  if (itemId === 'any') {
+    return 'なんでも';
+  }
+  return mcFormatItemName(itemId);
+}
 
 interface HotbarSlotProps {
   items: string[];
@@ -52,11 +94,11 @@ export function HotbarSlot({ items, size = 64, onClick, editable = false, keybin
         title={items.map(id => formatItemName(id)).join(', ')}
       >
         {items.length === 1 ? (
-          <MinecraftItemIcon itemId={items[0]} size={size - 4} />
+          <ItemIcon itemId={items[0]} size={size - 4} />
         ) : (
           <div className="grid grid-cols-2 gap-0.5">
             {items.slice(0, 4).map((itemId, i) => (
-              <MinecraftItemIcon key={i} itemId={itemId} size={(size - 8) / 2} />
+              <ItemIcon key={i} itemId={itemId} size={(size - 8) / 2} />
             ))}
           </div>
         )}
@@ -81,7 +123,7 @@ export function HotbarSlot({ items, size = 64, onClick, editable = false, keybin
           editable ? (
             // 編集モード: ローテーション表示
             <div className="relative flex items-center justify-center w-full h-full">
-              <MinecraftItemIcon itemId={items[currentIndex] ?? items[0]} size={size - 12} />
+              <ItemIcon itemId={items[currentIndex] ?? items[0]} size={size - 12} />
               {items.length > 1 && (
                 <div className="absolute bottom-0.5 right-0.5 text-[9px] text-muted-foreground bg-background/70 px-1 rounded">
                   {Math.min(currentIndex + 1, items.length)}/{items.length}
@@ -92,11 +134,11 @@ export function HotbarSlot({ items, size = 64, onClick, editable = false, keybin
             // 表示モード: グリッド表示
             <div className="flex items-center justify-center">
               {items.length === 1 ? (
-                <MinecraftItemIcon itemId={items[0]} size={size - 12} />
+                <ItemIcon itemId={items[0]} size={size - 12} />
               ) : (
                 <div className="grid grid-cols-2 gap-0.5">
                   {items.slice(0, 4).map((itemId, i) => (
-                    <MinecraftItemIcon key={i} itemId={itemId} size={(size - 16) / 2} />
+                    <ItemIcon key={i} itemId={itemId} size={(size - 16) / 2} />
                   ))}
                 </div>
               )}

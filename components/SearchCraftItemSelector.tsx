@@ -2,10 +2,10 @@
 
 import { useState, useMemo } from 'react';
 import { DraggableModal } from '@/components/ui/DraggableModal';
-import { MinecraftItemIcon, getCraftableItemsByCategory, formatItemName, ITEM_CATEGORIES } from '@/lib/mcitems';
+import { MinecraftItemIcon, getItemsByCategory, formatItemName, ITEM_CATEGORIES } from '@bafv4/mcitems/1.16/react';
+import type { ItemCategory } from '@bafv4/mcitems/1.16/react';
 import { CheckIcon } from '@heroicons/react/24/solid';
 import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
-import type { ItemCategory } from '@/lib/mcitems/types';
 
 interface SearchCraftItemSelectorProps {
   isOpen: boolean;
@@ -27,8 +27,8 @@ export function SearchCraftItemSelector({
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<ItemCategory>('all');
 
-  // カテゴリに基づいたクラフト可能なアイテムリストを取得
-  const categoryItems = useMemo(() => getCraftableItemsByCategory(selectedCategory), [selectedCategory]);
+  // カテゴリに基づいたアイテムリストを取得
+  const categoryItems = useMemo(() => getItemsByCategory(selectedCategory), [selectedCategory]);
 
   // 検索フィルタリング
   const filteredItems = useMemo(() => {
