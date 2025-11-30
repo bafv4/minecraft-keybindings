@@ -11,6 +11,12 @@ importers:
       '@auth/prisma-adapter':
         specifier: ^2.11.1
         version: 2.11.1(@prisma/client@6.19.0(prisma@6.19.0(typescript@5.9.3))(typescript@5.9.3))
+      '@bafv4/mcavatar':
+        specifier: github:bafv4/mcavatar
+        version: https://codeload.github.com/bafv4/mcavatar/tar.gz/54826982345d6746e4b29c98f3fb49537a14a193(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(sharp@0.34.5)
+      '@bafv4/mcitems':
+        specifier: github:bafv4/mcitems
+        version: https://codeload.github.com/bafv4/mcitems/tar.gz/e971f26891a792ab10bef0b5bd588dc40de8f2c1(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
       '@headlessui/react':
         specifier: ^2.2.9
         version: 2.2.9(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
@@ -199,6 +205,37 @@ packages:
   '@babel/types@7.28.5':
     resolution: {integrity: sha512-qQ5m48eI/MFLQ5PxQj4PFaprjyCTLI37ElWMmNs0K8Lk3dVeOdNpB3ks8jc7yM5CDmVC73eMVk/trk3fgmrUpA==}
     engines: {node: '>=6.9.0'}
+
+  '@bafv4/mcavatar@https://codeload.github.com/bafv4/mcavatar/tar.gz/54826982345d6746e4b29c98f3fb49537a14a193':
+    resolution: {tarball: https://codeload.github.com/bafv4/mcavatar/tar.gz/54826982345d6746e4b29c98f3fb49537a14a193}
+    version: 1.0.0
+    peerDependencies:
+      react: '>=17.0.0'
+      react-dom: '>=17.0.0'
+      sharp: '>=0.32.0'
+      vue: '>=3.0.0'
+    peerDependenciesMeta:
+      react:
+        optional: true
+      react-dom:
+        optional: true
+      vue:
+        optional: true
+
+  '@bafv4/mcitems@https://codeload.github.com/bafv4/mcitems/tar.gz/e971f26891a792ab10bef0b5bd588dc40de8f2c1':
+    resolution: {tarball: https://codeload.github.com/bafv4/mcitems/tar.gz/e971f26891a792ab10bef0b5bd588dc40de8f2c1}
+    version: 2.0.0
+    peerDependencies:
+      react: '>=17.0.0'
+      react-dom: '>=17.0.0'
+      vue: '>=3.0.0'
+    peerDependenciesMeta:
+      react:
+        optional: true
+      react-dom:
+        optional: true
+      vue:
+        optional: true
 
   '@clack/core@0.4.2':
     resolution: {integrity: sha512-NYQfcEy8MWIxrT5Fj8nIVchfRFA26yYKJcvBS7WlUIlw2OmQOY9DhGGXMovyI5J5PpxrCPGkgUi207EBrjpBvg==}
@@ -3266,6 +3303,18 @@ snapshots:
     dependencies:
       '@babel/helper-string-parser': 7.27.1
       '@babel/helper-validator-identifier': 7.28.5
+
+  '@bafv4/mcavatar@https://codeload.github.com/bafv4/mcavatar/tar.gz/54826982345d6746e4b29c98f3fb49537a14a193(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(sharp@0.34.5)':
+    dependencies:
+      sharp: 0.34.5
+    optionalDependencies:
+      react: 19.2.0
+      react-dom: 19.2.0(react@19.2.0)
+
+  '@bafv4/mcitems@https://codeload.github.com/bafv4/mcitems/tar.gz/e971f26891a792ab10bef0b5bd588dc40de8f2c1(react-dom@19.2.0(react@19.2.0))(react@19.2.0)':
+    optionalDependencies:
+      react: 19.2.0
+      react-dom: 19.2.0(react@19.2.0)
 
   '@clack/core@0.4.2':
     dependencies:

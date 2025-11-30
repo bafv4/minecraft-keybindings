@@ -1,6 +1,6 @@
 'use client';
 
-import { MinecraftItemIcon } from '@/lib/mcitems';
+import { MinecraftItemIcon } from '@bafv4/mcitems/1.16/react';
 
 interface SpeedrunItemIconProps {
   itemId: string;

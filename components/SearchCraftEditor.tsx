@@ -4,7 +4,7 @@ import { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
 import { Switch } from '@headlessui/react';
 import { Button } from '@/components/ui';
 import { PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
-import { MinecraftItemIcon, formatItemName } from '@/lib/mcitems';
+import { MinecraftItemIcon, formatItemName } from '@bafv4/mcitems/1.16/react';
 import { SearchCraftItemSelector } from './SearchCraftItemSelector';
 import { stringToKeyCodes, keyCodesToString } from '@/lib/searchCraft';
 import { webCodeToChar } from '@/lib/remapUtils';

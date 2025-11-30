@@ -56,7 +56,17 @@
       "Bash(cd:*)",
       "Bash(rm:*)",
       "Bash(if exist \"node_modules\\.prisma\\client\\.lock\" del /F \"node_modules\\.prisma\\client\\.lock\")",
-      "Bash(pnpm prisma validate:*)"
+      "Bash(pnpm prisma validate:*)",
+      "Bash(git init:*)",
+      "Bash(pnpm update:*)",
+      "Bash(npx next build)",
+      "Bash(pnpm link:*)",
+      "Bash(git reset:*)",
+      "Bash(git rm:*)",
+      "Bash(git branch:*)",
+      "Bash(gh repo create:*)",
+      "Bash(git remote add:*)",
+      "Bash(git push:*)"
     ],
     "deny": [],
     "ask": []
