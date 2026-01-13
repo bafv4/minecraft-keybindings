@@ -7,8 +7,9 @@ import { WorkspaceSearchCraftEditor } from '@/components/WorkspaceSearchCraftEdi
 import { AutoHotKeyExportDialog } from '@/components/AutoHotKeyExportDialog';
 import { RadioGroup } from '@/components/ui/RadioGroup';
 import { Button } from '@/components/ui';
-import { TrashIcon, ArrowDownTrayIcon, ArrowPathIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import { TrashIcon, ArrowDownTrayIcon, ArrowPathIcon, MagnifyingGlassIcon, KeyIcon } from '@heroicons/react/24/outline';
 import { minecraftToWeb } from '@/lib/keyConversion';
+import { formatKeyNameShort } from '@/lib/utils';
 
 const STORAGE_KEY = 'workspace_remaps';
 const LAYOUT_STORAGE_KEY = 'workspace_keyboard_layout';
@@ -286,6 +287,67 @@ export default function WorkspacePage() {
           onEnabledChange={setSearchCraftEnabled}
         />
       </div>
+
+      {/* サーチクラフト押すキー一覧 */}
+      {searchCraftEnabled && searchCrafts.some(c => c.inputString && !c.error) && (
+        <div className="p-4 bg-card border border-border rounded-lg">
+          <div className="flex items-center gap-2 mb-4">
+            <KeyIcon className="w-5 h-5 text-primary" />
+            <h3 className="text-lg font-semibold">押すキー一覧</h3>
+          </div>
+          <div className="space-y-3">
+            {searchCrafts
+              .filter(c => c.inputString && !c.error && c.keys.length > 0)
+              .map((craft) => (
+                <div
+                  key={craft.sequence}
+                  className="flex items-start gap-3 p-3 bg-muted/30 rounded-lg"
+                >
+                  {/* 連番 */}
+                  <div className="flex-shrink-0 w-6 h-6 flex items-center justify-center bg-primary/20 rounded-full text-xs font-bold">
+                    {craft.sequence}
+                  </div>
+                  <div className="flex-1 space-y-2">
+                    {/* 入力文字 */}
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-muted-foreground w-16">入力文字:</span>
+                      <div className="flex gap-1 flex-wrap">
+                        {craft.inputString.split('').map((char, idx) => (
+                          <kbd
+                            key={idx}
+                            className="px-1.5 py-0.5 bg-secondary/20 border border-secondary/30 rounded text-xs font-mono"
+                          >
+                            {char}
+                          </kbd>
+                        ))}
+                      </div>
+                    </div>
+                    {/* 押すキー */}
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-muted-foreground w-16">押すキー:</span>
+                      <div className="flex gap-1 flex-wrap">
+                        {craft.keys.map((key, idx) => (
+                          <kbd
+                            key={idx}
+                            className="px-1.5 py-0.5 bg-background border border-border rounded text-xs font-mono"
+                          >
+                            {formatKeyNameShort(key)}
+                          </kbd>
+                        ))}
+                      </div>
+                    </div>
+                    {/* コメント */}
+                    {craft.comment && (
+                      <div className="text-xs text-muted-foreground">
+                        {craft.comment}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+          </div>
+        </div>
+      )}
 
       {/* リマップ専用モーダル */}
       {selectedKey && (
