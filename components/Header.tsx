@@ -11,7 +11,8 @@ import {
   Bars3Icon,
   XMarkIcon,
   ListBulletIcon,
-  ChevronDownIcon
+  ChevronDownIcon,
+  WrenchScrewdriverIcon
 } from '@heroicons/react/24/outline';
 import { useState, Fragment } from 'react';
 import type { Session } from 'next-auth';
@@ -193,6 +194,15 @@ export function Header({ session }: HeaderProps) {
               </MenuItems>
             </Menu>
 
+            {/* ワークスペースリンク */}
+            <Link
+              href="/workspace"
+              className="flex items-center gap-2 px-4 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-accent rounded-xl transition-all duration-200"
+            >
+              <WrenchScrewdriverIcon className="w-5 h-5" />
+              <span>ワークスペース</span>
+            </Link>
+
             {session?.user ? (
               <>
                 {/* User Menu */}
@@ -361,6 +371,18 @@ export function Header({ session }: HeaderProps) {
                 onClick={() => setMobileMenuOpen(false)}
               >
                 <span className="pl-8">マウス統計</span>
+              </Link>
+            </div>
+
+            {/* ワークスペースリンク */}
+            <div className="space-y-1 pt-2">
+              <Link
+                href="/workspace"
+                className="flex items-center gap-3 px-4 py-3 text-sm hover:bg-accent rounded-lg transition-colors"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                <WrenchScrewdriverIcon className="w-5 h-5 text-muted-foreground" />
+                <span>ワークスペース</span>
               </Link>
             </div>
 
