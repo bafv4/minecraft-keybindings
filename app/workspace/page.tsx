@@ -3,14 +3,29 @@
 import { useState, useEffect, useCallback } from 'react';
 import { VirtualKeyboard } from '@/components/VirtualKeyboard';
 import { WorkspaceRemapModal } from '@/components/WorkspaceRemapModal';
+import { WorkspaceSearchCraftEditor } from '@/components/WorkspaceSearchCraftEditor';
 import { AutoHotKeyExportDialog } from '@/components/AutoHotKeyExportDialog';
 import { RadioGroup } from '@/components/ui/RadioGroup';
 import { Button } from '@/components/ui';
-import { TrashIcon, ArrowDownTrayIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
+import { TrashIcon, ArrowDownTrayIcon, ArrowPathIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import { minecraftToWeb } from '@/lib/keyConversion';
 
 const STORAGE_KEY = 'workspace_remaps';
 const LAYOUT_STORAGE_KEY = 'workspace_keyboard_layout';
+const SEARCH_CRAFT_STORAGE_KEY = 'workspace_search_crafts';
+const SEARCH_CRAFT_ENABLED_KEY = 'workspace_search_craft_enabled';
+
+interface SearchCraftEntry {
+  sequence: number;
+  item1?: string;
+  item2?: string;
+  item3?: string;
+  inputString: string;
+  keys: string[];
+  originalKeys: string[];
+  comment?: string;
+  error?: string;
+}
 
 // キーボードレイアウトオプション
 const KEYBOARD_LAYOUT_OPTIONS = [
@@ -27,6 +42,10 @@ export default function WorkspacePage() {
   const [isLoaded, setIsLoaded] = useState(false);
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
 
+  // サーチクラフト
+  const [searchCrafts, setSearchCrafts] = useState<SearchCraftEntry[]>([]);
+  const [searchCraftEnabled, setSearchCraftEnabled] = useState(false);
+
   // localStorageから読み込み
   useEffect(() => {
     try {
@@ -37,6 +56,14 @@ export default function WorkspacePage() {
       const storedLayout = localStorage.getItem(LAYOUT_STORAGE_KEY);
       if (storedLayout) {
         setKeyboardLayout(storedLayout as 'JIS' | 'JIS-TKL' | 'US' | 'US-TKL');
+      }
+      const storedSearchCrafts = localStorage.getItem(SEARCH_CRAFT_STORAGE_KEY);
+      if (storedSearchCrafts) {
+        setSearchCrafts(JSON.parse(storedSearchCrafts));
+      }
+      const storedSearchCraftEnabled = localStorage.getItem(SEARCH_CRAFT_ENABLED_KEY);
+      if (storedSearchCraftEnabled) {
+        setSearchCraftEnabled(JSON.parse(storedSearchCraftEnabled));
       }
     } catch (e) {
       console.error('Failed to load from localStorage:', e);
@@ -66,6 +93,28 @@ export default function WorkspacePage() {
     }
   }, [keyboardLayout, isLoaded]);
 
+  // searchCraftsが変更されたらlocalStorageに保存
+  useEffect(() => {
+    if (isLoaded) {
+      try {
+        localStorage.setItem(SEARCH_CRAFT_STORAGE_KEY, JSON.stringify(searchCrafts));
+      } catch (e) {
+        console.error('Failed to save search crafts to localStorage:', e);
+      }
+    }
+  }, [searchCrafts, isLoaded]);
+
+  // searchCraftEnabledが変更されたらlocalStorageに保存
+  useEffect(() => {
+    if (isLoaded) {
+      try {
+        localStorage.setItem(SEARCH_CRAFT_ENABLED_KEY, JSON.stringify(searchCraftEnabled));
+      } catch (e) {
+        console.error('Failed to save search craft enabled to localStorage:', e);
+      }
+    }
+  }, [searchCraftEnabled, isLoaded]);
+
   // キーがクリックされたとき
   const handleKeyClick = useCallback((key: string) => {
     setSelectedKey(key);
@@ -92,13 +141,18 @@ export default function WorkspacePage() {
 
   // すべてクリア
   const handleClearAll = useCallback(() => {
-    if (confirm('すべてのリマップ設定をクリアしますか？')) {
+    if (confirm('すべての設定をクリアしますか？（リマップとサーチクラフト）')) {
       setRemappings({});
+      setSearchCrafts([]);
+      setSearchCraftEnabled(false);
     }
   }, []);
 
   // リマップ数をカウント
   const remapCount = Object.keys(remappings).length;
+
+  // サーチクラフト数をカウント
+  const searchCraftCount = searchCraftEnabled ? searchCrafts.filter(c => c.item1 || c.inputString).length : 0;
 
   // 選択中のキーのWeb形式
   const webSelectedKey = selectedKey ? minecraftToWeb(selectedKey) : '';
@@ -118,7 +172,7 @@ export default function WorkspacePage() {
         <div>
           <h1 className="text-2xl font-bold">ワークスペース</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            リマップ設定の下書きを作成できます。設定はブラウザに保存されます。
+            リマップ・サーチクラフト設定の下書きを作成できます。設定はブラウザに保存されます。
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -135,7 +189,7 @@ export default function WorkspacePage() {
             variant="secondary"
             size="sm"
             onClick={handleClearAll}
-            disabled={remapCount === 0}
+            disabled={remapCount === 0 && searchCraftCount === 0}
           >
             <TrashIcon className="w-4 h-4 mr-1" />
             クリア
@@ -144,11 +198,16 @@ export default function WorkspacePage() {
       </div>
 
       {/* 統計 */}
-      <div className="flex items-center gap-4 p-4 bg-card border border-border rounded-lg">
+      <div className="flex flex-wrap items-center gap-4 p-4 bg-card border border-border rounded-lg">
         <div className="flex items-center gap-2">
           <ArrowPathIcon className="w-5 h-5 text-primary" />
           <span className="text-sm font-medium">リマップ数:</span>
           <span className="text-lg font-bold text-primary">{remapCount}</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <MagnifyingGlassIcon className="w-5 h-5 text-secondary" />
+          <span className="text-sm font-medium">サーチクラフト:</span>
+          <span className="text-lg font-bold text-secondary">{searchCraftCount}</span>
         </div>
       </div>
 
@@ -165,6 +224,7 @@ export default function WorkspacePage() {
 
       {/* バーチャルキーボード（display モードでクリックハンドラーを使用） */}
       <div className="p-4 bg-card border border-border rounded-lg overflow-x-auto">
+        <h2 className="text-lg font-semibold mb-4">リマップ設定</h2>
         <VirtualKeyboard
           bindings={{}}
           mode="display"
@@ -181,7 +241,7 @@ export default function WorkspacePage() {
       {/* リマップ一覧 */}
       {remapCount > 0 && (
         <div className="p-4 bg-card border border-border rounded-lg">
-          <h2 className="text-lg font-semibold mb-4">リマップ一覧</h2>
+          <h3 className="text-base font-semibold mb-3">リマップ一覧</h3>
           <div className="space-y-2">
             {Object.entries(remappings).map(([sourceKey, targetKey]) => (
               <div
@@ -215,6 +275,17 @@ export default function WorkspacePage() {
           </div>
         </div>
       )}
+
+      {/* サーチクラフト設定 */}
+      <div className="p-4 bg-card border border-border rounded-lg">
+        <WorkspaceSearchCraftEditor
+          remappings={remappings}
+          searchCrafts={searchCrafts}
+          onSearchCraftsChange={setSearchCrafts}
+          enabled={searchCraftEnabled}
+          onEnabledChange={setSearchCraftEnabled}
+        />
+      </div>
 
       {/* リマップ専用モーダル */}
       {selectedKey && (
