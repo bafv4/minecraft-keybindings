@@ -3,11 +3,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Switch } from '@headlessui/react';
 import { Button } from '@/components/ui';
-import { PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, TrashIcon, KeyIcon } from '@heroicons/react/24/outline';
 import { MinecraftItemIcon, formatItemName } from '@bafv4/mcitems/1.16/react';
 import { SearchCraftItemSelector } from './SearchCraftItemSelector';
 import { stringToKeyCodes } from '@/lib/searchCraft';
-import { webCodeToChar } from '@/lib/remapUtils';
+import { formatKeyNameShort } from '@/lib/utils';
 
 interface SearchCraftEntry {
   sequence: number;
@@ -321,6 +321,24 @@ export function WorkspaceSearchCraftEditor({
                         <p className="mt-1 text-xs text-red-500">{craft.error}</p>
                       )}
                     </div>
+
+                    {/* 押すキー表示 */}
+                    {craft.keys.length > 0 && !craft.error && (
+                      <div className="flex items-center gap-2 p-2 bg-primary/5 border border-primary/20 rounded-lg">
+                        <KeyIcon className="w-4 h-4 text-primary flex-shrink-0" />
+                        <span className="text-xs text-muted-foreground">押すキー:</span>
+                        <div className="flex gap-1 flex-wrap">
+                          {craft.keys.map((key, idx) => (
+                            <kbd
+                              key={idx}
+                              className="px-1.5 py-0.5 bg-background border border-border rounded text-xs font-mono"
+                            >
+                              {formatKeyNameShort(key)}
+                            </kbd>
+                          ))}
+                        </div>
+                      </div>
+                    )}
 
                     {/* コメント入力 */}
                     <div>
