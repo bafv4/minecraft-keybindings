@@ -322,21 +322,40 @@ export function WorkspaceSearchCraftEditor({
                       )}
                     </div>
 
-                    {/* 押すキー表示 */}
-                    {craft.keys.length > 0 && !craft.error && (
-                      <div className="flex items-center gap-2 p-2 bg-primary/5 border border-primary/20 rounded-lg">
-                        <KeyIcon className="w-4 h-4 text-primary flex-shrink-0" />
-                        <span className="text-xs text-muted-foreground">押すキー:</span>
-                        <div className="flex gap-1 flex-wrap">
-                          {craft.keys.map((key, idx) => (
-                            <kbd
-                              key={idx}
-                              className="px-1.5 py-0.5 bg-background border border-border rounded text-xs font-mono"
-                            >
-                              {formatKeyNameShort(key)}
-                            </kbd>
-                          ))}
+                    {/* 入力文字と押すキー表示 */}
+                    {craft.inputString && !craft.error && (
+                      <div className="p-2 bg-primary/5 border border-primary/20 rounded-lg space-y-2">
+                        {/* 入力文字一覧 */}
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-muted-foreground w-16">入力文字:</span>
+                          <div className="flex gap-1 flex-wrap">
+                            {craft.inputString.split('').map((char, idx) => (
+                              <kbd
+                                key={idx}
+                                className="px-1.5 py-0.5 bg-secondary/20 border border-secondary/30 rounded text-xs font-mono"
+                              >
+                                {char}
+                              </kbd>
+                            ))}
+                          </div>
                         </div>
+                        {/* 押すキー一覧 */}
+                        {craft.keys.length > 0 && (
+                          <div className="flex items-center gap-2">
+                            <KeyIcon className="w-4 h-4 text-primary flex-shrink-0" />
+                            <span className="text-xs text-muted-foreground w-12">押すキー:</span>
+                            <div className="flex gap-1 flex-wrap">
+                              {craft.keys.map((key, idx) => (
+                                <kbd
+                                  key={idx}
+                                  className="px-1.5 py-0.5 bg-background border border-border rounded text-xs font-mono"
+                                >
+                                  {formatKeyNameShort(key)}
+                                </kbd>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     )}
 
