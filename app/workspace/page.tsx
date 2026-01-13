@@ -2,12 +2,12 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { VirtualKeyboard } from '@/components/VirtualKeyboard';
+import { WorkspaceRemapModal } from '@/components/WorkspaceRemapModal';
 import { AutoHotKeyExportDialog } from '@/components/AutoHotKeyExportDialog';
 import { RadioGroup } from '@/components/ui/RadioGroup';
 import { Button } from '@/components/ui';
 import { TrashIcon, ArrowDownTrayIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 import { minecraftToWeb } from '@/lib/keyConversion';
-import type { Finger } from '@/types/player';
 
 const STORAGE_KEY = 'workspace_remaps';
 const LAYOUT_STORAGE_KEY = 'workspace_keyboard_layout';
@@ -25,6 +25,7 @@ export default function WorkspacePage() {
   const [keyboardLayout, setKeyboardLayout] = useState<'JIS' | 'JIS-TKL' | 'US' | 'US-TKL'>('JIS');
   const [showExportDialog, setShowExportDialog] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [selectedKey, setSelectedKey] = useState<string | null>(null);
 
   // localStorageから読み込み
   useEffect(() => {
@@ -65,29 +66,29 @@ export default function WorkspacePage() {
     }
   }, [keyboardLayout, isLoaded]);
 
-  // 設定を更新
-  const handleUpdateConfig = useCallback((key: string, config: {
-    actions?: string[];
-    remap?: string;
-    externalTool?: string;
-    finger?: Finger[];
-  }) => {
-    const webKey = minecraftToWeb(key);
+  // キーがクリックされたとき
+  const handleKeyClick = useCallback((key: string) => {
+    setSelectedKey(key);
+  }, []);
+
+  // リマップを保存
+  const handleSaveRemap = useCallback((remap: string | undefined) => {
+    if (!selectedKey) return;
+
+    const webKey = minecraftToWeb(selectedKey);
 
     setRemappings(prev => {
       const updated = { ...prev };
 
-      if (config.remap && config.remap.trim() !== '') {
-        // リマップ先をMinecraft形式で保存
-        updated[webKey] = config.remap;
+      if (remap && remap.trim() !== '') {
+        updated[webKey] = remap;
       } else {
-        // 空の場合は削除
         delete updated[webKey];
       }
 
       return updated;
     });
-  }, []);
+  }, [selectedKey]);
 
   // すべてクリア
   const handleClearAll = useCallback(() => {
@@ -98,6 +99,9 @@ export default function WorkspacePage() {
 
   // リマップ数をカウント
   const remapCount = Object.keys(remappings).length;
+
+  // 選択中のキーのWeb形式
+  const webSelectedKey = selectedKey ? minecraftToWeb(selectedKey) : '';
 
   if (!isLoaded) {
     return (
@@ -159,15 +163,15 @@ export default function WorkspacePage() {
         />
       </div>
 
-      {/* バーチャルキーボード */}
+      {/* バーチャルキーボード（display モードでクリックハンドラーを使用） */}
       <div className="p-4 bg-card border border-border rounded-lg overflow-x-auto">
         <VirtualKeyboard
           bindings={{}}
-          mode="edit"
+          mode="display"
           remappings={remappings}
           externalTools={{}}
           fingerAssignments={{}}
-          onUpdateConfig={handleUpdateConfig}
+          onKeyClick={handleKeyClick}
           keyboardLayout={keyboardLayout}
           showFingerColors={false}
           customKeys={[]}
@@ -210,6 +214,17 @@ export default function WorkspacePage() {
             ))}
           </div>
         </div>
+      )}
+
+      {/* リマップ専用モーダル */}
+      {selectedKey && (
+        <WorkspaceRemapModal
+          isOpen={!!selectedKey}
+          onClose={() => setSelectedKey(null)}
+          selectedKey={selectedKey}
+          currentRemap={remappings[webSelectedKey]}
+          onSave={handleSaveRemap}
+        />
       )}
 
       {/* エクスポートダイアログ */}
