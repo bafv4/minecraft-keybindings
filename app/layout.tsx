@@ -3,6 +3,7 @@ import { Zen_Kaku_Gothic_New } from "next/font/google";
 import "./globals.css";
 import { HeaderWrapper } from "@/components/HeaderWrapper";
 import { Providers } from "@/components/Providers";
+import { MigrationBanner } from "@/components/MigrationBanner";
 
 const zenKakuGothicNew = Zen_Kaku_Gothic_New({
   weight: ['400', '500', '700'],
@@ -56,7 +57,8 @@ export default function RootLayout({
       <body className="h-full flex flex-col font-sans">
         <Providers>
           <HeaderWrapper />
-          <main className="container mx-auto px-4 py-6 md:py-8 pt-20 md:pt-28 flex-1 flex flex-col min-h-0">
+          <MigrationBanner />
+          <main className="container mx-auto px-4 py-6 md:py-8 pt-32 md:pt-40 flex-1 flex flex-col min-h-0">
             {children}
           </main>
         </Providers>
